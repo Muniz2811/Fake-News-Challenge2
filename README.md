@@ -31,6 +31,31 @@ As pastas `data/` e `Fake.br-Corpus/` ficam no ambiente local e são ignoradas p
 
 O `eda.py` utiliza funções do `acquire.py`; os dois devem ser mantidos juntos.
 
+## Como executar
+
+É necessário ter **Python 3.10+**, **Git** e acesso à internet para baixar as bases. Os scripts usam apenas a biblioteca padrão do Python, sem instalação de pacotes adicionais.
+
+Após clonar o repositório, abra o terminal na pasta do projeto, onde está este README, e execute os comandos na ordem abaixo.
+
+**Windows / PowerShell:**
+
+```powershell
+# 1. Baixar as bases e registrar sua origem
+python scripts/acquire.py
+
+# 2. Executar a análise e gerar os relatórios
+python scripts/eda.py
+```
+
+**macOS / Linux:**
+
+```bash
+python3 scripts/acquire.py
+python3 scripts/eda.py
+```
+
+As bases completas não vêm no clone: são obtidas pelo `acquire.py`, que reaproveita os arquivos já presentes. Depois da aquisição, a análise pode ser executada offline. Os resultados são salvos em `reports/`, e os dados padronizados do Fake.br, em `data/processed/`.
+
 ## Bases e formatos
 
 | Base | Resumo | Estrutura |
