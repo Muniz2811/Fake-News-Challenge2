@@ -1,0 +1,391 @@
+{
+  "evidence": [
+    {
+      "content": [
+        "Algebraic logic_sentence_0",
+        "Lindenbaum–Tarski algebra_sentence_1",
+        "Lindenbaum–Tarski algebra_sentence_6",
+        "Lindenbaum–Tarski algebra_sentence_3",
+        "Algebraic logic_cell_0_1_1",
+        "Algebraic logic_cell_0_2_1",
+        "Algebraic logic_cell_0_3_1",
+        "Algebraic logic_cell_0_4_1",
+        "Algebraic logic_cell_0_5_1",
+        "Algebraic logic_cell_0_6_1",
+        "Algebraic logic_cell_0_7_1",
+        "Algebraic logic_cell_0_8_1",
+        "Algebraic logic_cell_0_9_1"
+      ],
+      "context": {
+        "Algebraic logic_sentence_0": [
+          "Algebraic logic_title"
+        ],
+        "Lindenbaum–Tarski algebra_sentence_1": [
+          "Lindenbaum–Tarski algebra_title"
+        ],
+        "Lindenbaum–Tarski algebra_sentence_6": [
+          "Lindenbaum–Tarski algebra_title"
+        ],
+        "Lindenbaum–Tarski algebra_sentence_3": [
+          "Lindenbaum–Tarski algebra_title"
+        ],
+        "Algebraic logic_cell_0_1_1": [
+          "Algebraic logic_title",
+          "Algebraic logic_section_4",
+          "Algebraic logic_header_cell_0_0_1"
+        ],
+        "Algebraic logic_cell_0_2_1": [
+          "Algebraic logic_title",
+          "Algebraic logic_section_4",
+          "Algebraic logic_header_cell_0_0_1"
+        ],
+        "Algebraic logic_cell_0_3_1": [
+          "Algebraic logic_title",
+          "Algebraic logic_section_4",
+          "Algebraic logic_header_cell_0_0_1"
+        ],
+        "Algebraic logic_cell_0_4_1": [
+          "Algebraic logic_title",
+          "Algebraic logic_section_4",
+          "Algebraic logic_header_cell_0_0_1"
+        ],
+        "Algebraic logic_cell_0_5_1": [
+          "Algebraic logic_title",
+          "Algebraic logic_section_4",
+          "Algebraic logic_header_cell_0_0_1"
+        ],
+        "Algebraic logic_cell_0_6_1": [
+          "Algebraic logic_title",
+          "Algebraic logic_section_4",
+          "Algebraic logic_header_cell_0_0_1"
+        ],
+        "Algebraic logic_cell_0_7_1": [
+          "Algebraic logic_title",
+          "Algebraic logic_section_4",
+          "Algebraic logic_header_cell_0_0_1"
+        ],
+        "Algebraic logic_cell_0_8_1": [
+          "Algebraic logic_title",
+          "Algebraic logic_section_4",
+          "Algebraic logic_header_cell_0_0_1"
+        ],
+        "Algebraic logic_cell_0_9_1": [
+          "Algebraic logic_title",
+          "Algebraic logic_section_4",
+          "Algebraic logic_header_cell_0_0_1"
+        ]
+      }
+    },
+    {
+      "content": [
+        "Algebraic logic_cell_0_1_0",
+        "Algebraic logic_cell_0_2_0",
+        "Algebraic logic_cell_0_3_0",
+        "Algebraic logic_cell_0_4_0",
+        "Algebraic logic_cell_0_5_0",
+        "Algebraic logic_cell_0_6_0",
+        "Algebraic logic_cell_0_7_0",
+        "Algebraic logic_cell_0_8_0",
+        "Algebraic logic_cell_0_9_0"
+      ],
+      "context": {
+        "Algebraic logic_cell_0_1_0": [
+          "Algebraic logic_title",
+          "Algebraic logic_section_4",
+          "Algebraic logic_header_cell_0_0_0"
+        ],
+        "Algebraic logic_cell_0_2_0": [
+          "Algebraic logic_title",
+          "Algebraic logic_section_4",
+          "Algebraic logic_header_cell_0_0_0"
+        ],
+        "Algebraic logic_cell_0_3_0": [
+          "Algebraic logic_title",
+          "Algebraic logic_section_4",
+          "Algebraic logic_header_cell_0_0_0"
+        ],
+        "Algebraic logic_cell_0_4_0": [
+          "Algebraic logic_title",
+          "Algebraic logic_section_4",
+          "Algebraic logic_header_cell_0_0_0"
+        ],
+        "Algebraic logic_cell_0_5_0": [
+          "Algebraic logic_title",
+          "Algebraic logic_section_4",
+          "Algebraic logic_header_cell_0_0_0"
+        ],
+        "Algebraic logic_cell_0_6_0": [
+          "Algebraic logic_title",
+          "Algebraic logic_section_4",
+          "Algebraic logic_header_cell_0_0_0"
+        ],
+        "Algebraic logic_cell_0_7_0": [
+          "Algebraic logic_title",
+          "Algebraic logic_section_4",
+          "Algebraic logic_header_cell_0_0_0"
+        ],
+        "Algebraic logic_cell_0_8_0": [
+          "Algebraic logic_title",
+          "Algebraic logic_section_4",
+          "Algebraic logic_header_cell_0_0_0"
+        ],
+        "Algebraic logic_cell_0_9_0": [
+          "Algebraic logic_title",
+          "Algebraic logic_section_4",
+          "Algebraic logic_header_cell_0_0_0"
+        ]
+      }
+    }
+  ],
+  "id": 7389,
+  "claim": "Algebraic logic has five Logical system and Lindenbaum–Tarski algebra which includes Physics algebra and Nodal algebra (provide models of propositional modal logics).",
+  "label": "REFUTES",
+  "annotator_operations": [
+    {
+      "operation": "start",
+      "value": "start",
+      "time": "0"
+    },
+    {
+      "operation": "Now on",
+      "value": "?search=",
+      "time": "1.62"
+    },
+    {
+      "operation": "search",
+      "value": "Algebra Logic",
+      "time": "55.915"
+    },
+    {
+      "operation": "Now on",
+      "value": "Algebra i Logika",
+      "time": "58.458"
+    },
+    {
+      "operation": "search",
+      "value": "algebra logical system",
+      "time": "75.851"
+    },
+    {
+      "operation": "Now on",
+      "value": "undefined",
+      "time": "77.252"
+    },
+    {
+      "operation": "search",
+      "value": "Lindenbaum",
+      "time": "95.919"
+    },
+    {
+      "operation": "Now on",
+      "value": "Lindenbaum",
+      "time": "96.709"
+    },
+    {
+      "operation": "search",
+      "value": "lindenbaaum-tarski",
+      "time": "112.075"
+    },
+    {
+      "operation": "Now on",
+      "value": "undefined",
+      "time": "113"
+    },
+    {
+      "operation": "hyperlink",
+      "value": "Algebraic logic",
+      "time": "126.503"
+    },
+    {
+      "operation": "Now on",
+      "value": "Algebraic logic",
+      "time": "127.87"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_sentence_0",
+      "time": "139.588"
+    },
+    {
+      "operation": "Page search",
+      "value": "logical system",
+      "time": "177.52"
+    },
+    {
+      "operation": "hyperlink",
+      "value": "Lindenbaum–Tarski algebra",
+      "time": "198.201"
+    },
+    {
+      "operation": "Now on",
+      "value": "Lindenbaum–Tarski algebra",
+      "time": "198.831"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Lindenbaum–Tarski algebra_sentence_1",
+      "time": "229.376"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Lindenbaum–Tarski algebra_sentence_6",
+      "time": "243.39"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Lindenbaum–Tarski algebra_sentence_3",
+      "time": "254.119"
+    },
+    {
+      "operation": "back-button-clicked",
+      "value": "back-button-clicked",
+      "time": "309.012"
+    },
+    {
+      "operation": "Now on",
+      "value": "Algebraic logic",
+      "time": "309.107"
+    },
+    {
+      "operation": "search",
+      "value": "five",
+      "time": "319.153"
+    },
+    {
+      "operation": "Now on",
+      "value": "5 (disambiguation)",
+      "time": "320.853"
+    },
+    {
+      "operation": "back-button-clicked",
+      "value": "back-button-clicked",
+      "time": "326.901"
+    },
+    {
+      "operation": "Now on",
+      "value": "Algebraic logic",
+      "time": "326.989"
+    },
+    {
+      "operation": "Page search",
+      "value": "five",
+      "time": "331.075"
+    },
+    {
+      "operation": "hyperlink",
+      "value": "sentential logic",
+      "time": "369.843"
+    },
+    {
+      "operation": "Now on",
+      "value": "Propositional calculus",
+      "time": "370.894"
+    },
+    {
+      "operation": "back-button-clicked",
+      "value": "back-button-clicked",
+      "time": "372.489"
+    },
+    {
+      "operation": "Now on",
+      "value": "Algebraic logic",
+      "time": "372.578"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_cell_0_1_0",
+      "time": "374.293"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_cell_0_2_0",
+      "time": "375.079"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_cell_0_3_0",
+      "time": "375.978"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_cell_0_4_0",
+      "time": "376.906"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_cell_0_5_0",
+      "time": "377.955"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_cell_0_6_0",
+      "time": "378.868"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_cell_0_7_0",
+      "time": "379.584"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_cell_0_8_0",
+      "time": "380.466"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_cell_0_9_0",
+      "time": "381.396"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_cell_0_1_1",
+      "time": "440.289"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_cell_0_2_1",
+      "time": "440.919"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_cell_0_3_1",
+      "time": "441.889"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_cell_0_4_1",
+      "time": "442.479"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_cell_0_5_1",
+      "time": "443.149"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_cell_0_6_1",
+      "time": "444.967"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_cell_0_7_1",
+      "time": "446.181"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_cell_0_8_1",
+      "time": "447.299"
+    },
+    {
+      "operation": "Highlighting",
+      "value": "Algebraic logic_cell_0_9_1",
+      "time": "449.401"
+    },
+    {
+      "operation": "finish",
+      "value": "finish",
+      "time": "559.284"
+    }
+  ],
+  "challenge": "Multi-hop Reasoning"
+}

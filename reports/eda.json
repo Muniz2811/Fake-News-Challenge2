@@ -1,0 +1,4458 @@
+{
+  "created_at_utc": "2026-09-17T18:04:15.325464+00:00",
+  "python": "3.13.1 (tags/v3.13.1:0671451, Dec  3 2024, 19:06:28) [MSC v.1942 64 bit (AMD64)]",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "manifest_sha256": "714cf014ee37910ff0158061a96c8030c59b1404c73a355605c0d7c448683338",
+  "provenance": {
+    "fakebr_revision": "780f5516c4ae070761632d98ac3368f3ded09d35",
+    "fakebr_working_tree_status": "",
+    "averitec_revision": "7c62d1ec8df3fb560d6efe2b85fa191135636f81"
+  },
+  "method": "All records; JSONL streamed; one AVeriTeC JSON split at a time; no tokenizer/model loaded.",
+  "fakebr": {
+    "full_texts": {
+      "records": 7200,
+      "labeled_records": 7200,
+      "labels": {
+        "fake": 3600,
+        "true": 3600
+      },
+      "percent_of_labeled": {
+        "fake": 50.0,
+        "true": 50.0
+      },
+      "majority_minority_ratio": 1.0,
+      "balance_assessment": "Classes balanceadas: não aplicar oversampling por frequência.",
+      "quality": {},
+      "duplicate_id_excess": 0,
+      "normalized_duplicate_groups": 1,
+      "normalized_duplicate_excess": 1,
+      "conflicting_duplicate_groups": 0,
+      "duplicate_examples": [
+        [
+          {
+            "id": "true/61",
+            "label": "true",
+            "split": "full_texts"
+          },
+          {
+            "id": "true/69",
+            "label": "true",
+            "split": "full_texts"
+          }
+        ]
+      ],
+      "conflicting_duplicate_examples": [],
+      "metrics": {
+        "text_characters": {
+          "n": 7200,
+          "min": 46,
+          "p50": 2185.5,
+          "p95": 12026.15,
+          "p99": 16742.63,
+          "max": 46084,
+          "mean": 3898.9
+        },
+        "text_words_whitespace": {
+          "n": 7200,
+          "min": 9,
+          "p50": 362.0,
+          "p95": 1985.05,
+          "p99": 2803.07,
+          "max": 7517,
+          "mean": 643.09
+        },
+        "words_fake": {
+          "n": 3600,
+          "min": 9,
+          "p50": 157.0,
+          "p95": 378.05,
+          "p99": 644.01,
+          "max": 2288,
+          "mean": 185.89
+        },
+        "words_true": {
+          "n": 3600,
+          "min": 20,
+          "p50": 918.0,
+          "p95": 2284.15,
+          "p99": 3209.13,
+          "max": 7517,
+          "mean": 1100.29
+        }
+      },
+      "categories": {
+        "category_fake": {
+          "politica": 2090,
+          "tv_celebridades": 772,
+          "sociedade_cotidiano": 638,
+          "ciencia_tecnologia": 56,
+          "religiao": 22,
+          "economia": 22
+        },
+        "category_true": {
+          "politica": 2090,
+          "tv_celebridades": 772,
+          "sociedade_cotidiano": 638,
+          "ciencia_tecnologia": 56,
+          "religiao": 22,
+          "economia": 22
+        },
+        "publication_year_fake": {
+          "2017": 1608,
+          "2016": 1586,
+          "2015": 235,
+          "2018": 169,
+          "2012": 1,
+          "<unparsed>": 1
+        },
+        "publication_year_true": {
+          "2017": 2103,
+          "2018": 1138,
+          "2016": 278,
+          "2015": 40,
+          "2014": 10,
+          "2012": 9,
+          "2010": 6,
+          "2013": 5,
+          "2011": 5,
+          "<unparsed>": 3,
+          "2009": 3
+        },
+        "source_domain_fake": {
+          "www.diariodobrasil.org": 3337,
+          "afolhabrasil.com.br": 174,
+          "www.thejornalbrasil.com.br": 66,
+          "ceticismopolitico.com": 16,
+          "www.topfivetv.com": 7
+        },
+        "source_domain_true": {
+          "g1.globo.com": 2300,
+          "politica.estadao.com.br": 753,
+          "internacional.estadao.com.br": 114,
+          "cultura.estadao.com.br": 95,
+          "www1.folha.uol.com.br": 91,
+          "economia.estadao.com.br": 51,
+          "brasil.estadao.com.br": 46,
+          "esportes.estadao.com.br": 30,
+          "alias.estadao.com.br": 29,
+          "sao-paulo.estadao.com.br": 16,
+          "saude.estadao.com.br": 15,
+          "sustentabilidade.estadao.com.br": 13,
+          "opiniao.estadao.com.br": 11,
+          "educacao.estadao.com.br": 7,
+          "www.estadao.com.br": 7,
+          "ciencia.estadao.com.br": 5,
+          "viagem.estadao.com.br": 5,
+          "emais.estadao.com.br": 3,
+          "www.territorioeldorado.limao.com.br": 2,
+          "link.estadao.com.br": 2,
+          "f5.folha.uol.com.br": 2,
+          "acervo.estadao.com.br": 1,
+          "datafolha.folha.uol.com.br": 1,
+          "blogdofred.blogfolha.uol.com.br": 1
+        }
+      },
+      "schema": {
+        "$": {
+          "types": {
+            "dict": 7200
+          },
+          "present": 7200,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.id": {
+          "types": {
+            "str": 7200
+          },
+          "present": 7200,
+          "null_or_empty": 0,
+          "parent_objects": 7200,
+          "missing": 0
+        },
+        "$.label": {
+          "types": {
+            "str": 7200
+          },
+          "present": 7200,
+          "null_or_empty": 0,
+          "parent_objects": 7200,
+          "missing": 0
+        },
+        "$.label_id": {
+          "types": {
+            "int": 7200
+          },
+          "present": 7200,
+          "null_or_empty": 0,
+          "parent_objects": 7200,
+          "missing": 0
+        },
+        "$.language": {
+          "types": {
+            "str": 7200
+          },
+          "present": 7200,
+          "null_or_empty": 0,
+          "parent_objects": 7200,
+          "missing": 0
+        },
+        "$.pair_id": {
+          "types": {
+            "str": 7200
+          },
+          "present": 7200,
+          "null_or_empty": 0,
+          "parent_objects": 7200,
+          "missing": 0
+        },
+        "$.source_path": {
+          "types": {
+            "str": 7200
+          },
+          "present": 7200,
+          "null_or_empty": 0,
+          "parent_objects": 7200,
+          "missing": 0
+        },
+        "$.text": {
+          "types": {
+            "str": 7200
+          },
+          "present": 7200,
+          "null_or_empty": 0,
+          "parent_objects": 7200,
+          "missing": 0
+        }
+      },
+      "pairs": {
+        "unique_ids": 3600,
+        "complete": 3600,
+        "incomplete_ids": []
+      },
+      "processed_file": "C:\\Users\\Pedro\\OneDrive\\Desktop\\Challenge2\\data\\processed\\fakebr\\full_texts.jsonl"
+    },
+    "size_normalized_texts": {
+      "records": 7200,
+      "labeled_records": 7200,
+      "labels": {
+        "fake": 3600,
+        "true": 3600
+      },
+      "percent_of_labeled": {
+        "fake": 50.0,
+        "true": 50.0
+      },
+      "majority_minority_ratio": 1.0,
+      "balance_assessment": "Classes balanceadas: não aplicar oversampling por frequência.",
+      "quality": {},
+      "duplicate_id_excess": 0,
+      "normalized_duplicate_groups": 1,
+      "normalized_duplicate_excess": 1,
+      "conflicting_duplicate_groups": 0,
+      "duplicate_examples": [
+        [
+          {
+            "id": "true/61",
+            "label": "true",
+            "split": "size_normalized_texts"
+          },
+          {
+            "id": "true/69",
+            "label": "true",
+            "split": "size_normalized_texts"
+          }
+        ]
+      ],
+      "conflicting_duplicate_examples": [],
+      "metrics": {
+        "text_characters": {
+          "n": 7200,
+          "min": 48,
+          "p50": 957.0,
+          "p95": 2276.05,
+          "p99": 3584.53,
+          "max": 12488,
+          "mean": 1114.67
+        },
+        "text_words_whitespace": {
+          "n": 7200,
+          "min": 9,
+          "p50": 157.0,
+          "p95": 371.0,
+          "p99": 584.04,
+          "max": 2095,
+          "mean": 183.54
+        },
+        "words_fake": {
+          "n": 3600,
+          "min": 9,
+          "p50": 157.0,
+          "p95": 369.05,
+          "p99": 573.11,
+          "max": 2088,
+          "mean": 182.76
+        },
+        "words_true": {
+          "n": 3600,
+          "min": 10,
+          "p50": 158.0,
+          "p95": 372.0,
+          "p99": 588.02,
+          "max": 2095,
+          "mean": 184.31
+        }
+      },
+      "categories": {},
+      "schema": {
+        "$": {
+          "types": {
+            "dict": 7200
+          },
+          "present": 7200,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.id": {
+          "types": {
+            "str": 7200
+          },
+          "present": 7200,
+          "null_or_empty": 0,
+          "parent_objects": 7200,
+          "missing": 0
+        },
+        "$.label": {
+          "types": {
+            "str": 7200
+          },
+          "present": 7200,
+          "null_or_empty": 0,
+          "parent_objects": 7200,
+          "missing": 0
+        },
+        "$.label_id": {
+          "types": {
+            "int": 7200
+          },
+          "present": 7200,
+          "null_or_empty": 0,
+          "parent_objects": 7200,
+          "missing": 0
+        },
+        "$.language": {
+          "types": {
+            "str": 7200
+          },
+          "present": 7200,
+          "null_or_empty": 0,
+          "parent_objects": 7200,
+          "missing": 0
+        },
+        "$.pair_id": {
+          "types": {
+            "str": 7200
+          },
+          "present": 7200,
+          "null_or_empty": 0,
+          "parent_objects": 7200,
+          "missing": 0
+        },
+        "$.source_path": {
+          "types": {
+            "str": 7200
+          },
+          "present": 7200,
+          "null_or_empty": 0,
+          "parent_objects": 7200,
+          "missing": 0
+        },
+        "$.text": {
+          "types": {
+            "str": 7200
+          },
+          "present": 7200,
+          "null_or_empty": 0,
+          "parent_objects": 7200,
+          "missing": 0
+        }
+      },
+      "pairs": {
+        "unique_ids": 3600,
+        "complete": 3600,
+        "incomplete_ids": []
+      },
+      "processed_file": "C:\\Users\\Pedro\\OneDrive\\Desktop\\Challenge2\\data\\processed\\fakebr\\size_normalized_texts.jsonl"
+    },
+    "preprocessed_csv": [
+      {
+        "file": "pre-processed.csv",
+        "rows": 7200,
+        "columns": [
+          "index",
+          "label",
+          "preprocessed_news"
+        ],
+        "types_from_csv": "str (before explicit conversion)",
+        "labels": {
+          "fake": 3600,
+          "true": 3600
+        }
+      }
+    ]
+  },
+  "averitec": {
+    "train": {
+      "records": 3068,
+      "labeled_records": 3068,
+      "labels": {
+        "Supported": 849,
+        "Refuted": 1742,
+        "Not Enough Evidence": 282,
+        "Conflicting Evidence/Cherrypicking": 195
+      },
+      "percent_of_labeled": {
+        "Supported": 27.673,
+        "Refuted": 56.78,
+        "Not Enough Evidence": 9.192,
+        "Conflicting Evidence/Cherrypicking": 6.356
+      },
+      "majority_minority_ratio": 8.933,
+      "balance_assessment": "Há desbalanceamento: avaliar pesos/amostragem apenas no treino; não fazer oversampling automaticamente.",
+      "quality": {
+        "answer_without_source_url": 387,
+        "empty_text": 1
+      },
+      "duplicate_id_excess": 0,
+      "normalized_duplicate_groups": 41,
+      "normalized_duplicate_excess": 71,
+      "conflicting_duplicate_groups": 13,
+      "duplicate_examples": [
+        [
+          {
+            "id": "21",
+            "label": "Not Enough Evidence",
+            "split": "train"
+          },
+          {
+            "id": "31",
+            "label": "Not Enough Evidence",
+            "split": "train"
+          }
+        ],
+        [
+          {
+            "id": "25",
+            "label": "Supported",
+            "split": "train"
+          },
+          {
+            "id": "2956",
+            "label": "Supported",
+            "split": "train"
+          }
+        ],
+        [
+          {
+            "id": "39",
+            "label": "Not Enough Evidence",
+            "split": "train"
+          },
+          {
+            "id": "177",
+            "label": "Refuted",
+            "split": "train"
+          }
+        ],
+        [
+          {
+            "id": "175",
+            "label": "Supported",
+            "split": "train"
+          },
+          {
+            "id": "567",
+            "label": "Supported",
+            "split": "train"
+          },
+          {
+            "id": "1535",
+            "label": "Supported",
+            "split": "train"
+          }
+        ],
+        [
+          {
+            "id": "182",
+            "label": "Supported",
+            "split": "train"
+          },
+          {
+            "id": "186",
+            "label": "Supported",
+            "split": "train"
+          }
+        ],
+        [
+          {
+            "id": "191",
+            "label": "Not Enough Evidence",
+            "split": "train"
+          },
+          {
+            "id": "565",
+            "label": "Not Enough Evidence",
+            "split": "train"
+          },
+          {
+            "id": "1539",
+            "label": "Supported",
+            "split": "train"
+          }
+        ],
+        [
+          {
+            "id": "250",
+            "label": "Refuted",
+            "split": "train"
+          },
+          {
+            "id": "254",
+            "label": "Refuted",
+            "split": "train"
+          }
+        ],
+        [
+          {
+            "id": "508",
+            "label": "Supported",
+            "split": "train"
+          },
+          {
+            "id": "1981",
+            "label": "Supported",
+            "split": "train"
+          }
+        ],
+        [
+          {
+            "id": "731",
+            "label": "Supported",
+            "split": "train"
+          },
+          {
+            "id": "732",
+            "label": "Supported",
+            "split": "train"
+          }
+        ],
+        [
+          {
+            "id": "841",
+            "label": "Supported",
+            "split": "train"
+          },
+          {
+            "id": "924",
+            "label": "Supported",
+            "split": "train"
+          }
+        ]
+      ],
+      "conflicting_duplicate_examples": [
+        [
+          {
+            "id": "39",
+            "label": "Not Enough Evidence",
+            "split": "train"
+          },
+          {
+            "id": "177",
+            "label": "Refuted",
+            "split": "train"
+          }
+        ],
+        [
+          {
+            "id": "191",
+            "label": "Not Enough Evidence",
+            "split": "train"
+          },
+          {
+            "id": "565",
+            "label": "Not Enough Evidence",
+            "split": "train"
+          },
+          {
+            "id": "1539",
+            "label": "Supported",
+            "split": "train"
+          }
+        ],
+        [
+          {
+            "id": "1555",
+            "label": "Supported",
+            "split": "train"
+          },
+          {
+            "id": "2656",
+            "label": "Refuted",
+            "split": "train"
+          },
+          {
+            "id": "2713",
+            "label": "Supported",
+            "split": "train"
+          }
+        ],
+        [
+          {
+            "id": "1639",
+            "label": "Supported",
+            "split": "train"
+          },
+          {
+            "id": "1650",
+            "label": "Not Enough Evidence",
+            "split": "train"
+          },
+          {
+            "id": "1653",
+            "label": "Not Enough Evidence",
+            "split": "train"
+          },
+          {
+            "id": "1666",
+            "label": "Not Enough Evidence",
+            "split": "train"
+          }
+        ],
+        [
+          {
+            "id": "1641",
+            "label": "Not Enough Evidence",
+            "split": "train"
+          },
+          {
+            "id": "1648",
+            "label": "Supported",
+            "split": "train"
+          },
+          {
+            "id": "1664",
+            "label": "Supported",
+            "split": "train"
+          },
+          {
+            "id": "1675",
+            "label": "Not Enough Evidence",
+            "split": "train"
+          },
+          {
+            "id": "1680",
+            "label": "Supported",
+            "split": "train"
+          }
+        ],
+        [
+          {
+            "id": "1659",
+            "label": "Supported",
+            "split": "train"
+          },
+          {
+            "id": "1667",
+            "label": "Supported",
+            "split": "train"
+          },
+          {
+            "id": "1672",
+            "label": "Not Enough Evidence",
+            "split": "train"
+          },
+          {
+            "id": "1678",
+            "label": "Supported",
+            "split": "train"
+          }
+        ],
+        [
+          {
+            "id": "2314",
+            "label": "Supported",
+            "split": "train"
+          },
+          {
+            "id": "2340",
+            "label": "Supported",
+            "split": "train"
+          },
+          {
+            "id": "2353",
+            "label": "Supported",
+            "split": "train"
+          },
+          {
+            "id": "2370",
+            "label": "Conflicting Evidence/Cherrypicking",
+            "split": "train"
+          }
+        ],
+        [
+          {
+            "id": "2318",
+            "label": "Refuted",
+            "split": "train"
+          },
+          {
+            "id": "2371",
+            "label": "Not Enough Evidence",
+            "split": "train"
+          }
+        ],
+        [
+          {
+            "id": "2334",
+            "label": "Not Enough Evidence",
+            "split": "train"
+          },
+          {
+            "id": "2354",
+            "label": "Supported",
+            "split": "train"
+          }
+        ],
+        [
+          {
+            "id": "2606",
+            "label": "Supported",
+            "split": "train"
+          },
+          {
+            "id": "2615",
+            "label": "Refuted",
+            "split": "train"
+          }
+        ]
+      ],
+      "metrics": {
+        "answers_per_claim": {
+          "n": 3068,
+          "min": 1,
+          "p50": 2.0,
+          "p95": 6.0,
+          "p99": 9.0,
+          "max": 16,
+          "mean": 2.76
+        },
+        "answers_per_question": {
+          "n": 7985,
+          "min": 1,
+          "p50": 1.0,
+          "p95": 2.0,
+          "p99": 2.0,
+          "max": 3,
+          "mean": 1.06
+        },
+        "claim_qa_justification_words": {
+          "n": 3068,
+          "min": 15,
+          "p50": 120.0,
+          "p95": 369.0,
+          "p99": 624.33,
+          "max": 1221,
+          "mean": 153.61
+        },
+        "justification_words": {
+          "n": 3068,
+          "min": 1,
+          "p50": 18.0,
+          "p95": 51.0,
+          "p99": 87.66,
+          "max": 193,
+          "mean": 21.5
+        },
+        "questions_per_claim": {
+          "n": 3068,
+          "min": 1,
+          "p50": 2.0,
+          "p95": 6.0,
+          "p99": 8.0,
+          "max": 16,
+          "mean": 2.6
+        },
+        "text_characters": {
+          "n": 3068,
+          "min": 0,
+          "p50": 93.0,
+          "p95": 203.0,
+          "p99": 286.32,
+          "max": 392,
+          "mean": 103.37
+        },
+        "text_words_whitespace": {
+          "n": 3068,
+          "min": 0,
+          "p50": 15.0,
+          "p95": 33.0,
+          "p99": 46.33,
+          "max": 73,
+          "mean": 17.03
+        }
+      },
+      "categories": {
+        "answer_source_domains": {
+          "web.archive.org": 3056,
+          "": 544,
+          "twitter.com": 174,
+          "africacheck.org": 104,
+          "en.wikipedia.org": 91,
+          "www.who.int": 66,
+          "www.facebook.com": 61,
+          "archive.ph": 47,
+          "edition.cnn.com": 45,
+          "www.cdc.gov": 42,
+          "www.reuters.com": 40,
+          "www.washingtonpost.com": 40,
+          "www.youtube.com": 39,
+          "drive.google.com": 35,
+          "www.ncbi.nlm.nih.gov": 33,
+          "www.vox.com": 33,
+          "www.knbs.or.ke": 32,
+          "www.bbc.co.uk": 31,
+          "www.google.com": 30,
+          "www.nytimes.com": 30,
+          "www.theguardian.com": 30,
+          "perma.cc": 27,
+          "www.statssa.gov.za": 27,
+          "www.politifact.com": 26,
+          "www.cnbc.com": 26,
+          "www.npr.org": 24,
+          "fred.stlouisfed.org": 23,
+          "www.forbes.com": 21,
+          "www.treasury.gov.za": 21,
+          "www.businessinsider.com": 20,
+          "theconversation.com": 19,
+          "www.nbcnews.com": 19,
+          "www.bbc.com": 19,
+          "www.medicalnewstoday.com": 19,
+          "www.gov.za": 19,
+          "www.britannica.com": 19,
+          "indianexpress.com": 18,
+          "164.100.47.194": 18,
+          "thehill.com": 16,
+          "www.worldbank.org": 15,
+          "eu.usatoday.com": 14,
+          "assets.publishing.service.gov.uk": 14,
+          "www.pbs.org": 13,
+          "timesofindia.indiatimes.com": 13,
+          "www.fda.gov": 13,
+          "www.dailymail.co.uk": 13,
+          "data.worldbank.org": 13,
+          "apnews.com": 12,
+          "apps.who.int": 12,
+          "www.budgetoffice.gov.ng": 12,
+          "www.nhs.uk": 11,
+          "www.gov.uk": 11,
+          "www.unodc.org": 11,
+          "www.politico.com": 11,
+          "sgp.fas.org": 11,
+          "www.ons.gov.uk": 11,
+          "www.huffingtonpost.co.uk": 11,
+          "www.premiumtimesng.com": 10,
+          "www.aljazeera.com": 10,
+          "www.worldometers.info": 10,
+          "nairobinews.nation.africa": 10,
+          "www.wsj.com": 10,
+          "www.healthline.com": 10,
+          "abcnews.go.com": 10,
+          "calculator-1.com": 9,
+          "ballotpedia.org": 9,
+          "www.bloomberg.com": 9,
+          "www.pewresearch.org": 9,
+          "www.c-span.org": 9,
+          "quoteinvestigator.com": 9,
+          "www.cardiff.ac.uk": 9,
+          "www.census.gov": 9,
+          "www.online-calculator.com": 8,
+          "www.ndtv.com": 8,
+          "www.quora.com": 8,
+          "www.nature.com": 8,
+          "s3-eu-west-1.amazonaws.com": 8,
+          "www.foxnews.com": 8,
+          "joebiden.com": 8,
+          "s3.documentcloud.org": 8,
+          "www.weforum.org": 8,
+          "www.kff.org": 8,
+          "www.gatesfoundation.org": 8,
+          "news.gallup.com": 7,
+          "www.cancerresearchuk.org": 7,
+          "www.cbsnews.com": 7,
+          "www.altnews.in": 7,
+          "www.factcheck.org": 7,
+          "pib.gov.in": 7,
+          "www.dmo.gov.ng": 7,
+          "cdn.factcheck.org": 7,
+          "www.thelancet.com": 7,
+          "www.instagram.com": 7,
+          "www.commonwealthfund.org": 7,
+          "www.researchgate.net": 7,
+          "www.standardmedia.co.ke": 7,
+          "www.imf.org": 6,
+          "www.cbo.gov": 6,
+          "medium.com": 6,
+          "ourworldindata.org": 6,
+          "www.nationalgeographic.com": 6,
+          "www.whitehouse.gov": 6,
+          "www.justice.gov": 6,
+          "www.indiatoday.in": 6,
+          "www.calculator.net": 6,
+          "web.facebook.com": 6,
+          "pubmed.ncbi.nlm.nih.gov": 6,
+          "www.sciencedirect.com": 6,
+          "www.medrxiv.org": 6,
+          "projects.propublica.org": 6,
+          "archive.vn": 6,
+          "www.macrotrends.net": 6,
+          "www.parliament.go.ke": 6,
+          "www.bls.gov": 6,
+          "www.webmd.com": 6,
+          "onlinelibrary.wiley.com": 6,
+          "www.thehindu.com": 6,
+          "www.govinfo.gov": 6,
+          "immigrationforum.org": 6,
+          "www.csmonitor.com": 6,
+          "www.law.cornell.edu": 6,
+          "ec.europa.eu": 6,
+          "books.google.co.uk": 6,
+          "epi.yale.edu": 6,
+          "kplc.co.ke": 6,
+          "www.rev.com": 5,
+          "www.history.com": 5,
+          "guardian.ng": 5,
+          "www.livemint.com": 5,
+          "m.facebook.com": 5,
+          "news.yahoo.com": 5,
+          "www.jpost.com": 5,
+          "www.ipid.gov.za": 5,
+          "www.cancer.org": 5,
+          "www.icirnigeria.org": 5,
+          "www.desmos.com": 5,
+          "reliefweb.int": 5,
+          "www.nejm.org": 5,
+          "averitec.eu": 5,
+          "www.rferl.org": 5,
+          "www.financialexpress.com": 5,
+          "www1.hkexnews.hk": 5,
+          "jamanetwork.com": 5,
+          "economictimes.indiatimes.com": 5,
+          "www.pwc.com": 5,
+          "www.brookings.edu": 5,
+          "www.bustle.com": 5,
+          "www.collinsdictionary.com": 5,
+          "www.news18.com": 5,
+          "www.congress.gov": 5,
+          "tradingeconomics.com": 5,
+          "businessday.ng": 5,
+          "www.judicialwatch.org": 5,
+          "www.justiceinspectorates.gov.uk": 5,
+          "www.scientificamerican.com": 5,
+          "www.statista.com": 5,
+          "www.channelstv.com": 5,
+          "www.europarl.europa.eu": 5,
+          "t.co": 5,
+          "qz.com": 5,
+          "clerk.house.gov": 5,
+          "papers.ssrn.com": 5,
+          "www.president.go.ke": 5,
+          "www.capitalfm.co.ke": 5,
+          "www.americanimmigrationcouncil.org": 5,
+          "bhekisisa.org": 5,
+          "www.statsghana.gov.gh": 4,
+          "earth.google.com": 4,
+          "www.scribd.com": 4,
+          "www.ssa.gov": 4,
+          "fortune.com": 4,
+          "www.cebm.net": 4,
+          "brownvalleyobserver.com": 4,
+          "www.thenewsminute.com": 4,
+          "www.jdsupra.com": 4,
+          "www.eehealth.org": 4,
+          "mofep.gov.gh": 4,
+          "corporate.target.com": 4,
+          "www.science.org": 4,
+          "nairametrics.com": 4,
+          "www.scmp.com": 4,
+          "www.theeastafrican.co.ke": 4,
+          "www.nigerianstat.gov.ng": 4,
+          "www.kplc.co.ke": 4,
+          "tatersgonnatate.com": 4,
+          "www.bmj.com": 4,
+          "punchng.com": 4,
+          "www.indy100.com": 4,
+          "www.merriam-webster.com": 4,
+          "www.washingtontimes.com": 4,
+          "obamawhitehouse.archives.gov": 4,
+          "blog.tmb.co.uk": 4,
+          "www.rand.org": 4,
+          "leadstories.com": 4,
+          "khn.org": 4,
+          "africacdc.org": 4,
+          "data.bls.gov": 4,
+          "www.breitbart.com": 4,
+          "www.cfr.org": 4,
+          "www.polygraph.info": 4,
+          "money.com": 4,
+          "www.presidency.ucsb.edu": 4,
+          "commonslibrary.parliament.uk": 4,
+          "yes4youth.co.za": 4,
+          "www.federalreserve.gov": 4,
+          "www2.mst.dk": 4,
+          "www.chicagotribune.com": 4,
+          "www.biography.com": 4,
+          "ebm.bmj.com": 4,
+          "www.justanswer.com": 4,
+          "guernseypress.com": 4,
+          "images.transparencycdn.org": 4,
+          "www1.nyc.gov": 4,
+          "unctad.org": 4,
+          "www.voanews.com": 4,
+          "haryanaforest.gov.in": 4,
+          "appsso.eurostat.ec.europa.eu": 4,
+          "nation.africa": 4,
+          "www.snopes.com": 4,
+          "infogram.com": 4,
+          "www.youthkiawaaz.com": 4,
+          "eu.elpasotimes.com": 4,
+          "www.education.gov.za": 4,
+          "worldpoverty.io": 4,
+          "www.mcgill.ca": 4,
+          "eu.azcentral.com": 3,
+          "www.sciencemediacentre.org": 3,
+          "www.epi.org": 3,
+          "www.indexmundi.com": 3,
+          "www.hindustantimes.com": 3,
+          "www.nairaland.com": 3,
+          "www.cnn.com": 3,
+          "www.usatoday.com": 3,
+          "www.hopkinsmedicine.org": 3,
+          "coronavirus.jhu.edu": 3,
+          "www.judiciary.go.ke": 3,
+          "www.symbolab.com": 3,
+          "www.smithsonianmag.com": 3,
+          "news.un.org": 3,
+          "www.hrw.org": 3,
+          "time.com": 3,
+          "www.abc.net.au": 3,
+          "nypost.com": 3,
+          "earthobservatory.nasa.gov": 3,
+          "wisconsinwatch.org": 3,
+          "clinmedjournals.org": 3,
+          "www.wired.com": 3,
+          "www.thecourierdaily.com": 3,
+          "www.thisdaylive.com": 3,
+          "foreignpolicy.com": 3,
+          "www.rsm.global": 3,
+          "www.tradeshouselibrary.org": 3,
+          "web2.0calc.com": 3,
+          "mumbaimirror.indiatimes.com": 3,
+          "inthesetimes.com": 3,
+          "deadline.com": 3,
+          "www.newyorker.com": 3,
+          "coronavirus.dc.gov": 3,
+          "kidshealth.org": 3,
+          "www.opensocietyfoundations.org": 3,
+          "www.accessdata.fda.gov": 3,
+          "www.texastribune.org": 3,
+          "www.nga.org": 3,
+          "www.visualcapitalist.com": 3,
+          "www.newscientist.com": 3,
+          "www.gs1.org": 3,
+          "www.historyofvaccines.org": 3,
+          "www.thetrumparchive.com": 3,
+          "www.health.pa.gov": 3,
+          "www.centerforhealthsecurity.org": 3,
+          "www.dw.com": 3,
+          "www.ncc.gov.ng": 3,
+          "factcheck.afp.com": 3,
+          "www.afro.who.int": 3,
+          "newsmeter.in": 3,
+          "www.booksguru.in": 3,
+          "www.latimes.com": 3,
+          "www.independent.co.uk": 3,
+          "www.wiley.law": 3,
+          "www.thedailybeast.com": 3,
+          "www.statnews.com": 3,
+          "www.cbc.ca": 3,
+          "www.nyclu.org": 3,
+          "www.newsweek.com": 3,
+          "federalnewsnetwork.com": 3,
+          "www.pressreader.com": 3,
+          "eu.desmoinesregister.com": 3,
+          "fullfact.org": 3,
+          "www.nidirect.gov.uk": 3,
+          "www.opendemocracy.net": 3,
+          "constitutioncenter.org": 3,
+          "sambucolusa.com": 3,
+          "www.telegraph.co.uk": 3,
+          "www.energy.gov": 3,
+          "static.pmg.org.za": 3,
+          "www.sassa.gov.za": 3,
+          "www.annualreviews.org": 3,
+          "www.prnewswire.com": 3,
+          "www.hudexchange.info": 3,
+          "www.medicines.org.uk": 3,
+          "dailytrust.com": 3,
+          "www.thecable.ng": 3,
+          "www.vanguardngr.com": 3,
+          "www.dmr.gov.za": 3,
+          "aiboc.org": 3,
+          "americanpregnancy.org": 3,
+          "www.icliniq.com": 3,
+          "quotepark.com": 3,
+          "femifanikayode.org": 3,
+          "thenationonlineng.net": 3,
+          "punemirror.com": 3,
+          "researchbriefings.files.parliament.uk": 3,
+          "www.cdcfoundation.org": 3,
+          "www.e-ir.info": 3,
+          "news.cgtn.com": 3,
+          "www.oig.dhs.gov": 3,
+          "www.fool.com": 3,
+          "www.nao.org.uk": 3,
+          "www.treasury.go.ke": 3,
+          "www.alamy.com": 3,
+          "eu.delawareonline.com": 3,
+          "www.webarchive.org.uk": 3,
+          "www.nimh.nih.gov": 3,
+          "maritsapatrinos.com": 3,
+          "environs.law.ucdavis.edu": 3,
+          "deputypresident.go.ke": 3,
+          "databank.worldbank.org": 3,
+          "www.news24.com": 3,
+          "pmksy.gov.in": 3,
+          "www.indiabudget.gov.in": 3,
+          "www.centralbank.go.ke": 3,
+          "www.aph.gov.au": 3,
+          "www.doingbusiness.org": 3,
+          "myemissions.co.za": 3,
+          "eu.detroitnews.com": 3,
+          "pmg.org.za": 3,
+          "www.theipsa.org.uk": 3,
+          "s3.amazonaws.com": 3,
+          "www.frontiersin.org": 3,
+          "redcrosschat.org": 3,
+          "www.london.gov.uk": 3,
+          "www.africaontheblog.org": 3,
+          "www.brentbrowntoyota.com": 3,
+          "www.crfb.org": 2,
+          "www.thenation.com": 2,
+          "money.cnn.com": 2,
+          "nrf.com": 2,
+          "www.senate.gov": 2,
+          "www.fbi.gov": 2,
+          "www.uscourts.gov": 2,
+          "statsghana.gov.gh": 2,
+          "media.kjzz.org": 2,
+          "main.sci.gov.in": 2,
+          "www.israel21c.org": 2,
+          "oig.ssa.gov": 2,
+          "www.salon.com": 2,
+          "www.inc.com": 2,
+          "www.today.com": 2,
+          "youtu.be": 2,
+          "www.thrillist.com": 2,
+          "www.medicalboard.gov.au": 2,
+          "www.reading-buses.co.uk": 2,
+          "www.documentcloud.org": 2,
+          "nationalgovernment.co.za": 2,
+          "www.saps.gov.za": 2,
+          "davaotoday.com": 2,
+          "www.idausa.org": 2,
+          "zeenews.india.com": 2,
+          "hindi.news18.com": 2,
+          "www.un.org": 2,
+          "academic.oup.com": 2,
+          "www.thejournal.ie": 2,
+          "www.linkedin.com": 2,
+          "www.pkfea.com": 2,
+          "www.trademarkea.com": 2,
+          "web.archihttps:": 2,
+          "wasreb.go.ke": 2,
+          "uk-air.defra.gov.uk": 2,
+          "climate.ec.europa.eu": 2,
+          "www.soest.hawaii.edu": 2,
+          "www.azquotes.com": 2,
+          "newsroom.bankofamerica.com": 2,
+          "www.fox35orlando.com": 2,
+          "www.nysenate.gov": 2,
+          "www.sanders.senate.gov": 2,
+          "www.lupus.org": 2,
+          "www.ifs.org.uk": 2,
+          "www.caa.ca": 2,
+          "med.stanford.edu": 2,
+          "in.reuters.com": 2,
+          "www.goodymy.com": 2,
+          "newsroom.northumbria.ac.uk": 2,
+          "www.foolishumor.com": 2,
+          "www.winwithyoung.com": 2,
+          "www.thegatewaypundit.com": 2,
+          "www.fema.gov": 2,
+          "hongkongfp.com": 2,
+          "www.iardc.org": 2,
+          "www.ispsw.com": 2,
+          "graphics.wsj.com": 2,
+          "www.unesco.org": 2,
+          "www.al.com": 2,
+          "www.boomlive.in": 2,
+          "eu.greenbaypressgazette.com": 2,
+          "www.osha.gov": 2,
+          "www.dhs.wisconsin.gov": 2,
+          "vijayahospital.org": 2,
+          "journals.plos.org": 2,
+          "www.huffpost.com": 2,
+          "www.everycrsreport.com": 2,
+          "healthy.kaiserpermanente.org": 2,
+          "policies.google.com": 2,
+          "www.recoverytrial.net": 2,
+          "www.goldenwestcollege.edu": 2,
+          "asia.nikkei.com": 2,
+          "www.thefamouspeople.com": 2,
+          "www.ncsbe.gov": 2,
+          "www.fox5atlanta.com": 2,
+          "www.aicte-india.org": 2,
+          "pagesix.com": 2,
+          "www.businesstoday.in": 2,
+          "voi.id": 2,
+          "nigerianstat.gov.ng": 2,
+          "slate.com": 2,
+          "limerick1914.medium.com": 2,
+          "media.snopes.com": 2,
+          "kids.britannica.com": 2,
+          "www.mskcc.org": 2,
+          "injuryfacts.nsc.org": 2,
+          "www.whitehousehistory.org": 2,
+          "www.newyorkfed.org": 2,
+          "detroitmi.gov": 2,
+          "www.epse.gov.et": 2,
+          "www.article19.org": 2,
+          "www.mayoclinichealthsystem.org": 2,
+          "bustatroll.org": 2,
+          "dailymed.nlm.nih.gov": 2,
+          "www.acsh.org": 2,
+          "www.healthdirect.gov.au": 2,
+          "www.independentsage.org": 2,
+          "eu.courier-journal.com": 2,
+          "clinicaltrials.gov": 2,
+          "dictionary.cambridge.org": 2,
+          "www.budgetchallenge.org": 2,
+          "www.sbafla.com": 2,
+          "www.feinstein.senate.gov": 2,
+          "www.axios.com": 2,
+          "www.newham.gov.uk": 2,
+          "www.ageuk.org.uk": 2,
+          "www.health.gov.au": 2,
+          "www.icmr.gov.in": 2,
+          "www.news-medical.net": 2,
+          "gasprices.aaa.com": 2,
+          "www.hsph.harvard.edu": 2,
+          "igbowatch.com": 2,
+          "www.oecd.org": 2,
+          "www.canada.ca": 2,
+          "nenow.in": 2,
+          "www.pirbright.ac.uk": 2,
+          "journals.sagepub.com": 2,
+          "crsreports.congress.gov": 2,
+          "www.state.gov": 2,
+          "www.cbn.gov.ng": 2,
+          "nymag.com": 2,
+          "timothycharlesholmseth.com": 2,
+          "www.ctvnews.ca": 2,
+          "assets.documentcloud.org": 2,
+          "www2.census.gov": 2,
+          "archive.is": 2,
+          "www.netflix.com": 2,
+          "nap.nationalacademies.org": 2,
+          "theipsa-web-staging.azurewebsites.net": 2,
+          "www.kshs.org": 2,
+          "thelogicalindian.com": 2,
+          "gov.nv.gov": 2,
+          "www.livescience.com": 2,
+          "newsroom.clevelandclinic.org": 2,
+          "www.smh.com.au": 2,
+          "www.federalregister.gov": 2,
+          "www.nolo.com": 2,
+          "simple.wikipedia.org": 2,
+          "www.outlookindia.com": 2,
+          "www.dhs.gov": 2,
+          "www.nhp.gov.in": 2,
+          "nationalpost.com": 2,
+          "sites.google.com": 2,
+          "tvtropes.org": 2,
+          "www.atlanticcouncil.org": 2,
+          "www.thequint.com": 2,
+          "population.un.org": 2,
+          "books.openedition.org": 2,
+          "www.thesun.co.uk": 2,
+          "captimes.com": 2,
+          "www.wilsoncenter.org": 2,
+          "www.calculatorsoup.com": 2,
+          "budgetoffice.gov.ng": 2,
+          "www.nydailynews.com": 2,
+          "www.iii.org": 2,
+          "www.ohchr.org": 2,
+          "indianavoters.in.gov": 2,
+          "www.rbi.org.in": 2,
+          "www.cnet.com": 2,
+          "www.pnas.org": 2,
+          "www.childcarechoices.gov.uk": 2,
+          "www.rmg.co.uk": 2,
+          "www.eskom.co.za": 2,
+          "percentagecalculator.net": 2,
+          "uksa.statisticsauthority.gov.uk": 2,
+          "www.publichealth.va.gov": 2,
+          "travel.state.gov": 2,
+          "classcalc.com": 2,
+          "data.oecd.org": 2,
+          "www.cancer.gov": 2,
+          "open.lib.umn.edu": 2,
+          "www.austinisd.org": 2,
+          "www.cusu.co.uk": 2,
+          "www.huduser.gov": 2,
+          "www.mass.gov": 2,
+          "dailycaller.com": 2,
+          "www.monticello.org": 2,
+          "whc.unesco.org": 2,
+          "countryeconomy.com": 2,
+          "www.americanprogress.org": 2,
+          "dc.sourceafrica.net": 2,
+          "www.pennmedicine.org": 2,
+          "questions-statements.parliament.uk": 2,
+          "realorsatire.com": 2,
+          "borgenproject.org": 2,
+          "gamapserver.who.int": 2,
+          "www.theonlinecalculator.com": 2,
+          "www.worldgreynews.com": 2,
+          "www.blackpast.org": 2,
+          "www.cmaj.ca": 2,
+          "www.murphy.senate.gov": 2,
+          "www.worldlifeexpectancy.com": 2,
+          "www.energy.gov.za": 2,
+          "www.ritsumei.ac.jp": 2,
+          "rotunda.upress.virginia.edu": 2,
+          "www.indiamart.com": 2,
+          "www.dovepress.com": 2,
+          "www.theatlantic.com": 2,
+          "www.nejtillemu.com": 2,
+          "www.apa.org": 2,
+          "www.amnesty.org": 2,
+          "www.naijalivetv.com": 2,
+          "www.dictionary.com": 2,
+          "lofgren.house.gov": 2,
+          "meduza.io": 2,
+          "www.thetimes.co.uk": 2,
+          "quod.lib.umich.edu": 2,
+          "www.railway-technology.com": 2,
+          "mfa.gov.ua": 2,
+          "www.iea.org": 2,
+          "blogs.imf.org": 2,
+          "www.tcd-global.com": 2,
+          "kmhfl.health.go.ke": 2,
+          "www.kenyalaw.org": 2,
+          "www.pharmacybenefitconsultants.com": 2,
+          "d18rn0p25nwr6d.cloudfront.net": 2,
+          "www.jhsph.edu": 2,
+          "www.cms.gov": 2,
+          "history.com": 2,
+          "vaticanenquirer.com": 2,
+          "allafrica.com": 2,
+          "www.wyden.senate.gov": 2,
+          "www.ofcom.org.uk": 2,
+          "vegancalculator.com": 2,
+          "www.ukpublicspending.co.uk": 2,
+          "www.chinausfocus.com": 2,
+          "www.thespacereview.com": 2,
+          "www.eia.gov": 2,
+          "www.aafp.org": 2,
+          "talkpoverty.org": 2,
+          "www.buzzfeednews.com": 2,
+          "founders.archives.gov": 2,
+          "www.jchs.harvard.edu": 2,
+          "www.ncleg.gov": 2,
+          "www.undp.org": 2,
+          "thewire.in": 2,
+          "www.holtsauto.com": 2,
+          "www.unicef.org": 2,
+          "www.railjournal.com": 2,
+          "www2.deloitte.com": 2,
+          "164.100.47.190": 2,
+          "www.narendramodi.in": 2,
+          "cs2016.statssa.gov.za": 2,
+          "www.parliament.uk": 2,
+          "www.thesouthafrican.com": 2,
+          "www.cair.com": 2,
+          "www.influencewatch.org": 2,
+          "fas.org": 2,
+          "econofact.org": 2,
+          "www.the-postillon.com": 2,
+          "dbtbharat.gov.in": 2,
+          "www.gktoday.in": 2,
+          "www.defense.gov": 2,
+          "www.aclum.org": 2,
+          "www.si.com": 2,
+          "www.citizen.co.za": 2,
+          "www.oregonlive.com": 2,
+          "www.ers.usda.gov": 2,
+          "www.aclu.org": 2,
+          "cheneyforms.house.gov": 2,
+          "conservativetears.com": 2,
+          "www.betterhealth.vic.gov.au": 2,
+          "www.krb.go.ke": 2,
+          "www.thepresidency.gov.za": 2,
+          "unctadstat.unctad.org": 2,
+          "www.poundsterlinglive.com": 2,
+          "www.kent.gov.uk": 2,
+          "www.lazard.com": 2,
+          "www.latlmes.com": 2,
+          "publicofficialsfinancialdisclosure.worldbank.org": 2,
+          "www.dhet.gov.za": 2,
+          "www.sanews.gov.za": 2,
+          "www.nsfas.org.za": 2,
+          "docs.legis.wisconsin.gov": 2,
+          "replay.perma.cc": 2,
+          "www.ringodaigaku.com": 2,
+          "www.dmshellac.com": 2,
+          "dahd.nic.in": 2,
+          "164.100.47.193": 2,
+          "www.livestrong.com": 2,
+          "www.bowelcanceruk.org.uk": 2,
+          "www.oprah.com": 2,
+          "www.chiefs.com": 2,
+          "boingboing.net": 2,
+          "www.hse.ie": 2,
+          "greyduckgarlic.com": 2,
+          "www.theironyou.com": 2,
+          "www.nandos.co.uk": 2,
+          "hansard.parliament.uk": 2,
+          "constitutions.unwomen.org": 2,
+          "cebudailynews.inquirer.net": 2,
+          "digital.nhs.uk": 2,
+          "newsmobile.in": 2,
+          "www.bhf.org.uk": 2,
+          "www.beltone.com": 2,
+          "www.sccl.nhs.uk": 2,
+          "www.treasury.gov": 1,
+          "sites.utexas.edu": 1,
+          "www.edweek.org": 1,
+          "theintercept.com": 1,
+          "virus.stanford.edu": 1,
+          "www.cabri-sbo.org": 1,
+          "www.javascripter.net": 1,
+          "bmcmedicine.biomedcentral.com": 1,
+          "www.businesslive.co.za": 1,
+          "ta.wikipedia.org": 1,
+          "www.fordfoundation.org": 1,
+          "aspe.hhs.gov": 1,
+          "www.walkthroughindia.com": 1,
+          "isss.unc.edu": 1,
+          "www.safetyandhealthmagazine.com": 1,
+          "finance.yahoo.com": 1,
+          "nordics.info": 1,
+          "www.fmprc.gov.cn": 1,
+          "english.www.gov.cn": 1,
+          "www.espncricinfo.com": 1,
+          "my.clevelandclinic.org": 1,
+          "acaai.org": 1,
+          "www.gettyimages.fi": 1,
+          "goaskalice.columbia.edu": 1,
+          "headaches.org": 1,
+          "faq.usps.com": 1,
+          "www.sfgate.com": 1,
+          "abc7news.com": 1,
+          "thegrio.com": 1,
+          "www.rnz.co.nz": 1,
+          "www.hud.govt.nz": 1,
+          "www2.health.vic.gov.au": 1,
+          "www.finder.com": 1,
+          "i0.wp.com": 1,
+          "sldckerala.com": 1,
+          "www.rockefellerfoundation.org": 1,
+          "covid.cdc.gov": 1,
+          "pm.gc.ca": 1,
+          "sf.gov": 1,
+          "www.biospace.com": 1,
+          "www.gov.ca.gov": 1,
+          "www.princegeorgescountymd.gov": 1,
+          "dataunodc.un.org": 1,
+          "www.westerncape.gov.za": 1,
+          "www.cdhn.org": 1,
+          "www.gettyimages.com": 1,
+          "www.doh.gov.ph": 1,
+          "www.holidify.com": 1,
+          "g1.globo.com": 1,
+          "www.navy.mil.ph": 1,
+          "nuke.fas.org": 1,
+          "web.osc.state.ny.us": 1,
+          "www.newsday.com": 1,
+          "www.ems1.com": 1,
+          "external-preview.redd.it": 1,
+          "m.dailyhunt.in": 1,
+          "www.militarytimes.com": 1,
+          "msutoday.msu.edu": 1,
+          "www.sammobile.com": 1,
+          "ehtrust.org": 1,
+          "www.braintumourresearch.org": 1,
+          "www.austinfertility.com": 1,
+          "variety.com": 1,
+          "www.ecdc.europa.eu": 1,
+          "jasperandsardine.wordpress.com": 1,
+          "images.livemint.com": 1,
+          "www.wusa9.com": 1,
+          "ipfkenya.or.ke": 1,
+          "www.totonicapan.org": 1,
+          "sites.jamanetwork.com": 1,
+          "avalon.law.yale.edu": 1,
+          "www.mededuinfo.com": 1,
+          "www.ncdirindia.org": 1,
+          "investors.keurigdrpepper.com": 1,
+          "www.beehive.govt.nz": 1,
+          "www.legislation.govt.nz": 1,
+          "ctajournal.biomedcentral.com": 1,
+          "www.climate.gov": 1,
+          "www.theodoreroosevelt.org": 1,
+          "nasa.tumblr.com": 1,
+          "www.dailysabah.com": 1,
+          "www.mainegeneral.org": 1,
+          "coloradosun.com": 1,
+          "www.educationnext.org": 1,
+          "grabien.com": 1,
+          "www.newsobserver.com": 1,
+          "democrats.org": 1,
+          "apps.npr.org": 1,
+          "www.treehugger.com": 1,
+          "nccid.ca": 1,
+          "globalnews.ca": 1,
+          "edge.pse.com.ph": 1,
+          "www.gavi.org": 1,
+          "jvi.asm.org": 1,
+          "manufacturingchemist.com": 1,
+          "www.theyouth.in": 1,
+          "3news.com": 1,
+          "www.paperjewels.org": 1,
+          "www.livehindustan.com": 1,
+          "pathologytestsexplained.org.au": 1,
+          "www.actahort.org": 1,
+          "www.iie.org": 1,
+          "hosted.lib.uiowa.edu": 1,
+          "www.canstarblue.com.au": 1,
+          "www.arpansa.gov.au": 1,
+          "discoverysedge.mayo.edu": 1,
+          "thebiafrastar.com": 1,
+          "www.watches-of-switzerland.co.uk": 1,
+          "www.chrono24.co.uk": 1,
+          "grrrgraphics.com": 1,
+          "www.rappler.com": 1,
+          "www.ahmadlawfirm.com": 1,
+          "www.disasterassistance.gov": 1,
+          "www.fredhutch.org": 1,
+          "newsroom.ee.co.uk": 1,
+          "www.info.gov.hk": 1,
+          "sciencefeedback.co": 1,
+          "blacklivesmatter.com": 1,
+          "www.wsws.org": 1,
+          "www.fec.gov": 1,
+          "pirg.org": 1,
+          "www.cato.org": 1,
+          "ohpi.org.au": 1,
+          "www.bats.org.uk": 1,
+          "www.co.monterey.ca.us": 1,
+          "www.just-debate.co.uk": 1,
+          "www.standard.co.uk": 1,
+          "scottish-liberal.blogspot.com": 1,
+          "www.bqprime.com": 1,
+          "www.kuow.org": 1,
+          "www.troutman.com": 1,
+          "eige.europa.eu": 1,
+          "legal.un.org": 1,
+          "www.freemalaysiatoday.com": 1,
+          "www.wmar2news.com": 1,
+          "warontherocks.com": 1,
+          "www.sussex.ac.uk": 1,
+          "babel.hathitrust.org": 1,
+          "www.childrensmercy.org": 1,
+          "www.npci.org.in": 1,
+          "news.google.com": 1,
+          "scholar.smu.edu": 1,
+          "www.nta.ng": 1,
+          "www.trumptwitterarchive.com": 1,
+          "www.cdph.ca.gov": 1,
+          "loksabhaph.nic.in": 1,
+          "www.indiatimes.com": 1,
+          "bakersfieldnow.com": 1,
+          "www.acep.org": 1,
+          "www.ccohs.ca": 1,
+          "www.globaltimes.cn": 1,
+          "www.digitalphablet.com": 1,
+          "thefauxy.com": 1,
+          "www.gq.com": 1,
+          "solapur.gov.in": 1,
+          "factcheck.newsmobile.in": 1,
+          "www.entrepreneur.com": 1,
+          "learn.g2.com": 1,
+          "mention.com": 1,
+          "www.panafrican-med-journal.com": 1,
+          "www.nutraingredients.com": 1,
+          "www.openaccessgovernment.org": 1,
+          "quillbot.com": 1,
+          "homeofficemedia.blog.gov.uk": 1,
+          "chemocare.com": 1,
+          "www.ox.ac.uk": 1,
+          "www.pharmaceutical-technology.com": 1,
+          "www.mlive.com": 1,
+          "ustr.gov": 1,
+          "www.followthemoney.org": 1,
+          "www.in.gov": 1,
+          "www.vote.org": 1,
+          "people.com": 1,
+          "eu.jsonline.com": 1,
+          "www.racialequityalliance.org": 1,
+          "www.propublica.org": 1,
+          "mediabiasfactcheck.com": 1,
+          "religionnews.com": 1,
+          "oxfordbusinessgroup.com": 1,
+          "dgfasli.gov.in": 1,
+          "www.splcenter.org": 1,
+          "www.businessdailyafrica.com": 1,
+          "dspace.alquds.edu": 1,
+          "www.wikidoc.org": 1,
+          "www.urban.org": 1,
+          "fivethirtyeight.com": 1,
+          "www.timesofisrael.com": 1,
+          "www.barakbulletin.com": 1,
+          "www.whio.com": 1,
+          "www.rch.org.au": 1,
+          "taxguru.in": 1,
+          "energynow.com": 1,
+          "www.sos.la.gov": 1,
+          "www.vanityfair.com": 1,
+          "polarisproject.org": 1,
+          "www.yalemedicine.org": 1,
+          "news.columbia.edu": 1,
+          "dhsprogram.com": 1,
+          "sitn.hms.harvard.edu": 1,
+          "www.ifpma.org": 1,
+          "www.consumerfinance.gov": 1,
+          "www.wellsfargomedia.com": 1,
+          "immunenetwork.org": 1,
+          "verafiles.org": 1,
+          "www.uofmhealth.org": 1,
+          "immunizationinfo.com": 1,
+          "www.kevinmd.com": 1,
+          "www.wpr.org": 1,
+          "www.tcd.ie": 1,
+          "www.politico.eu": 1,
+          "eu.wisfarmer.com": 1,
+          "www.courier-journal.com": 1,
+          "www.namibiansun.com": 1,
+          "www.namibian.com.na": 1,
+          "www.esquiremag.ph": 1,
+          "csp.unm.edu": 1,
+          "www.sacbee.com": 1,
+          "www.kqed.org": 1,
+          "placng.org": 1,
+          "www.reg.rw": 1,
+          "home.kpmg": 1,
+          "idl-bnc-idrc.dspacedirect.org": 1,
+          "www.floridaphoenix.com": 1,
+          "edr.state.fl.us": 1,
+          "taxfoundation.org": 1,
+          "www.myfloridacfo.com": 1,
+          "flauditor.gov": 1,
+          "asti.cgiar.org": 1,
+          "encyclopedia.thefreedictionary.com": 1,
+          "fatherprada.com": 1,
+          "www.miamiherald.com": 1,
+          "faq.ssa.gov": 1,
+          "www.republicanviews.org": 1,
+          "ccecc-nigeria-limited.business.site": 1,
+          "beforeitsnews.com": 1,
+          "abs.twimg.com": 1,
+          "parliamentlive.tv": 1,
+          "www.belfasttelegraph.co.uk": 1,
+          "bangaloremirror.indiatimes.com": 1,
+          "www.roundtableindia.co.in": 1,
+          "ipdefenseforum.com": 1,
+          "www.ontario.ca": 1,
+          "wa-health.kaiserpermanente.org": 1,
+          "www.budget.ny.gov": 1,
+          "www.blackriflecoffee.com": 1,
+          "canadagazette.gc.ca": 1,
+          "www.worldthrombosisday.org": 1,
+          "www.uptodate.com": 1,
+          "www.thinkglobalhealth.org": 1,
+          "www.gilead.com": 1,
+          "civileats.com": 1,
+          "www.understandinghealthresearch.org": 1,
+          "www.uspharmacist.com": 1,
+          "int.nyt.com": 1,
+          "123telugu.com": 1,
+          "www.worldwatchmonitor.org": 1,
+          "www.fb.org": 1,
+          "www.healthywa.wa.gov.au": 1,
+          "www.aninews.in": 1,
+          "www.kyoto-u.ac.jp": 1,
+          "www.delcopa.gov": 1,
+          "www.delish.com": 1,
+          "www.countryliving.com": 1,
+          "couponfollow.com": 1,
+          "www.health.harvard.edu": 1,
+          "www.wkbw.com": 1,
+          "privacyinternational.org": 1,
+          "officeofbudget.od.nih.gov": 1,
+          "www.thenationalnews.com": 1,
+          "jacksonianamerica.com": 1,
+          "www.barrons.com": 1,
+          "oilprice.com": 1,
+          "www.bizjournals.com": 1,
+          "projects.jsonline.com": 1,
+          "ods.od.nih.gov": 1,
+          "www.acoss.org.au": 1,
+          "theprint.in": 1,
+          "cms.galenos.com.tr": 1,
+          "www.atlasairworldwide.com": 1,
+          "www.ama-assn.org": 1,
+          "immunisationhandbook.health.gov.au": 1,
+          "xchange.gs1.org": 1,
+          "canvax.ca": 1,
+          "journalofethics.ama-assn.org": 1,
+          "www.soundslikenashville.com": 1,
+          "www.mta.info": 1,
+          "www.judiciary.senate.gov": 1,
+          "weehingthong.org": 1,
+          "www.icandecide.org": 1,
+          "www.montgomerycountymd.gov": 1,
+          "archive.md": 1,
+          "www.elections.claync.us": 1,
+          "www.dataphyte.com": 1,
+          "www.broomfield.org": 1,
+          "www.votecolumbia.com": 1,
+          "cis-india.org": 1,
+          "www.legistorm.com": 1,
+          "pharmanewsonline.com": 1,
+          "www.ooredoo.com": 1,
+          "www.calendardate.com": 1,
+          "chemistry.harvard.edu": 1,
+          "www.ifm.org": 1,
+          "web-archive-org.translate.goog": 1,
+          "castlecraig.co.uk": 1,
+          "blog.bioticsresearch.com": 1,
+          "www.midi-madagasikara.mg": 1,
+          "www.mpg.de": 1,
+          "www.mdpi.com": 1,
+          "radio-waves.orange.com": 1,
+          "moneyexchangerate.org": 1,
+          "aff.5-1-1.org": 1,
+          "www.srbija.gov.rs": 1,
+          "www.mohfw.gov.in": 1,
+          "big.assets.huffingtonpost.com": 1,
+          "idpjournal.biomedcentral.com": 1,
+          "timesofsandiego.com": 1,
+          "newslit.org": 1,
+          "channel22news.com": 1,
+          "www.defence.lk": 1,
+          "europepmc.org": 1,
+          "thecognate.com": 1,
+          "www.deccanherald.com": 1,
+          "journals.scicell.org": 1,
+          "www.mayoclinicproceedings.org": 1,
+          "specialtyproduce.com": 1,
+          "www.poynter.org": 1,
+          "pbs.twimg.com": 1,
+          "www.downtoearth.org.in": 1,
+          "downdetector.in": 1,
+          "www.product-reviews.net": 1,
+          "www.dailydot.com": 1,
+          "www.google.co.uk": 1,
+          "doyouremember.com": 1,
+          "5g.co.uk": 1,
+          "heavy.com": 1,
+          "www.afn.ca": 1,
+          "www.fnha.ca": 1,
+          "www.businessinsider.in": 1,
+          "www.enac.gov.it": 1,
+          "www.customs.gov.lk": 1,
+          "www.mediastatements.wa.gov.au": 1,
+          "newsinfo.inquirer.net": 1,
+          "www.ctdsb.net": 1,
+          "coronalevel.com": 1,
+          "www.erasmusmagazine.nl": 1,
+          "www.fox5dc.com": 1,
+          "sunnybrook.ca": 1,
+          "www.sandiegouniontribune.com": 1,
+          "www.tulsa-health.org": 1,
+          "www.sfcdcp.org": 1,
+          "feelthebern.org": 1,
+          "www.breatheclearinstitute.com": 1,
+          "www.creativebloq.com": 1,
+          "threadreaderapp.com": 1,
+          "www.dettol.co.uk": 1,
+          "www.americanoversight.org": 1,
+          "ftw.usatoday.com": 1,
+          "m.jpost.com": 1,
+          "www.military.com": 1,
+          "www.rollingstone.com": 1,
+          "www.empireonline.com": 1,
+          "www.winknews.com": 1,
+          "www.fox6now.com": 1,
+          "mzansinewslive.co.za": 1,
+          "files.epi.org": 1,
+          "www.tasteofhome.com": 1,
+          "network.aljazeera.net": 1,
+          "www.realclearpolitics.com": 1,
+          "docs.house.gov": 1,
+          "www.nintendo.co.uk": 1,
+          "www.dallasnews.com": 1,
+          "factba.se": 1,
+          "missouripoisoncenter.org": 1,
+          "www.marketwatch.com": 1,
+          "www.oncology.ox.ac.uk": 1,
+          "www.albertahealthservices.ca": 1,
+          "www.nm.org": 1,
+          "chis.nrcan.gc.ca": 1,
+          "dankingnews.wordpress.com": 1,
+          "assets.donaldjtrump.com": 1,
+          "www.fox2detroit.com": 1,
+          "www.immigration.ca": 1,
+          "www.globaldrugsurvey.com": 1,
+          "www.enherts-tr.nhs.uk": 1,
+          "www.chronicle.com": 1,
+          "www.inquisitr.com": 1,
+          "www.wikiwand.com": 1,
+          "maristpoll.marist.edu": 1,
+          "qna.files.parliament.uk": 1,
+          "www.ncdhhs.gov": 1,
+          "www.uwp.edu": 1,
+          "gothamist.com": 1,
+          "rcrapublic.epa.gov": 1,
+          "www.eenews.net": 1,
+          "patriotjournal.org": 1,
+          "linangdata.com": 1,
+          "www.grandforksherald.com": 1,
+          "www.washingtonian.com": 1,
+          "openjicareport.jica.go.jp": 1,
+          "lowenthal.house.gov": 1,
+          "theipsa.org.uk": 1,
+          "www.merpolfed.org.uk": 1,
+          "www.polfed.org": 1,
+          "www.local.gov.uk": 1,
+          "www.rcn.org.uk": 1,
+          "www.nhsemployers.org": 1,
+          "texasrighttolife.com": 1,
+          "www.rt.com": 1,
+          "millercenter.org": 1,
+          "www.msnbc.com": 1,
+          "www.epid.gov.lk": 1,
+          "www.trumplibrary.gov": 1,
+          "www.historyextra.com": 1,
+          "bharat.republicworld.com": 1,
+          "www.vishvasnews.com": 1,
+          "bleacherreport.com": 1,
+          "theblast.com": 1,
+          "money.yahoo.com": 1,
+          "medical-dictionary.thefreedictionary.com": 1,
+          "learngerman.dw.com": 1,
+          "china.usembassy-china.org.cn": 1,
+          "www.amazon.com": 1,
+          "aaari.info": 1,
+          "www.ishn.com": 1,
+          "www.france24.com": 1,
+          "patents.google.com": 1,
+          "www.blog.google": 1,
+          "theweek.com": 1,
+          "www.rescue.org": 1,
+          "knoema.com": 1,
+          "military-history.fandom.com": 1,
+          "www.ghpage.com": 1,
+          "www.pulse.com.gh": 1,
+          "www.nccih.nih.gov": 1,
+          "www.distance-cities.com": 1,
+          "pesakit.app": 1,
+          "eu.courierpress.com": 1,
+          "www.finance.senate.gov": 1,
+          "54.213.151.253": 1,
+          "www.equaltimes.org": 1,
+          "iocl.com": 1,
+          "www.last.fm": 1,
+          "hsib-kqcco125-media.s3.amazonaws.com": 1,
+          "www.agweb.com": 1,
+          "iamentalhealth.com": 1,
+          "www.klobuchar.senate.gov": 1,
+          "www.treatmentadvocacycenter.org": 1,
+          "cheney.house.gov": 1,
+          "www.moroccoworldnews.com": 1,
+          "www.ajol.info": 1,
+          "www.ehs.com": 1,
+          "www.acs.org": 1,
+          "convertermaniacs.com": 1,
+          "news.asu.edu": 1,
+          "sfelections.sfgov.org": 1,
+          "eu.redding.com": 1,
+          "www.mcconnell.senate.gov": 1,
+          "www.rollcall.com": 1,
+          "about.att.com": 1,
+          "apnaorg.com": 1,
+          "www.edexlive.com": 1,
+          "participedia.net": 1,
+          "scroll.in": 1,
+          "www.ibj.com": 1,
+          "ilovaisk.forensic-architecture.org": 1,
+          "the-european-times.com": 1,
+          "gabriel-zucman.eu": 1,
+          "www.infoplease.com": 1,
+          "givingblood.org": 1,
+          "www.iucnredlist.org": 1,
+          "nyc-ghg-inventory.cusp.nyu.edu": 1,
+          "www.c2es.org": 1,
+          "www.cantwell.senate.gov": 1,
+          "www.mercatus.org": 1,
+          "edgar.jrc.ec.europa.eu": 1,
+          "www.mid-day.com": 1,
+          "sustainablefisheries-uw.org": 1,
+          "www.tribuneindia.com": 1,
+          "www.turn2us.org.uk": 1,
+          "katalcenter.org": 1,
+          "navodaya.gov.in": 1,
+          "currentaffairs.adda247.com": 1,
+          "www.comeindiasing.com": 1,
+          "observer.com": 1,
+          "cdn.theatlantic.com": 1,
+          "www.rhodeshouse.ox.ac.uk": 1,
+          "www.americanrhodes.org": 1,
+          "ethics.house.gov": 1,
+          "www.gandhiashramsevagram.org": 1,
+          "www.sec.state.ma.us": 1,
+          "www.dshs.wa.gov": 1,
+          "www.csis.org": 1,
+          "www.thebrexitparty.org": 1,
+          "www.ebscohost.com": 1,
+          "india.fandom.com": 1,
+          "www.macmillandictionary.com": 1,
+          "www.kingsfund.org.uk": 1,
+          "en.mediamass.net": 1,
+          "statueofunity.guide": 1,
+          "www.wto.org": 1,
+          "labourlist.org": 1,
+          "www.swfinstitute.org": 1,
+          "iea.blob.core.windows.net": 1,
+          "www.dailymirror.lk": 1,
+          "www.ceicdata.com": 1,
+          "www.isdscotland.org": 1,
+          "burnpits360.org": 1,
+          "www.benefits.gov": 1,
+          "www.cem.va.gov": 1,
+          "civildiscourse-historyblog.com": 1,
+          "api.newsguardtech.com": 1,
+          "www.dhs.gov.za": 1,
+          "oversight.house.gov": 1,
+          "mronline.org": 1,
+          "projects.fivethirtyeight.com": 1,
+          "worldpopulationreview.com": 1,
+          "www.elections.ca": 1,
+          "skeptics.stackexchange.com": 1,
+          "www.wheninmanila.com": 1,
+          "www.zambezi.com": 1,
+          "erepository.uonbi.ac.ke": 1,
+          "www.taylorfrancis.com": 1,
+          "indicatorloops.com": 1,
+          "www.tagesschau.de": 1,
+          "www.welt.de": 1,
+          "www.clevelandfed.org": 1,
+          "healthcare.utah.edu": 1,
+          "blog.sinplastico.com": 1,
+          "annlanders.com": 1,
+          "www.savingadvice.com": 1,
+          "ihmcl.com": 1,
+          "www.epa.gov": 1,
+          "pollingreport.com": 1,
+          "www.sotrender.com": 1,
+          "www.mathsisfun.com": 1,
+          "archive.pib.gov.in": 1,
+          "www.health.gov.ng": 1,
+          "www.medianigeria.com": 1,
+          "www.healthnews.ng": 1,
+          "ipv6.worldometers.info": 1,
+          "www.geographyrealm.com": 1,
+          "noi-polls.com": 1,
+          "blog.popvox.com": 1,
+          "www.marketplace.org": 1,
+          "www.walshmedicalmedia.com": 1,
+          "www.financialalternatives.com": 1,
+          "ag.ny.gov": 1,
+          "www.cancerresearch.org": 1,
+          "speakingofresearch.com": 1,
+          "www.alberteinstein.info": 1,
+          "books.google.com": 1,
+          "bmjopen.bmj.com": 1,
+          "www.hhs.gov": 1,
+          "undocumented.thehastingscenter.org": 1,
+          "www.cbpp.org": 1,
+          "nigeriahealthwatch.com": 1,
+          "healththink.org": 1,
+          "uofi.app.box.com": 1,
+          "www.lawcom.gov.uk": 1,
+          "www.birminghammail.co.uk": 1,
+          "www.remtribunal.gov.au": 1,
+          "www.bseindia.com": 1,
+          "www1.nseindia.com": 1,
+          "www.apimages.com": 1,
+          "wbxpress.com": 1,
+          "www.bin-italia.org": 1,
+          "celebrityxyz.com": 1,
+          "wvruralhealth.org": 1,
+          "legalresearch.blogs.bris.ac.uk": 1,
+          "www.gloucestershirelive.co.uk": 1,
+          "www.asahq.org": 1,
+          "www.irishtimes.com": 1,
+          "onceuponatime.fandom.com": 1,
+          "www.nrcan.gc.ca": 1,
+          "aircentraltexas.org": 1,
+          "jeffersonpapers.princeton.edu": 1,
+          "writing.upenn.edu": 1,
+          "library.ucsd.edu": 1,
+          "best-quotations.com": 1,
+          "www.englishclub.com": 1,
+          "governors.rutgers.edu": 1,
+          "yalehealth.yale.edu": 1,
+          "www.guttmacher.org": 1,
+          "epi.dph.ncdhhs.gov": 1,
+          "www.osw.waw.pl": 1,
+          "www.internationalrelationsedu.org": 1,
+          "www.g-8.de": 1,
+          "www.xe.com": 1,
+          "en.wikiquote.org": 1,
+          "unquote.li": 1,
+          "www.nyu.edu": 1,
+          "inews.co.uk": 1,
+          "www.aeaweb.org": 1,
+          "ajph.aphapublications.org": 1,
+          "www.wsd.gov.hk": 1,
+          "winstonchurchill.org": 1,
+          "wikibio.in": 1,
+          "www.thecut.com": 1,
+          "fashionlawwiki.pbworks.com": 1,
+          "saharareporters.com": 1,
+          "cpb-us-e1.wpmucdn.com": 1,
+          "reptilesmagazine.com": 1,
+          "www.iitk.ac.in": 1,
+          "www.metro.us": 1,
+          "firstdraftnews.org": 1,
+          "vlaamsvredesinstituut.eu": 1,
+          "www.zomato.com": 1,
+          "news.llu.edu": 1,
+          "ops.gov.ph": 1,
+          "www.denverpost.com": 1,
+          "www.cbia.com": 1,
+          "www.cpr.org": 1,
+          "www.growlocalcolorado.org": 1,
+          "www.businesswire.com": 1,
+          "naic.org": 1,
+          "novostipmr.com": 1,
+          "www.thebetterindia.com": 1,
+          "insightcrime.org": 1,
+          "www.gujaratheadline.com": 1,
+          "smhoaxslayer.com": 1,
+          "mosques.muslimsinbritain.org": 1,
+          "quotefancy.com": 1,
+          "www.rutgersuniversitypress.org": 1,
+          "www.loungebuddy.com": 1,
+          "www.campaignlive.co.uk": 1,
+          "www.churchillarchive.com": 1,
+          "www.nbcnewyork.com": 1,
+          "newspunch.com": 1,
+          "rationalwiki.org": 1,
+          "publications.aecom.com": 1,
+          "www.gov.ie": 1,
+          "fns-prod.azureedge.net": 1,
+          "www.cspinet.org": 1,
+          "www.chron.com": 1,
+          "www.refinery29.com": 1,
+          "fee.org": 1,
+          "www.ars.usda.gov": 1,
+          "producersmarket.com": 1,
+          "www.whatsapp.com": 1,
+          "www.seafish.org": 1,
+          "www.legislation.gov.uk": 1,
+          "www.investmentmonitor.ai": 1,
+          "marinedevelopments.blog.gov.uk": 1,
+          "www.roundrocktexas.gov": 1,
+          "www.openriskmanual.org": 1,
+          "cdn.obr.uk": 1,
+          "africaopendata.org": 1,
+          "demo.tds.airast.org": 1,
+          "crawntrust.org": 1,
+          "www.rxlist.com": 1,
+          "www.taxpolicycenter.org": 1,
+          "communitychange.org": 1,
+          "www.nlm.nih.gov": 1,
+          "www.fightbills.com": 1,
+          "trac.syr.edu": 1,
+          "news.mit.edu": 1,
+          "jewishinsider.com": 1,
+          "humanevents.com": 1,
+          "www.ontheissues.org": 1,
+          "www.ajmc.com": 1,
+          "www.hhrjournal.org": 1,
+          "www.jus.uio.no": 1,
+          "eng.globalaffairs.ru": 1,
+          "www.unz.com": 1,
+          "en.wiktionary.org": 1,
+          "titanic.fandom.com": 1,
+          "www.newspapers.com": 1,
+          "www.geo.tv": 1,
+          "www.mirror.co.uk": 1,
+          "efsa.onlinelibrary.wiley.com": 1,
+          "www.gmanetwork.com": 1,
+          "bigthink.com": 1,
+          "soundcloud.com": 1,
+          "www.focus-economics.com": 1,
+          "www.indeed.com": 1,
+          "www.sars.gov.za": 1,
+          "openknowledge.worldbank.org": 1,
+          "www.siasat.com": 1,
+          "www.india.gov.in": 1,
+          "newstools.co.za": 1,
+          "www.prri.org": 1,
+          "prime.peta.org": 1,
+          "www.jordan.com": 1,
+          "www.vegansociety.com": 1,
+          "www.arcattoscana.org": 1,
+          "www.surrey.ac.uk": 1,
+          "townhall.com": 1,
+          "www.gao.gov": 1,
+          "rocketffl.com": 1,
+          "www.tn.gov": 1,
+          "www.wuwm.com": 1,
+          "www.ted.com": 1,
+          "www.eoni.org.uk": 1,
+          "acwm.org": 1,
+          "www.encyclopediavirginia.org": 1,
+          "www.usda.gov": 1,
+          "schindler.org": 1,
+          "www.water.go.ke": 1,
+          "en-gb.facebook.com": 1,
+          "www.bestplaces.net": 1,
+          "www.apn.ru": 1,
+          "www.transparency.org": 1,
+          "www.ancestry.com": 1,
+          "www.zambianobserver.com": 1,
+          "thespacestore.com": 1,
+          "www.wired.co.uk": 1,
+          "www.sempra.com": 1,
+          "fossil.energy.gov": 1,
+          "www.ferc.gov": 1,
+          "gcaptain.com": 1,
+          "www.gov.scot": 1,
+          "www.styleweekly.com": 1,
+          "www.econpol.eu": 1,
+          "www.taxnotes.com": 1,
+          "www.brandwatch.com": 1,
+          "www.china-briefing.com": 1,
+          "sciarena.com": 1,
+          "maps.everytownresearch.org": 1,
+          "af.wikipedia.org": 1,
+          "www.timeslive.co.za": 1,
+          "comics.washingtonpost.com": 1,
+          "www.thestatesman.com": 1,
+          "mason.gmu.edu": 1,
+          "allauthor.com": 1,
+          "www.benjamin-franklin-history.org": 1,
+          "www.yourdictionary.com": 1,
+          "www.the-star.co.ke": 1,
+          "www.dhss.delaware.gov": 1,
+          "www.lexisnexis.com": 1,
+          "www.ft.com": 1,
+          "www.investopedia.com": 1,
+          "dallas.fandom.com": 1,
+          "www.enchantedlearning.com": 1,
+          "www.cbp.gov": 1,
+          "www.txstate.edu": 1,
+          "www.heritage.org": 1,
+          "www.make-it-in-germany.com": 1,
+          "www.scr.indianrailways.gov.in": 1,
+          "nehandaradio.com": 1,
+          "www.citizen.digital": 1,
+          "www.eacc.go.ke": 1,
+          "www.newsclick.in": 1,
+          "catalog.folger.edu": 1,
+          "www.poemhunter.com": 1,
+          "www.gigeconomydata.org": 1,
+          "www.pewtrusts.org": 1,
+          "sokodirectory.com": 1,
+          "www.swahilipod101.com": 1,
+          "english.scio.gov.cn": 1,
+          "www.atta.travel": 1,
+          "www.kenyans.co.ke": 1,
+          "ecampus.kra.go.ke": 1,
+          "africaupclose.wilsoncenter.org": 1,
+          "www.theelephant.info": 1,
+          "twaweza.org": 1,
+          "en.people.cn": 1,
+          "bomayangu.go.ke": 1,
+          "documents1.worldbank.org": 1,
+          "www.afdb.org": 1,
+          "datatopics.worldbank.org": 1,
+          "eamodernbuilder.com": 1,
+          "media.iese.edu": 1,
+          "tz.china-embassy.gov.cn": 1,
+          "lrs.sog.unc.edu": 1,
+          "oisservices.com": 1,
+          "www.blueprint.ng": 1,
+          "gwtoday.gwu.edu": 1,
+          "encyclopediavirginia.org": 1,
+          "www.piketty.pse.ens.fr": 1,
+          "revcycleintelligence.com": 1,
+          "www.warren.senate.gov": 1,
+          "thepointer.com": 1,
+          "members.parliament.uk": 1,
+          "www.nishithdesai.com": 1,
+          "www.taxsutra.com": 1,
+          "www.courts.ca.gov": 1,
+          "www.newsmax.com": 1,
+          "www.ice.gov": 1,
+          "glslcities.org": 1,
+          "www.glri.us": 1,
+          "www.antifakenewscenter.com": 1,
+          "www.wionews.com": 1,
+          "knowyourmeme.com": 1,
+          "www.freedomforuminstitute.org": 1,
+          "apps.bea.gov": 1,
+          "www.bea.gov": 1,
+          "turner.house.gov": 1,
+          "headtopics.com": 1,
+          "bjs.ojp.gov": 1,
+          "www.icj.org": 1,
+          "kids.nationalgeographic.com": 1,
+          "historyofvaccines.org": 1,
+          "www.immunize.org": 1,
+          "dailypost.ng": 1,
+          "www.fiba.basketball": 1,
+          "www.dailytrust.com.ng": 1,
+          "caaasaba2018.com.ng": 1,
+          "www.grin.com": 1,
+          "www.bl.uk": 1,
+          "www.niassembly.gov.uk": 1,
+          "learnenglishteens.britishcouncil.org": 1,
+          "www.citypopulation.de": 1,
+          "cpcindiaonline.com": 1,
+          "www.easemytrip.com": 1,
+          "juliabrownley.house.gov": 1,
+          "www.faa.gov": 1,
+          "blog.adw.org": 1,
+          "www.bible-researcher.com": 1,
+          "spectatorarchive.library.columbia.edu": 1,
+          "www.start.umd.edu": 1,
+          "amendments-rules.house.gov": 1,
+          "tcpd.ashoka.edu.in": 1,
+          "booksandideas.net": 1,
+          "www.acpjournals.org": 1,
+          "distinctcushy.com": 1,
+          "egov.eletsonline.com": 1,
+          "www.dcceew.gov.au": 1,
+          "blogs.cornell.edu": 1,
+          "richmond.com": 1,
+          "healthandwelfare.idaho.gov": 1,
+          "justharvest.org": 1,
+          "energynews.us": 1,
+          "www.ucsusa.org": 1,
+          "intellectualtakeout.org": 1,
+          "www.metmuseum.org": 1,
+          "www.doctorswithoutborders.org": 1,
+          "www.tmz.com": 1,
+          "radaronline.com": 1,
+          "www.ehealthinsurance.com": 1,
+          "www.ilo.org": 1,
+          "www.slate.com": 1,
+          "www.agweek.com": 1,
+          "www.minneapolisfed.org": 1,
+          "www.rules.senate.gov": 1,
+          "www.ces.fau.edu": 1,
+          "www.amnh.org": 1,
+          "farmer.gov.in": 1,
+          "agricoop.nic.in": 1,
+          "spockandchristine.com": 1,
+          "www.jobsfund.org.za": 1,
+          "acrobat.adobe.com": 1,
+          "scontent.flba3-2.fna.fbcdn.net": 1,
+          "www.quran-online.com": 1,
+          "www.thedtic.gov.za": 1,
+          "smesouthafrica.co.za": 1,
+          "data.ipu.org": 1,
+          "www.taxcreditadvisors.com": 1,
+          "www.healthychildren.org": 1,
+          "www.farmworkerjustice.org": 1,
+          "www.uscis.gov": 1,
+          "treasurydirect.gov": 1,
+          "uscode.house.gov": 1,
+          "www.jstor.org": 1,
+          "www.brennancenter.org": 1,
+          "www.everydayhealth.com": 1,
+          "www.migrationpolicy.org": 1,
+          "www.migrationwatchuk.org": 1,
+          "www.cemnet.com": 1,
+          "thisisafrica.me": 1,
+          "china.aiddata.org": 1,
+          "www.klrc.go.ke": 1,
+          "uca.edu": 1,
+          "www.sozialpolitik.ch": 1,
+          "socialprotection.org": 1,
+          "delivery.go.ke": 1,
+          "www.globalsecurity.org": 1,
+          "repository.eac.int": 1,
+          "repository.kippra.or.ke": 1,
+          "news.africa-business.com": 1,
+          "www.afriquesud.net": 1,
+          "roape.net": 1,
+          "archive.doingbusiness.org": 1,
+          "mishpacha.com": 1,
+          "www.businessinsider.co.za": 1,
+          "businesstech.co.za": 1,
+          "www.tralac.org": 1,
+          "www.enca.com": 1,
+          "yourbotswana.com": 1,
+          "www.groundup.org.za": 1,
+          "www.globalcitizen.org": 1,
+          "brandsouthafrica.com": 1,
+          "free-apply.com": 1,
+          "www.bjp.org": 1,
+          "trumpwhitehouse.archives.gov": 1,
+          "www.sourcewatch.org": 1,
+          "cis.org": 1,
+          "www.math.com": 1,
+          "www.mckinsey.com": 1,
+          "www.goal.com": 1,
+          "statehouse.gov.ng": 1,
+          "www.theglobalist.com": 1,
+          "www.afrobarometer.org": 1,
+          "africa.businessinsider.com": 1,
+          "www.dailymaverick.co.za": 1,
+          "www.burr.senate.gov": 1,
+          "resep.sun.ac.za": 1,
+          "www.itv.com": 1,
+          "www.stears.co": 1,
+          "hub.jhu.edu": 1,
+          "divinity.yale.edu": 1,
+          "yaledailynews.com": 1,
+          "www.nist.gov": 1,
+          "www.usnews.com": 1,
+          "ucr.fbi.gov": 1,
+          "www.rd.com": 1,
+          "www.popsugar.co.uk": 1,
+          "www.thehealthsite.com": 1,
+          "www.foodingredientsfirst.com": 1,
+          "www.chm.bris.ac.uk": 1,
+          "www.expressnews.com": 1,
+          "www.goodfood.com.au": 1,
+          "luckyandme.com": 1,
+          "www.bartleby.com": 1,
+          "www.theonion.com": 1,
+          "ew.com": 1,
+          "www.bto.co.uk": 1,
+          "search.wikileaks.org": 1,
+          "www.thewestminstergym.co.uk": 1,
+          "www.channel4.com": 1,
+          "www.iainduncansmith.org.uk": 1,
+          "www.vice.com": 1,
+          "www.amazon.in": 1,
+          "pmfby.gov.in": 1,
+          "main.mohfw.gov.in": 1,
+          "services.india.gov.in": 1,
+          "fert.nic.in": 1,
+          "immunizeindia.org": 1,
+          "vikaspedia.in": 1,
+          "www.che.ac.za": 1,
+          "sealevel.jpl.nasa.gov": 1,
+          "wisden.com": 1,
+          "deathpenaltyinfo.org": 1,
+          "www.unglobalcompact.org": 1,
+          "www.polity.org.za": 1,
+          "stats.oecd.org": 1,
+          "www.geminiparkingsolutions.com": 1,
+          "www.newport.gov.uk": 1,
+          "www.theaa.com": 1,
+          "www.citizensadvice.org.uk": 1,
+          "www.drmayankshukla.com": 1,
+          "pubchem.ncbi.nlm.nih.gov": 1,
+          "www.wcrf.org": 1,
+          "www.opml.co.uk": 1,
+          "www.sneakerfiles.com": 1,
+          "web.archive.ohttps:": 1,
+          "www.silicon.co.uk": 1,
+          "ansam518.wordpress.com": 1,
+          "cairoscene.com": 1,
+          "english.ahram.org.eg": 1,
+          "www.stanfordchildrens.org": 1,
+          "data.cdc.gov": 1,
+          "app.justis.com": 1,
+          "www.healthshots.com": 1,
+          "gh.opera.news": 1,
+          "www.chocablog.com": 1,
+          "www.aa.com.tr": 1,
+          "misbar.com": 1,
+          "www.cheshireeast.gov.uk": 1,
+          "www.studypolitics.co.uk": 1,
+          "midlandseconomicforum.co.uk": 1,
+          "www.iexpats.com": 1,
+          "www.publicwhip.org.uk": 1,
+          "www.passportindex.org": 1,
+          "www.henleyglobal.com": 1,
+          "practio.co.uk": 1,
+          "www.nzherald.co.nz": 1,
+          "webarchive.nationalarchives.gov.uk": 1,
+          "gco.iarc.fr": 1,
+          "www.xinhuanet.com": 1,
+          "www.rcrwireless.com": 1,
+          "www2.hse.ie": 1,
+          "www.t-mobile.com": 1,
+          "www.ookla.com": 1,
+          "history.fas.harvard.edu": 1,
+          "www.9news.com.au": 1,
+          "www.euronews.com": 1,
+          "www.neweurope.eu": 1,
+          "www.helsinkitimes.fi": 1,
+          "downloads.bbc.co.uk": 1,
+          "www.lawinsider.com": 1,
+          "news.bbc.co.uk": 1,
+          "www.wikidata.org": 1,
+          "www.heart.org": 1,
+          "health.clevelandclinic.org": 1,
+          "www.radiotimes.com": 1,
+          "www.express.co.uk": 1,
+          "encompass-europe.com": 1,
+          "www.tvlicensing.co.uk": 1,
+          "www.unfpa.org": 1,
+          "onlinedoctor.superdrug.com": 1,
+          "www.archives.gov": 1,
+          "www.capitalxtra.com": 1,
+          "newseu.cgtn.com": 1,
+          "kwikfood.ng": 1,
+          "www.celebrityspeakers.com.au": 1,
+          "www.fueleconomy.gov": 1,
+          "www.bma.org.uk": 1,
+          "www.henryford.com": 1,
+          "orientaltimes.in": 1,
+          "www.instituteforgovernment.org.uk": 1,
+          "www.echr.coe.int": 1,
+          "www.lexology.com": 1,
+          "committees.parliament.uk": 1,
+          "news.knowledia.com": 1,
+          "nodontpinthat.blogspot.com": 1
+        },
+        "answer_type": {
+          "Extractive": 4571,
+          "Abstractive": 2225,
+          "Boolean": 1297,
+          "Unanswerable": 386
+        },
+        "claim_year": {
+          "2020": 1411,
+          "2019": 1375,
+          "<missing>": 105,
+          "2018": 86,
+          "2016": 33,
+          "2017": 21,
+          "2015": 14,
+          "1922": 6,
+          "2014": 4,
+          "2012": 4,
+          "2013": 3,
+          "2011": 1,
+          "2009": 1,
+          "2008": 1,
+          "1921": 1,
+          "1920": 1,
+          "1919": 1
+        },
+        "missing_source_by_answer_type": {
+          "Unanswerable": 386,
+          "Boolean": 1
+        },
+        "source_medium": {
+          "Web text": 5788,
+          "PDF": 1004,
+          "Metadata": 520,
+          "": 387,
+          "Web table": 383,
+          "Image/graphic": 181,
+          "Other": 108,
+          "Video": 105,
+          "Audio": 3
+        }
+      },
+      "schema": {
+        "$": {
+          "types": {
+            "dict": 3068
+          },
+          "present": 3068,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.cached_original_claim_url": {
+          "types": {
+            "NoneType": 1343,
+            "str": 1188
+          },
+          "present": 2531,
+          "null_or_empty": 1386,
+          "parent_objects": 3068,
+          "missing": 537
+        },
+        "$.claim": {
+          "types": {
+            "str": 3068
+          },
+          "present": 3068,
+          "null_or_empty": 1,
+          "parent_objects": 3068,
+          "missing": 0
+        },
+        "$.claim_date": {
+          "types": {
+            "str": 2963,
+            "NoneType": 105
+          },
+          "present": 3068,
+          "null_or_empty": 105,
+          "parent_objects": 3068,
+          "missing": 0
+        },
+        "$.claim_types": {
+          "types": {
+            "list": 3068
+          },
+          "present": 3068,
+          "null_or_empty": 0,
+          "parent_objects": 3068,
+          "missing": 0
+        },
+        "$.claim_types[]": {
+          "types": {
+            "str": 3693
+          },
+          "present": 3693,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.fact_checking_article": {
+          "types": {
+            "str": 3068
+          },
+          "present": 3068,
+          "null_or_empty": 0,
+          "parent_objects": 3068,
+          "missing": 0
+        },
+        "$.fact_checking_strategies": {
+          "types": {
+            "list": 3068
+          },
+          "present": 3068,
+          "null_or_empty": 0,
+          "parent_objects": 3068,
+          "missing": 0
+        },
+        "$.fact_checking_strategies[]": {
+          "types": {
+            "str": 4581
+          },
+          "present": 4581,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.justification": {
+          "types": {
+            "str": 3068
+          },
+          "present": 3068,
+          "null_or_empty": 0,
+          "parent_objects": 3068,
+          "missing": 0
+        },
+        "$.label": {
+          "types": {
+            "str": 3068
+          },
+          "present": 3068,
+          "null_or_empty": 0,
+          "parent_objects": 3068,
+          "missing": 0
+        },
+        "$.location_ISO_code": {
+          "types": {
+            "str": 2732,
+            "NoneType": 336
+          },
+          "present": 3068,
+          "null_or_empty": 336,
+          "parent_objects": 3068,
+          "missing": 0
+        },
+        "$.original_claim_url": {
+          "types": {
+            "NoneType": 1565,
+            "str": 1503
+          },
+          "present": 3068,
+          "null_or_empty": 1611,
+          "parent_objects": 3068,
+          "missing": 0
+        },
+        "$.questions": {
+          "types": {
+            "list": 3068
+          },
+          "present": 3068,
+          "null_or_empty": 0,
+          "parent_objects": 3068,
+          "missing": 0
+        },
+        "$.questions[]": {
+          "types": {
+            "dict": 7985
+          },
+          "present": 7985,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.questions[].answers": {
+          "types": {
+            "list": 7985
+          },
+          "present": 7985,
+          "null_or_empty": 0,
+          "parent_objects": 7985,
+          "missing": 0
+        },
+        "$.questions[].answers[]": {
+          "types": {
+            "dict": 8479
+          },
+          "present": 8479,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.questions[].answers[].answer": {
+          "types": {
+            "str": 8479
+          },
+          "present": 8479,
+          "null_or_empty": 0,
+          "parent_objects": 8479,
+          "missing": 0
+        },
+        "$.questions[].answers[].answer_type": {
+          "types": {
+            "str": 8479
+          },
+          "present": 8479,
+          "null_or_empty": 0,
+          "parent_objects": 8479,
+          "missing": 0
+        },
+        "$.questions[].answers[].boolean_explanation": {
+          "types": {
+            "str": 1297
+          },
+          "present": 1297,
+          "null_or_empty": 0,
+          "parent_objects": 8479,
+          "missing": 7182
+        },
+        "$.questions[].answers[].cached_source_url": {
+          "types": {
+            "str": 6511
+          },
+          "present": 6511,
+          "null_or_empty": 1,
+          "parent_objects": 8479,
+          "missing": 1968
+        },
+        "$.questions[].answers[].source_medium": {
+          "types": {
+            "str": 8479
+          },
+          "present": 8479,
+          "null_or_empty": 387,
+          "parent_objects": 8479,
+          "missing": 0
+        },
+        "$.questions[].answers[].source_url": {
+          "types": {
+            "str": 8479
+          },
+          "present": 8479,
+          "null_or_empty": 387,
+          "parent_objects": 8479,
+          "missing": 0
+        },
+        "$.questions[].question": {
+          "types": {
+            "str": 7985
+          },
+          "present": 7985,
+          "null_or_empty": 1,
+          "parent_objects": 7985,
+          "missing": 0
+        },
+        "$.reporting_source": {
+          "types": {
+            "str": 2468,
+            "NoneType": 600
+          },
+          "present": 3068,
+          "null_or_empty": 615,
+          "parent_objects": 3068,
+          "missing": 0
+        },
+        "$.required_reannotation": {
+          "types": {
+            "bool": 3068
+          },
+          "present": 3068,
+          "null_or_empty": 0,
+          "parent_objects": 3068,
+          "missing": 0
+        },
+        "$.speaker": {
+          "types": {
+            "str": 2402,
+            "NoneType": 666
+          },
+          "present": 3068,
+          "null_or_empty": 695,
+          "parent_objects": 3068,
+          "missing": 0
+        }
+      },
+      "input": {
+        "path": "C:\\Users\\Pedro\\OneDrive\\Desktop\\Challenge2\\data\\raw\\averitec\\train.json",
+        "sha256": "ae5eda7c42ddf1695ef185a7ba1bc716928f5adf57103e4f78aae5f9afe00f9c",
+        "bytes": 10184813
+      }
+    },
+    "dev": {
+      "records": 500,
+      "labeled_records": 500,
+      "labels": {
+        "Supported": 122,
+        "Refuted": 305,
+        "Not Enough Evidence": 35,
+        "Conflicting Evidence/Cherrypicking": 38
+      },
+      "percent_of_labeled": {
+        "Supported": 24.4,
+        "Refuted": 61.0,
+        "Not Enough Evidence": 7.0,
+        "Conflicting Evidence/Cherrypicking": 7.6
+      },
+      "majority_minority_ratio": 8.714,
+      "balance_assessment": "Há desbalanceamento: avaliar pesos/amostragem apenas no treino; não fazer oversampling automaticamente.",
+      "quality": {
+        "answer_without_source_url": 39
+      },
+      "duplicate_id_excess": 0,
+      "normalized_duplicate_groups": 6,
+      "normalized_duplicate_excess": 9,
+      "conflicting_duplicate_groups": 0,
+      "duplicate_examples": [
+        [
+          {
+            "id": "192",
+            "label": "Not Enough Evidence",
+            "split": "dev"
+          },
+          {
+            "id": "208",
+            "label": "Not Enough Evidence",
+            "split": "dev"
+          }
+        ],
+        [
+          {
+            "id": "202",
+            "label": "Supported",
+            "split": "dev"
+          },
+          {
+            "id": "212",
+            "label": "Supported",
+            "split": "dev"
+          }
+        ],
+        [
+          {
+            "id": "203",
+            "label": "Supported",
+            "split": "dev"
+          },
+          {
+            "id": "205",
+            "label": "Supported",
+            "split": "dev"
+          },
+          {
+            "id": "231",
+            "label": "Supported",
+            "split": "dev"
+          }
+        ],
+        [
+          {
+            "id": "204",
+            "label": "Supported",
+            "split": "dev"
+          },
+          {
+            "id": "207",
+            "label": "Supported",
+            "split": "dev"
+          },
+          {
+            "id": "211",
+            "label": "Supported",
+            "split": "dev"
+          },
+          {
+            "id": "224",
+            "label": "Supported",
+            "split": "dev"
+          }
+        ],
+        [
+          {
+            "id": "214",
+            "label": "Supported",
+            "split": "dev"
+          },
+          {
+            "id": "216",
+            "label": "Supported",
+            "split": "dev"
+          }
+        ],
+        [
+          {
+            "id": "215",
+            "label": "Supported",
+            "split": "dev"
+          },
+          {
+            "id": "218",
+            "label": "Supported",
+            "split": "dev"
+          }
+        ]
+      ],
+      "conflicting_duplicate_examples": [],
+      "metrics": {
+        "answers_per_claim": {
+          "n": 500,
+          "min": 1,
+          "p50": 2.0,
+          "p95": 6.0,
+          "p99": 9.01,
+          "max": 16,
+          "mean": 2.8
+        },
+        "answers_per_question": {
+          "n": 1287,
+          "min": 1,
+          "p50": 1.0,
+          "p95": 2.0,
+          "p99": 3.0,
+          "max": 4,
+          "mean": 1.09
+        },
+        "claim_qa_justification_words": {
+          "n": 500,
+          "min": 23,
+          "p50": 129.5,
+          "p95": 405.2,
+          "p99": 665.52,
+          "max": 2227,
+          "mean": 168.38
+        },
+        "justification_words": {
+          "n": 500,
+          "min": 1,
+          "p50": 17.5,
+          "p95": 55.0,
+          "p99": 80.0,
+          "max": 164,
+          "mean": 21.63
+        },
+        "questions_per_claim": {
+          "n": 500,
+          "min": 1,
+          "p50": 2.0,
+          "p95": 5.05,
+          "p99": 7.01,
+          "max": 12,
+          "mean": 2.57
+        },
+        "text_characters": {
+          "n": 500,
+          "min": 19,
+          "p50": 96.0,
+          "p95": 201.0,
+          "p99": 238.21,
+          "max": 390,
+          "mean": 105.73
+        },
+        "text_words_whitespace": {
+          "n": 500,
+          "min": 3,
+          "p50": 16.0,
+          "p95": 31.0,
+          "p99": 42.01,
+          "max": 66,
+          "mean": 17.39
+        }
+      },
+      "categories": {
+        "answer_source_domains": {
+          "web.archive.org": 470,
+          "": 82,
+          "twitter.com": 32,
+          "en.wikipedia.org": 14,
+          "archive.ph": 13,
+          "www.nbcnews.com": 9,
+          "abcnews.go.com": 9,
+          "www.aap.com.au": 9,
+          "www.theguardian.com": 8,
+          "www.cdc.gov": 8,
+          "www.facebook.com": 7,
+          "www.washingtonpost.com": 7,
+          "apnews.com": 7,
+          "joebiden.com": 7,
+          "www.google.com": 6,
+          "www.reuters.com": 6,
+          "www.nytimes.com": 6,
+          "www.foxnews.com": 6,
+          "www.youtube.com": 6,
+          "theconversation.com": 6,
+          "sd11.senate.ca.gov": 6,
+          "www.rev.com": 6,
+          "edition.cnn.com": 5,
+          "transcripts.cnn.com": 5,
+          "www.fec.gov": 5,
+          "www.politico.com": 5,
+          "www.vanguardngr.com": 5,
+          "www.thehindu.com": 5,
+          "population.un.org": 5,
+          "upsc.gov.in": 5,
+          "www.bbc.com": 4,
+          "www.englandandcompany.co.uk": 4,
+          "time.com": 4,
+          "www.npr.org": 4,
+          "www.abc.net.au": 4,
+          "www.cnbc.com": 4,
+          "www.congress.gov": 4,
+          "www.altnews.in": 4,
+          "africacheck.org": 4,
+          "www.brennancenter.org": 4,
+          "www.newsroom.co.nz": 4,
+          "www.gov.uk": 4,
+          "theprint.in": 4,
+          "laws.justice.gc.ca": 4,
+          "elections.maryland.gov": 3,
+          "www.buzzfeednews.com": 3,
+          "www.healthline.com": 3,
+          "www.forbes.com": 3,
+          "timesofindia.indiatimes.com": 3,
+          "www.bbc.co.uk": 3,
+          "www.cnn.com": 3,
+          "www.factcheck.org": 3,
+          "www.researchgate.net": 3,
+          "www.denver7.com": 3,
+          "www.britannica.com": 3,
+          "www.who.int": 3,
+          "www.thecable.ng": 3,
+          "observers.france24.com": 3,
+          "khn.org": 3,
+          "eagleforum.org": 3,
+          "www.currytbcenter.ucsf.edu": 3,
+          "www.politifact.com": 3,
+          "tableau.minneapolismn.gov": 3,
+          "www.jagranjosh.com": 3,
+          "gstcouncil.gov.in": 3,
+          "www.absradiotv.com": 3,
+          "www.bhwlawfirm.com": 3,
+          "www.lacriminaldefenseattorney.com": 3,
+          "www.lung.org": 3,
+          "www.aljazeera.com": 2,
+          "www.calculator.net": 2,
+          "www.nature.com": 2,
+          "www.smh.com.au": 2,
+          "www.ncbi.nlm.nih.gov": 2,
+          "vikaspedia.in": 2,
+          "punchng.com": 2,
+          "www.police.govt.nz": 2,
+          "www.cbs58.com": 2,
+          "ecode360.com": 2,
+          "www.drishtiias.com": 2,
+          "www.iowafarmbureau.com": 2,
+          "www.imdb.com": 2,
+          "metro.co.uk": 2,
+          "www.brookings.edu": 2,
+          "www.history.com": 2,
+          "assets.publishing.service.gov.uk": 2,
+          "www.forestsandreserves.vic.gov.au": 2,
+          "acwm.org": 2,
+          "dictionary.cambridge.org": 2,
+          "www.india.gov.in": 2,
+          "zeenews.india.com": 2,
+          "indianexpress.com": 2,
+          "www.johncornyn.com": 2,
+          "www.vox.com": 2,
+          "worldwide.espacenet.com": 2,
+          "ppubs.uspto.gov": 2,
+          "www.pbs.org": 2,
+          "worldpoverty.io": 2,
+          "health-desk.org": 2,
+          "www.atsjournals.org": 2,
+          "travel.state.gov": 2,
+          "www.ndtv.com": 2,
+          "jamanetwork.com": 2,
+          "www.un.org": 2,
+          "www150.statcan.gc.ca": 2,
+          "calculator-1.com": 2,
+          "data.worldbank.org": 2,
+          "news.un.org": 2,
+          "www.theatlantic.com": 2,
+          "www.census2011.co.in": 2,
+          "www.budgetoffice.gov.ng": 2,
+          "www.nj.com": 2,
+          "wwwnc.cdc.gov": 2,
+          "states.aarp.org": 2,
+          "www.sdgindex.org": 2,
+          "uscode.house.gov": 2,
+          "www.imf.org": 2,
+          "www.cochrane.org": 2,
+          "businessdesk.co.nz": 2,
+          "www.abc10.com": 2,
+          "electproject.github.io": 2,
+          "www.fda.gov": 2,
+          "perma.cc": 2,
+          "resist.bot": 2,
+          "jwa.org": 2,
+          "www.regent.edu": 2,
+          "pm.gc.ca": 2,
+          "www.canada.ca": 2,
+          "www.wikiwand.com": 2,
+          "www.livescience.com": 2,
+          "www1.salary.com": 2,
+          "www.ncsl.org": 2,
+          "www.janes.com": 2,
+          "nigerianstat.gov.ng": 2,
+          "www.boomlive.in": 2,
+          "economictimes.indiatimes.com": 2,
+          "web.archivehttps:": 2,
+          "www.hindustantimes.com": 2,
+          "www.si.com": 2,
+          "www.espn.com": 2,
+          "www.insider.com": 2,
+          "www2.hse.ie": 2,
+          "www.medicalnewstoday.com": 2,
+          "support.microsoft.com": 2,
+          "www.snopes.com": 2,
+          "www.gvnews.com": 2,
+          "insidergeeks.com": 2,
+          "peguru.com": 2,
+          "www.govinfo.gov": 2,
+          "asm.org": 2,
+          "www.fox32chicago.com": 2,
+          "www.flgov.com": 2,
+          "www.nature.org": 2,
+          "nypost.com": 2,
+          "www.techlicious.com": 2,
+          "www.congress.gov.ph": 2,
+          "comptroller.defense.gov": 2,
+          "ti-defence.org": 2,
+          "www.loc.gov": 2,
+          "web.archihttps:": 2,
+          "www.familytreedna.com": 1,
+          "www.independent.co.uk": 1,
+          "erau.edu": 1,
+          "www.celebritynetworth.com": 1,
+          "injuryfacts.nsc.org": 1,
+          "www.statnews.com": 1,
+          "www.sos.ca.gov": 1,
+          "calmatters.org": 1,
+          "www.stlouisfed.org": 1,
+          "dx.doi.org": 1,
+          "www.parliament.nz": 1,
+          "www.nzlii.org": 1,
+          "www.beehive.govt.nz": 1,
+          "www.ox.ac.uk": 1,
+          "www.crisisgroup.org": 1,
+          "www.wsj.com": 1,
+          "www.cbp.gov": 1,
+          "www.nfid.org": 1,
+          "www.ucsf.edu": 1,
+          "oag.dc.gov": 1,
+          "projects.fivethirtyeight.com": 1,
+          "www.cbsnews.com": 1,
+          "www.dawn.com": 1,
+          "www.instagram.com": 1,
+          "www.thelancet.com": 1,
+          "www.dailymail.co.uk": 1,
+          "www.mirror.co.uk": 1,
+          "www.legislation.gov.au": 1,
+          "eur-lex.europa.eu": 1,
+          "www.fox6now.com": 1,
+          "it.wikipedia.org": 1,
+          "www.pcmag.com": 1,
+          "www.ucc.org": 1,
+          "www.auctoresonline.org": 1,
+          "www.reformer.com": 1,
+          "pittsburgh.cbslocal.com": 1,
+          "www.metmuseum.org": 1,
+          "web-archive-org.translate.goog": 1,
+          "www.news-medical.net": 1,
+          "www.cambridge.org": 1,
+          "www.cityofsacramento.org": 1,
+          "www.sciencealert.com": 1,
+          "www.amazon.com": 1,
+          "www.nih.gov": 1,
+          "www.newscientist.com": 1,
+          "www.cppr.in": 1,
+          "www.businesstoday.in": 1,
+          "caucus.militarytimes.com": 1,
+          "qctimes.com": 1,
+          "www.samrc.ac.za": 1,
+          "money.cnn.com": 1,
+          "www.scotsman.com": 1,
+          "www.inquirer.com": 1,
+          "in.linkedin.com": 1,
+          "www.telegraphindia.com": 1,
+          "www.amu.ac.in": 1,
+          "www.newindianexpress.com": 1,
+          "www.dailyo.in": 1,
+          "www.iheart.com": 1,
+          "polititweet.org": 1,
+          "www.thehansindia.com": 1,
+          "www.fox29.com": 1,
+          "navbharattimes.indiatimes.com": 1,
+          "www.thequint.com": 1,
+          "www.davidgarrow.com": 1,
+          "www.wicker.senate.gov": 1,
+          "advocacy.org.nz": 1,
+          "bothlivesmatter.org.nz": 1,
+          "www.investopedia.com": 1,
+          "www.nme.com": 1,
+          "www.dnaindia.com": 1,
+          "www.dcfpi.org": 1,
+          "cruxnow.com": 1,
+          "www.dohainstitute.org": 1,
+          "www.trtworld.com": 1,
+          "ergo.slv.vic.gov.au": 1,
+          "qz.com": 1,
+          "www.taxpolicycenter.org": 1,
+          "thesource.com": 1,
+          "www.cmu.edu": 1,
+          "pubmed.ncbi.nlm.nih.gov": 1,
+          "www.myblackhistory.net": 1,
+          "www.aaihs.org": 1,
+          "thenassauguardian.com": 1,
+          "www.abujapress.com": 1,
+          "www.treasury.govt.nz": 1,
+          "www.oecd-ilibrary.org": 1,
+          "www.bloomberg.com": 1,
+          "millercenter.org": 1,
+          "www.thetimes.co.uk": 1,
+          "www.thedailybeast.com": 1,
+          "www.aha.org": 1,
+          "grist.org": 1,
+          "www.online-calculator.com": 1,
+          "register.epo.org": 1,
+          "investor.regeneron.com": 1,
+          "www.macrotrends.net": 1,
+          "www.france24.com": 1,
+          "thelogic.co": 1,
+          "www.opcw.org": 1,
+          "www.startribune.com": 1,
+          "www.polygraph.info": 1,
+          "gdc.unicef.org": 1,
+          "www.legislation.gov.uk": 1,
+          "www.india.com": 1,
+          "registration–form-free–smartphone.blogspot.com": 1,
+          "www.spinalcord.com": 1,
+          "docs.legis.wisconsin.gov": 1,
+          "www.orfonline.org": 1,
+          "eurasiantimes.com": 1,
+          "www.scribd.com": 1,
+          "www.sws.org.ph": 1,
+          "www.cfa.gov": 1,
+          "www.nigerianstat.gov.ng": 1,
+          "english.alarabiya.net": 1,
+          "www.idiva.com": 1,
+          "www.multivu.com": 1,
+          "www.csis.org": 1,
+          "www.worlddata.info": 1,
+          "www.recoverytrial.net": 1,
+          "www.globalscientificjournal.com": 1,
+          "guardian.ng": 1,
+          "www.globalcitizen.org": 1,
+          "tradingeconomics.com": 1,
+          "edisciplinas.usp.br": 1,
+          "www.globalpetrolprices.com": 1,
+          "www.princeton.edu": 1,
+          "www.theglobaleconomy.com": 1,
+          "www.worldbank.org": 1,
+          "www.intechopen.com": 1,
+          "www.cfr.org": 1,
+          "www.thoughtco.com": 1,
+          "www.jstor.org": 1,
+          "artsandculture.google.com": 1,
+          "www.dw.com": 1,
+          "fmic.gov.ng": 1,
+          "scialert.net": 1,
+          "www.rumourtimes.com": 1,
+          "www.mbie.govt.nz": 1,
+          "www.addictioncenter.com": 1,
+          "bpspsychub.onlinelibrary.wiley.com": 1,
+          "pub.njleg.gov": 1,
+          "www.heritage.org": 1,
+          "ourworldindata.org": 1,
+          "www.ijidonline.com": 1,
+          "ukhsa.blog.gov.uk": 1,
+          "www.medicines.org.uk": 1,
+          "www.aarp.org": 1,
+          "www.thenewsminute.com": 1,
+          "www.afj.org": 1,
+          "demandjustice.org": 1,
+          "factly.in": 1,
+          "www.sdgphilanthropy.org": 1,
+          "s3.amazonaws.com": 1,
+          "eu.detroitnews.com": 1,
+          "www.sos.state.nm.us": 1,
+          "www.media.pa.gov": 1,
+          "trumpwhitehouse.archives.gov": 1,
+          "www.kff.org": 1,
+          "timetofreeamerica.com": 1,
+          "www.kkr.com": 1,
+          "fyrefox.com": 1,
+          "www.theunionjournal.com": 1,
+          "www.iccc.mfe.govt.nz": 1,
+          "www.ninds.nih.gov": 1,
+          "thehill.com": 1,
+          "history.house.gov": 1,
+          "eppc.org": 1,
+          "www.eac.gov": 1,
+          "news.cornell.edu": 1,
+          "eu.usatoday.com": 1,
+          "www.worldometers.info": 1,
+          "www.gonewsindia.com": 1,
+          "www.sps.gov.uk": 1,
+          "trustnewsgh.com": 1,
+          "www.businessinsider.com": 1,
+          "wonderdome.co.uk": 1,
+          "www.vice.com": 1,
+          "www.greatrockcapital.com": 1,
+          "www.biography.com": 1,
+          "crsreports.congress.gov": 1,
+          "www.newyorker.com": 1,
+          "www.linkedin.com": 1,
+          "www.twosigma.com": 1,
+          "milkeninstitute.org": 1,
+          "worldpopulationreview.com": 1,
+          "achievement.org": 1,
+          "journals.sagepub.com": 1,
+          "www.dhs.gov": 1,
+          "globalnews.ca": 1,
+          "www.newsweek.com": 1,
+          "www.sciencedirect.com": 1,
+          "www.pwc.com": 1,
+          "www.nationsonline.org": 1,
+          "cghdde.berkeley.edu": 1,
+          "www.usa.gov": 1,
+          "www.ajmc.com": 1,
+          "thebulletin.org": 1,
+          "nces.ed.gov": 1,
+          "www.pewresearch.org": 1,
+          "www.theverge.com": 1,
+          "www.inc.com": 1,
+          "dps.mn.gov": 1,
+          "fortune.com": 1,
+          "www.irs.gov": 1,
+          "wildfiretoday.com": 1,
+          "factba.se": 1,
+          "2009-2017.state.gov": 1,
+          "thenationonlineng.net": 1,
+          "247sports.com": 1,
+          "decider.com": 1,
+          "www.indiatoday.in": 1,
+          "www.clearias.com": 1,
+          "socialjustice.nic.in": 1,
+          "news.yahoo.com": 1,
+          "www.taxnotes.com": 1,
+          "apic.org": 1,
+          "obamawhitehouse.archives.gov": 1,
+          "www.science.org": 1,
+          "news.wisc.edu": 1,
+          "www.ssec.wisc.edu": 1,
+          "www.intelligenttransport.com": 1,
+          "alabamanewscenter.com": 1,
+          "9to5google.com": 1,
+          "www.lungmds.com": 1,
+          "www.imperial.ac.uk": 1,
+          "sabilaw.org": 1,
+          "www.saps.gov.za": 1,
+          "hotinsocialmedia.medium.com": 1,
+          "hotinsocialmedia.com": 1,
+          "www.fastcompany.com": 1,
+          "china.usc.edu": 1,
+          "techcrunch.com": 1,
+          "money.usnews.com": 1,
+          "www.legalmatch.com": 1,
+          "msdh.ms.gov": 1,
+          "www.justdial.com": 1,
+          "www.indianretailer.com": 1,
+          "clerk.house.gov": 1,
+          "www.laws.justice.gc.ca": 1,
+          "www.cbc.ca": 1,
+          "arstechnica.com": 1,
+          "medium.com": 1,
+          "www.devex.com": 1,
+          "id2020.org": 1,
+          "minorityrights.org": 1,
+          "theculturetrip.com": 1,
+          "www.nicd.ac.za": 1,
+          "www.urmc.rochester.edu": 1,
+          "healthfeedback.org": 1,
+          "onlinelibrary.wiley.com": 1,
+          "www.whitehouse.gov": 1,
+          "www.esa.org": 1,
+          "crtc.gc.ca": 1,
+          "www.aiimsexams.org": 1,
+          "drive.google.com": 1,
+          "www.nps.gov": 1,
+          "www.nationalgeographic.com": 1,
+          "appsdoc.wi.gov": 1,
+          "www.doj.state.wi.us": 1,
+          "hollywoodunlocked.com": 1,
+          "www.detroitnews.com": 1,
+          "www.careerindia.com": 1,
+          "fredericksburg.com": 1,
+          "content.govdelivery.com": 1,
+          "taxfoundation.org": 1,
+          "www.wpr.org": 1,
+          "www.officialgazette.gov.ph": 1,
+          "legacy.senate.gov.ph": 1,
+          "www.edchoice.org": 1,
+          "www.edweek.org": 1,
+          "publicprocurementinternational.com": 1,
+          "www.govtrack.us": 1,
+          "thefamousinfo.com": 1,
+          "www.axios.com": 1,
+          "www.usatoday.com": 1,
+          "www.nielsen.com": 1
+        },
+        "answer_type": {
+          "Extractive": 707,
+          "Abstractive": 361,
+          "Boolean": 292,
+          "Unanswerable": 39
+        },
+        "claim_year": {
+          "2020": 500
+        },
+        "missing_source_by_answer_type": {
+          "Unanswerable": 39
+        },
+        "source_medium": {
+          "Web text": 1054,
+          "PDF": 108,
+          "Metadata": 79,
+          "Web table": 40,
+          "": 39,
+          "Image/graphic": 38,
+          "Other": 24,
+          "Video": 17
+        }
+      },
+      "schema": {
+        "$": {
+          "types": {
+            "dict": 500
+          },
+          "present": 500,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.cached_original_claim_url": {
+          "types": {
+            "NoneType": 228,
+            "str": 268
+          },
+          "present": 496,
+          "null_or_empty": 238,
+          "parent_objects": 500,
+          "missing": 4
+        },
+        "$.claim": {
+          "types": {
+            "str": 500
+          },
+          "present": 500,
+          "null_or_empty": 0,
+          "parent_objects": 500,
+          "missing": 0
+        },
+        "$.claim_date": {
+          "types": {
+            "str": 500
+          },
+          "present": 500,
+          "null_or_empty": 0,
+          "parent_objects": 500,
+          "missing": 0
+        },
+        "$.claim_types": {
+          "types": {
+            "list": 500
+          },
+          "present": 500,
+          "null_or_empty": 0,
+          "parent_objects": 500,
+          "missing": 0
+        },
+        "$.claim_types[]": {
+          "types": {
+            "str": 578
+          },
+          "present": 578,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.fact_checking_article": {
+          "types": {
+            "str": 500
+          },
+          "present": 500,
+          "null_or_empty": 0,
+          "parent_objects": 500,
+          "missing": 0
+        },
+        "$.fact_checking_strategies": {
+          "types": {
+            "list": 500
+          },
+          "present": 500,
+          "null_or_empty": 0,
+          "parent_objects": 500,
+          "missing": 0
+        },
+        "$.fact_checking_strategies[]": {
+          "types": {
+            "str": 722
+          },
+          "present": 722,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.justification": {
+          "types": {
+            "str": 500
+          },
+          "present": 500,
+          "null_or_empty": 0,
+          "parent_objects": 500,
+          "missing": 0
+        },
+        "$.label": {
+          "types": {
+            "str": 500
+          },
+          "present": 500,
+          "null_or_empty": 0,
+          "parent_objects": 500,
+          "missing": 0
+        },
+        "$.location_ISO_code": {
+          "types": {
+            "NoneType": 50,
+            "str": 450
+          },
+          "present": 500,
+          "null_or_empty": 50,
+          "parent_objects": 500,
+          "missing": 0
+        },
+        "$.original_claim_url": {
+          "types": {
+            "NoneType": 228,
+            "str": 272
+          },
+          "present": 500,
+          "null_or_empty": 238,
+          "parent_objects": 500,
+          "missing": 0
+        },
+        "$.questions": {
+          "types": {
+            "list": 500
+          },
+          "present": 500,
+          "null_or_empty": 0,
+          "parent_objects": 500,
+          "missing": 0
+        },
+        "$.questions[]": {
+          "types": {
+            "dict": 1287
+          },
+          "present": 1287,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.questions[].answers": {
+          "types": {
+            "list": 1287
+          },
+          "present": 1287,
+          "null_or_empty": 0,
+          "parent_objects": 1287,
+          "missing": 0
+        },
+        "$.questions[].answers[]": {
+          "types": {
+            "dict": 1399
+          },
+          "present": 1399,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.questions[].answers[].answer": {
+          "types": {
+            "str": 1399
+          },
+          "present": 1399,
+          "null_or_empty": 0,
+          "parent_objects": 1399,
+          "missing": 0
+        },
+        "$.questions[].answers[].answer_type": {
+          "types": {
+            "str": 1399
+          },
+          "present": 1399,
+          "null_or_empty": 0,
+          "parent_objects": 1399,
+          "missing": 0
+        },
+        "$.questions[].answers[].boolean_explanation": {
+          "types": {
+            "str": 292
+          },
+          "present": 292,
+          "null_or_empty": 0,
+          "parent_objects": 1399,
+          "missing": 1107
+        },
+        "$.questions[].answers[].cached_source_url": {
+          "types": {
+            "str": 1326
+          },
+          "present": 1326,
+          "null_or_empty": 0,
+          "parent_objects": 1399,
+          "missing": 73
+        },
+        "$.questions[].answers[].source_medium": {
+          "types": {
+            "str": 1399
+          },
+          "present": 1399,
+          "null_or_empty": 39,
+          "parent_objects": 1399,
+          "missing": 0
+        },
+        "$.questions[].answers[].source_url": {
+          "types": {
+            "str": 1399
+          },
+          "present": 1399,
+          "null_or_empty": 39,
+          "parent_objects": 1399,
+          "missing": 0
+        },
+        "$.questions[].question": {
+          "types": {
+            "str": 1287
+          },
+          "present": 1287,
+          "null_or_empty": 0,
+          "parent_objects": 1287,
+          "missing": 0
+        },
+        "$.reporting_source": {
+          "types": {
+            "str": 412,
+            "NoneType": 88
+          },
+          "present": 500,
+          "null_or_empty": 90,
+          "parent_objects": 500,
+          "missing": 0
+        },
+        "$.required_reannotation": {
+          "types": {
+            "bool": 500
+          },
+          "present": 500,
+          "null_or_empty": 0,
+          "parent_objects": 500,
+          "missing": 0
+        },
+        "$.speaker": {
+          "types": {
+            "NoneType": 110,
+            "str": 390
+          },
+          "present": 500,
+          "null_or_empty": 118,
+          "parent_objects": 500,
+          "missing": 0
+        }
+      },
+      "input": {
+        "path": "C:\\Users\\Pedro\\OneDrive\\Desktop\\Challenge2\\data\\raw\\averitec\\dev.json",
+        "sha256": "499793726b4a5406780928a3d9dedc48d6dd53de778f22437d129cacdb08e300",
+        "bytes": 1785475
+      }
+    },
+    "cross_split_overlap": [
+      {
+        "splits": [
+          "train",
+          "dev"
+        ],
+        "normalized_common_texts": 4,
+        "examples": [
+          {
+            "left": [
+              {
+                "id": "191",
+                "label": "Not Enough Evidence",
+                "split": "train"
+              },
+              {
+                "id": "565",
+                "label": "Not Enough Evidence",
+                "split": "train"
+              },
+              {
+                "id": "1539",
+                "label": "Supported",
+                "split": "train"
+              }
+            ],
+            "right": [
+              {
+                "id": "458",
+                "label": "Not Enough Evidence",
+                "split": "dev"
+              }
+            ]
+          },
+          {
+            "left": [
+              {
+                "id": "1340",
+                "label": "Supported",
+                "split": "train"
+              }
+            ],
+            "right": [
+              {
+                "id": "194",
+                "label": "Supported",
+                "split": "dev"
+              }
+            ]
+          },
+          {
+            "left": [
+              {
+                "id": "1536",
+                "label": "Supported",
+                "split": "train"
+              }
+            ],
+            "right": [
+              {
+                "id": "463",
+                "label": "Supported",
+                "split": "dev"
+              }
+            ]
+          },
+          {
+            "left": [
+              {
+                "id": "1341",
+                "label": "Supported",
+                "split": "train"
+              }
+            ],
+            "right": [
+              {
+                "id": "214",
+                "label": "Supported",
+                "split": "dev"
+              },
+              {
+                "id": "216",
+                "label": "Supported",
+                "split": "dev"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "feverous": {
+    "train": {
+      "records": 71291,
+      "labeled_records": 71291,
+      "labels": {
+        "SUPPORTS": 41835,
+        "REFUTES": 27215,
+        "NOT ENOUGH INFO": 2241
+      },
+      "percent_of_labeled": {
+        "SUPPORTS": 58.682,
+        "REFUTES": 38.175,
+        "NOT ENOUGH INFO": 3.143
+      },
+      "majority_minority_ratio": 18.668,
+      "balance_assessment": "Há desbalanceamento: avaliar pesos/amostragem apenas no treino; não fazer oversampling automaticamente.",
+      "quality": {
+        "header_records": 1
+      },
+      "duplicate_id_excess": 0,
+      "normalized_duplicate_groups": 1,
+      "normalized_duplicate_excess": 1,
+      "conflicting_duplicate_groups": 0,
+      "duplicate_examples": [
+        [
+          {
+            "id": 23097,
+            "label": "REFUTES",
+            "split": "train"
+          },
+          {
+            "id": 72735,
+            "label": "REFUTES",
+            "split": "train"
+          }
+        ]
+      ],
+      "conflicting_duplicate_examples": [],
+      "metrics": {
+        "elements_per_evidence_set": {
+          "n": 77492,
+          "min": 1,
+          "p50": 3.0,
+          "p95": 13.0,
+          "p99": 32.09,
+          "max": 254,
+          "mean": 4.51
+        },
+        "evidence_sets_per_claim": {
+          "n": 71291,
+          "min": 1,
+          "p50": 1.0,
+          "p95": 2.0,
+          "p99": 2.0,
+          "max": 3,
+          "mean": 1.09
+        },
+        "text_characters": {
+          "n": 71291,
+          "min": 16,
+          "p50": 142.0,
+          "p95": 278.0,
+          "p99": 359.0,
+          "max": 807,
+          "mean": 153.23
+        },
+        "text_words_whitespace": {
+          "n": 71291,
+          "min": 3,
+          "p50": 23.0,
+          "p95": 46.0,
+          "p99": 59.0,
+          "max": 129,
+          "mean": 25.28
+        },
+        "unique_context_ids_per_claim": {
+          "n": 71291,
+          "min": 1,
+          "p50": 3.0,
+          "p95": 8.0,
+          "p99": 14.0,
+          "max": 90,
+          "mean": 3.94
+        },
+        "unique_evidence_ids_per_claim": {
+          "n": 71291,
+          "min": 1,
+          "p50": 3.0,
+          "p95": 14.0,
+          "p99": 34.0,
+          "max": 254,
+          "mean": 4.85
+        },
+        "unique_pages_per_claim": {
+          "n": 71291,
+          "min": 1,
+          "p50": 1.0,
+          "p95": 2.0,
+          "p99": 3.0,
+          "max": 12,
+          "mean": 1.2
+        }
+      },
+      "categories": {
+        "challenge": {
+          "Other": 40193,
+          "Multi-hop Reasoning": 11624,
+          "Combining Tables and Text": 10083,
+          "Numerical Reasoning": 7214,
+          "Entity Disambiguation": 1353,
+          "Search terms not in claim": 824
+        },
+        "evidence_element_type": {
+          "cell": 230261,
+          "sentence": 100044,
+          "header_cell": 12142,
+          "item": 3594,
+          "table_caption": 3515
+        },
+        "evidence_type_combination": {
+          "sentence": 27975,
+          "cell+sentence": 18489,
+          "cell": 17150,
+          "cell+table_caption": 1452,
+          "cell+header_cell": 1388,
+          "cell+sentence+table_caption": 1358,
+          "cell+header_cell+sentence": 1272,
+          "item+sentence": 515,
+          "cell+item+sentence": 323,
+          "header_cell": 298,
+          "header_cell+sentence": 296,
+          "item": 154,
+          "cell+header_cell+sentence+table_caption": 144,
+          "cell+header_cell+table_caption": 142,
+          "cell+item": 134,
+          "header_cell+table_caption": 41,
+          "header_cell+sentence+table_caption": 32,
+          "cell+header_cell+item+sentence": 24,
+          "sentence+table_caption": 20,
+          "cell+item+sentence+table_caption": 20,
+          "cell+item+table_caption": 15,
+          "table_caption": 14,
+          "cell+header_cell+item": 13,
+          "header_cell+item+sentence": 11,
+          "header_cell+item": 4,
+          "cell+header_cell+item+sentence+table_caption": 3,
+          "item+sentence+table_caption": 2,
+          "header_cell+item+table_caption": 1,
+          "cell+header_cell+item+table_caption": 1
+        }
+      },
+      "schema": {
+        "$": {
+          "types": {
+            "dict": 71291
+          },
+          "present": 71291,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.annotator_operations": {
+          "types": {
+            "list": 71291
+          },
+          "present": 71291,
+          "null_or_empty": 0,
+          "parent_objects": 71291,
+          "missing": 0
+        },
+        "$.annotator_operations[]": {
+          "types": {
+            "dict": 1134590
+          },
+          "present": 1134590,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.annotator_operations[].operation": {
+          "types": {
+            "str": 1134590
+          },
+          "present": 1134590,
+          "null_or_empty": 0,
+          "parent_objects": 1134590,
+          "missing": 0
+        },
+        "$.annotator_operations[].time": {
+          "types": {
+            "str": 1134590
+          },
+          "present": 1134590,
+          "null_or_empty": 0,
+          "parent_objects": 1134590,
+          "missing": 0
+        },
+        "$.annotator_operations[].value": {
+          "types": {
+            "str": 1134590
+          },
+          "present": 1134590,
+          "null_or_empty": 57,
+          "parent_objects": 1134590,
+          "missing": 0
+        },
+        "$.challenge": {
+          "types": {
+            "str": 71291
+          },
+          "present": 71291,
+          "null_or_empty": 0,
+          "parent_objects": 71291,
+          "missing": 0
+        },
+        "$.claim": {
+          "types": {
+            "str": 71291
+          },
+          "present": 71291,
+          "null_or_empty": 0,
+          "parent_objects": 71291,
+          "missing": 0
+        },
+        "$.evidence": {
+          "types": {
+            "list": 71291
+          },
+          "present": 71291,
+          "null_or_empty": 0,
+          "parent_objects": 71291,
+          "missing": 0
+        },
+        "$.evidence[]": {
+          "types": {
+            "dict": 77492
+          },
+          "present": 77492,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.evidence[].content": {
+          "types": {
+            "list": 77492
+          },
+          "present": 77492,
+          "null_or_empty": 0,
+          "parent_objects": 77492,
+          "missing": 0
+        },
+        "$.evidence[].content[]": {
+          "types": {
+            "str": 349556
+          },
+          "present": 349556,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.evidence[].context": {
+          "types": {
+            "dict": 77492
+          },
+          "present": 77492,
+          "null_or_empty": 0,
+          "parent_objects": 77492,
+          "missing": 0
+        },
+        "$.evidence[].context.*": {
+          "types": {
+            "list": 349556
+          },
+          "present": 349556,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.evidence[].context.*[]": {
+          "types": {
+            "str": 983532
+          },
+          "present": 983532,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.id": {
+          "types": {
+            "int": 71291
+          },
+          "present": 71291,
+          "null_or_empty": 0,
+          "parent_objects": 71291,
+          "missing": 0
+        },
+        "$.label": {
+          "types": {
+            "str": 71291
+          },
+          "present": 71291,
+          "null_or_empty": 0,
+          "parent_objects": 71291,
+          "missing": 0
+        }
+      },
+      "input": {
+        "path": "C:\\Users\\Pedro\\OneDrive\\Desktop\\Challenge2\\data\\raw\\feverous\\train.jsonl",
+        "sha256": "0c29ccba41e27c5b988ca5132085e8d67c7921f265707bea170bfbde12bceee7",
+        "bytes": 177565233
+      }
+    },
+    "dev": {
+      "records": 7890,
+      "labeled_records": 7890,
+      "labels": {
+        "SUPPORTS": 3908,
+        "REFUTES": 3481,
+        "NOT ENOUGH INFO": 501
+      },
+      "percent_of_labeled": {
+        "SUPPORTS": 49.531,
+        "REFUTES": 44.119,
+        "NOT ENOUGH INFO": 6.35
+      },
+      "majority_minority_ratio": 7.8,
+      "balance_assessment": "Há desbalanceamento: avaliar pesos/amostragem apenas no treino; não fazer oversampling automaticamente.",
+      "quality": {
+        "header_records": 1
+      },
+      "duplicate_id_excess": 0,
+      "normalized_duplicate_groups": 1,
+      "normalized_duplicate_excess": 1,
+      "conflicting_duplicate_groups": 0,
+      "duplicate_examples": [
+        [
+          {
+            "id": 4144,
+            "label": "SUPPORTS",
+            "split": "dev"
+          },
+          {
+            "id": 1004,
+            "label": "SUPPORTS",
+            "split": "dev"
+          }
+        ]
+      ],
+      "conflicting_duplicate_examples": [],
+      "metrics": {
+        "elements_per_evidence_set": {
+          "n": 8681,
+          "min": 1,
+          "p50": 3.0,
+          "p95": 11.0,
+          "p99": 20.0,
+          "max": 34,
+          "mean": 3.87
+        },
+        "evidence_sets_per_claim": {
+          "n": 7890,
+          "min": 1,
+          "p50": 1.0,
+          "p95": 2.0,
+          "p99": 3.0,
+          "max": 3,
+          "mean": 1.1
+        },
+        "text_characters": {
+          "n": 7890,
+          "min": 23,
+          "p50": 140.0,
+          "p95": 268.0,
+          "p99": 364.55,
+          "max": 656,
+          "mean": 151.23
+        },
+        "text_words_whitespace": {
+          "n": 7890,
+          "min": 4,
+          "p50": 23.0,
+          "p95": 44.0,
+          "p99": 60.0,
+          "max": 107,
+          "mean": 24.96
+        },
+        "unique_context_ids_per_claim": {
+          "n": 7890,
+          "min": 1,
+          "p50": 3.0,
+          "p95": 8.0,
+          "p99": 14.0,
+          "max": 34,
+          "mean": 3.87
+        },
+        "unique_evidence_ids_per_claim": {
+          "n": 7890,
+          "min": 1,
+          "p50": 3.0,
+          "p95": 12.0,
+          "p99": 21.0,
+          "max": 36,
+          "mean": 4.2
+        },
+        "unique_pages_per_claim": {
+          "n": 7890,
+          "min": 1,
+          "p50": 1.0,
+          "p95": 2.0,
+          "p99": 3.0,
+          "max": 7,
+          "mean": 1.2
+        }
+      },
+      "categories": {
+        "challenge": {
+          "Other": 4369,
+          "Multi-hop Reasoning": 1281,
+          "Combining Tables and Text": 1035,
+          "Numerical Reasoning": 873,
+          "Entity Disambiguation": 201,
+          "Search terms not in claim": 131
+        },
+        "evidence_element_type": {
+          "cell": 20598,
+          "sentence": 11099,
+          "header_cell": 1293,
+          "table_caption": 400,
+          "item": 191
+        },
+        "evidence_type_combination": {
+          "sentence": 3257,
+          "cell+sentence": 1957,
+          "cell": 1819,
+          "cell+sentence+table_caption": 169,
+          "cell+table_caption": 156,
+          "cell+header_cell": 145,
+          "cell+header_cell+sentence": 130,
+          "header_cell": 47,
+          "item+sentence": 47,
+          "header_cell+sentence": 37,
+          "cell+item+sentence": 30,
+          "item": 20,
+          "cell+header_cell+sentence+table_caption": 16,
+          "cell+item": 15,
+          "header_cell+table_caption": 14,
+          "cell+header_cell+table_caption": 12,
+          "cell+header_cell+item": 4,
+          "cell+item+sentence+table_caption": 4,
+          "cell+header_cell+item+sentence": 4,
+          "header_cell+sentence+table_caption": 3,
+          "table_caption": 2,
+          "sentence+table_caption": 1,
+          "cell+item+table_caption": 1
+        }
+      },
+      "schema": {
+        "$": {
+          "types": {
+            "dict": 7890
+          },
+          "present": 7890,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.annotator_operations": {
+          "types": {
+            "list": 7890
+          },
+          "present": 7890,
+          "null_or_empty": 0,
+          "parent_objects": 7890,
+          "missing": 0
+        },
+        "$.annotator_operations[]": {
+          "types": {
+            "dict": 119460
+          },
+          "present": 119460,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.annotator_operations[].operation": {
+          "types": {
+            "str": 119460
+          },
+          "present": 119460,
+          "null_or_empty": 0,
+          "parent_objects": 119460,
+          "missing": 0
+        },
+        "$.annotator_operations[].time": {
+          "types": {
+            "str": 119460
+          },
+          "present": 119460,
+          "null_or_empty": 0,
+          "parent_objects": 119460,
+          "missing": 0
+        },
+        "$.annotator_operations[].value": {
+          "types": {
+            "str": 119460
+          },
+          "present": 119460,
+          "null_or_empty": 8,
+          "parent_objects": 119460,
+          "missing": 0
+        },
+        "$.challenge": {
+          "types": {
+            "str": 7890
+          },
+          "present": 7890,
+          "null_or_empty": 0,
+          "parent_objects": 7890,
+          "missing": 0
+        },
+        "$.claim": {
+          "types": {
+            "str": 7890
+          },
+          "present": 7890,
+          "null_or_empty": 0,
+          "parent_objects": 7890,
+          "missing": 0
+        },
+        "$.evidence": {
+          "types": {
+            "list": 7890
+          },
+          "present": 7890,
+          "null_or_empty": 0,
+          "parent_objects": 7890,
+          "missing": 0
+        },
+        "$.evidence[]": {
+          "types": {
+            "dict": 8681
+          },
+          "present": 8681,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.evidence[].content": {
+          "types": {
+            "list": 8681
+          },
+          "present": 8681,
+          "null_or_empty": 0,
+          "parent_objects": 8681,
+          "missing": 0
+        },
+        "$.evidence[].content[]": {
+          "types": {
+            "str": 33581
+          },
+          "present": 33581,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.evidence[].context": {
+          "types": {
+            "dict": 8681
+          },
+          "present": 8681,
+          "null_or_empty": 0,
+          "parent_objects": 8681,
+          "missing": 0
+        },
+        "$.evidence[].context.*": {
+          "types": {
+            "list": 33581
+          },
+          "present": 33581,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.evidence[].context.*[]": {
+          "types": {
+            "str": 92065
+          },
+          "present": 92065,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.id": {
+          "types": {
+            "int": 7890
+          },
+          "present": 7890,
+          "null_or_empty": 0,
+          "parent_objects": 7890,
+          "missing": 0
+        },
+        "$.label": {
+          "types": {
+            "str": 7890
+          },
+          "present": 7890,
+          "null_or_empty": 0,
+          "parent_objects": 7890,
+          "missing": 0
+        }
+      },
+      "input": {
+        "path": "C:\\Users\\Pedro\\OneDrive\\Desktop\\Challenge2\\data\\raw\\feverous\\dev.jsonl",
+        "sha256": "1ac8cfd964d4dcedc5de3375850fe3f93d39b89a73a475734bde864da1701f8f",
+        "bytes": 18058238
+      }
+    },
+    "test": {
+      "records": 7845,
+      "labeled_records": 0,
+      "labels": {
+        "SUPPORTS": 0,
+        "REFUTES": 0,
+        "NOT ENOUGH INFO": 0
+      },
+      "percent_of_labeled": {
+        "SUPPORTS": null,
+        "REFUTES": null,
+        "NOT ENOUGH INFO": null
+      },
+      "majority_minority_ratio": null,
+      "balance_assessment": "Sem rótulos: balanceamento não pode ser medido.",
+      "quality": {
+        "unlabeled": 7845,
+        "evidence_missing_or_not_list": 7845,
+        "header_records": 1
+      },
+      "duplicate_id_excess": 0,
+      "normalized_duplicate_groups": 0,
+      "normalized_duplicate_excess": 0,
+      "conflicting_duplicate_groups": 0,
+      "duplicate_examples": [],
+      "conflicting_duplicate_examples": [],
+      "metrics": {
+        "text_characters": {
+          "n": 7845,
+          "min": 24,
+          "p50": 141.0,
+          "p95": 279.8,
+          "p99": 361.68,
+          "max": 511,
+          "mean": 153.4
+        },
+        "text_words_whitespace": {
+          "n": 7845,
+          "min": 3,
+          "p50": 23.0,
+          "p95": 46.0,
+          "p99": 59.0,
+          "max": 79,
+          "mean": 25.29
+        }
+      },
+      "categories": {},
+      "schema": {
+        "$": {
+          "types": {
+            "dict": 7845
+          },
+          "present": 7845,
+          "null_or_empty": 0,
+          "parent_objects": null,
+          "missing": null
+        },
+        "$.claim": {
+          "types": {
+            "str": 7845
+          },
+          "present": 7845,
+          "null_or_empty": 0,
+          "parent_objects": 7845,
+          "missing": 0
+        }
+      },
+      "input": {
+        "path": "C:\\Users\\Pedro\\OneDrive\\Desktop\\Challenge2\\data\\raw\\feverous\\test.jsonl",
+        "sha256": "600cc697e89be501484c22789edb7bd3bcf349eedcb7983c688a864caef99e4e",
+        "bytes": 1324609
+      }
+    },
+    "cross_split_overlap": [
+      {
+        "splits": [
+          "train",
+          "dev"
+        ],
+        "normalized_common_texts": 0,
+        "examples": []
+      },
+      {
+        "splits": [
+          "train",
+          "test"
+        ],
+        "normalized_common_texts": 0,
+        "examples": []
+      },
+      {
+        "splits": [
+          "dev",
+          "test"
+        ],
+        "normalized_common_texts": 0,
+        "examples": []
+      }
+    ]
+  }
+}
