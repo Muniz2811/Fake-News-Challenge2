@@ -1,0 +1,959 @@
+{
+  "created_at_utc": "2026-09-23T13:51:34.749748+00:00",
+  "method": "All records; whitespace lengths; Unicode regex for lexical analysis; dependency-free SVG output.",
+  "fakebr": {
+    "full_texts": {
+      "word_count_by_label": {
+        "fake": {
+          "n": 3600,
+          "min": 9,
+          "p25": 115.0,
+          "p50": 157.0,
+          "p95": 378.05,
+          "p99": 644.01,
+          "max": 2288,
+          "mean": 185.887,
+          "std_population": 127.615
+        },
+        "true": {
+          "n": 3600,
+          "min": 20,
+          "p25": 642.0,
+          "p50": 918.0,
+          "p95": 2284.15,
+          "p99": 3209.13,
+          "max": 7517,
+          "mean": 1100.294,
+          "std_population": 682.873
+        }
+      },
+      "style_by_label": {
+        "fake": {
+          "uppercase_letter_ratio": {
+            "n": 3600,
+            "min": 0.008,
+            "p25": 0.035,
+            "p50": 0.044,
+            "p95": 0.085,
+            "p99": 0.147,
+            "max": 0.484,
+            "mean": 0.049,
+            "std_population": 0.026
+          },
+          "exclamation_per_1000_chars": {
+            "n": 3600,
+            "min": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p95": 3.384,
+            "p99": 6.58,
+            "max": 15.707,
+            "mean": 0.694,
+            "std_population": 1.423
+          },
+          "question_per_1000_chars": {
+            "n": 3600,
+            "min": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p95": 2.649,
+            "p99": 5.556,
+            "max": 50.505,
+            "mean": 0.504,
+            "std_population": 1.462
+          },
+          "urls_per_document": {
+            "n": 3600,
+            "min": 0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "max": 1,
+            "mean": 0.001,
+            "std_population": 0.037
+          },
+          "mean_word_characters": {
+            "n": 3600,
+            "min": 3.625,
+            "p25": 4.733,
+            "p50": 4.907,
+            "p95": 5.407,
+            "p99": 5.636,
+            "max": 6.402,
+            "mean": 4.917,
+            "std_population": 0.293
+          }
+        },
+        "true": {
+          "uppercase_letter_ratio": {
+            "n": 3600,
+            "min": 0.011,
+            "p25": 0.032,
+            "p50": 0.039,
+            "p95": 0.064,
+            "p99": 0.083,
+            "max": 0.307,
+            "mean": 0.041,
+            "std_population": 0.015
+          },
+          "exclamation_per_1000_chars": {
+            "n": 3600,
+            "min": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p95": 0.281,
+            "p99": 0.7,
+            "max": 2.499,
+            "mean": 0.048,
+            "std_population": 0.153
+          },
+          "question_per_1000_chars": {
+            "n": 3600,
+            "min": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p95": 1.154,
+            "p99": 2.264,
+            "max": 3.687,
+            "mean": 0.212,
+            "std_population": 0.462
+          },
+          "urls_per_document": {
+            "n": 3600,
+            "min": 0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 2.0,
+            "max": 7,
+            "mean": 0.081,
+            "std_population": 0.467
+          },
+          "mean_word_characters": {
+            "n": 3600,
+            "min": 4.005,
+            "p25": 4.84,
+            "p50": 4.97,
+            "p95": 5.29,
+            "p99": 5.46,
+            "max": 5.836,
+            "mean": 4.966,
+            "std_population": 0.204
+          }
+        }
+      },
+      "length_diagnostic": {
+        "rule": "predict true when words > threshold; diagnostic fitted on all records",
+        "threshold_words": 371,
+        "apparent_accuracy": 0.9417,
+        "length_auc_true_as_positive": 0.9808
+      },
+      "histogram": {
+        "edges": [
+          0,
+          50,
+          100,
+          150,
+          200,
+          300,
+          500,
+          750,
+          1000,
+          1500,
+          2500,
+          4000,
+          8000
+        ],
+        "percent_by_label": {
+          "fake": [
+            2.75,
+            14.056,
+            28.722,
+            22.667,
+            20.139,
+            9.361,
+            1.667,
+            0.389,
+            0.167,
+            0.083,
+            0.0,
+            0.0
+          ],
+          "true": [
+            0.028,
+            0.056,
+            0.444,
+            0.611,
+            2.278,
+            10.333,
+            21.889,
+            19.361,
+            22.5,
+            19.111,
+            2.778,
+            0.611
+          ]
+        }
+      }
+    },
+    "size_normalized_texts": {
+      "word_count_by_label": {
+        "fake": {
+          "n": 3600,
+          "min": 9,
+          "p25": 115.0,
+          "p50": 157.0,
+          "p95": 369.05,
+          "p99": 573.11,
+          "max": 2088,
+          "mean": 182.761,
+          "std_population": 115.715
+        },
+        "true": {
+          "n": 3600,
+          "min": 10,
+          "p25": 116.0,
+          "p50": 158.0,
+          "p95": 372.0,
+          "p99": 588.02,
+          "max": 2095,
+          "mean": 184.311,
+          "std_population": 116.052
+        }
+      },
+      "style_by_label": {
+        "fake": {
+          "uppercase_letter_ratio": {
+            "n": 3600,
+            "min": 0.008,
+            "p25": 0.035,
+            "p50": 0.044,
+            "p95": 0.085,
+            "p99": 0.142,
+            "max": 0.484,
+            "mean": 0.049,
+            "std_population": 0.026
+          },
+          "exclamation_per_1000_chars": {
+            "n": 3600,
+            "min": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p95": 3.378,
+            "p99": 6.569,
+            "max": 15.666,
+            "mean": 0.692,
+            "std_population": 1.42
+          },
+          "question_per_1000_chars": {
+            "n": 3600,
+            "min": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p95": 2.632,
+            "p99": 5.525,
+            "max": 50.0,
+            "mean": 0.503,
+            "std_population": 1.455
+          },
+          "urls_per_document": {
+            "n": 3600,
+            "min": 0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "max": 1,
+            "mean": 0.001,
+            "std_population": 0.033
+          },
+          "mean_word_characters": {
+            "n": 3600,
+            "min": 3.625,
+            "p25": 4.734,
+            "p50": 4.908,
+            "p95": 5.407,
+            "p99": 5.636,
+            "max": 6.402,
+            "mean": 4.918,
+            "std_population": 0.292
+          }
+        },
+        "true": {
+          "uppercase_letter_ratio": {
+            "n": 3600,
+            "min": 0.008,
+            "p25": 0.034,
+            "p50": 0.045,
+            "p95": 0.079,
+            "p99": 0.103,
+            "max": 0.307,
+            "mean": 0.047,
+            "std_population": 0.019
+          },
+          "exclamation_per_1000_chars": {
+            "n": 3600,
+            "min": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p95": 0.727,
+            "p99": 1.938,
+            "max": 5.348,
+            "mean": 0.086,
+            "std_population": 0.38
+          },
+          "question_per_1000_chars": {
+            "n": 3600,
+            "min": 0.0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p95": 1.031,
+            "p99": 2.208,
+            "max": 11.062,
+            "mean": 0.139,
+            "std_population": 0.548
+          },
+          "urls_per_document": {
+            "n": 3600,
+            "min": 0,
+            "p25": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "max": 3,
+            "mean": 0.011,
+            "std_population": 0.146
+          },
+          "mean_word_characters": {
+            "n": 3600,
+            "min": 3.286,
+            "p25": 4.828,
+            "p50": 5.016,
+            "p95": 5.49,
+            "p99": 5.722,
+            "max": 6.5,
+            "mean": 5.018,
+            "std_population": 0.291
+          }
+        }
+      },
+      "length_diagnostic": {
+        "rule": "predict true when words > threshold; diagnostic fitted on all records",
+        "threshold_words": 119,
+        "apparent_accuracy": 0.5064,
+        "length_auc_true_as_positive": 0.5055
+      },
+      "histogram": {
+        "edges": [
+          0,
+          50,
+          100,
+          150,
+          200,
+          300,
+          500,
+          750,
+          1000,
+          1500,
+          2500,
+          4000,
+          8000
+        ],
+        "percent_by_label": {
+          "fake": [
+            2.75,
+            14.056,
+            29.028,
+            22.778,
+            20.361,
+            9.083,
+            1.528,
+            0.278,
+            0.083,
+            0.056,
+            0.0,
+            0.0
+          ],
+          "true": [
+            2.722,
+            13.472,
+            28.75,
+            23.25,
+            20.556,
+            9.306,
+            1.5,
+            0.306,
+            0.083,
+            0.056,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "lexical": {
+        "token_count_by_label": {
+          "fake": 363507,
+          "true": 370144
+        },
+        "vocabulary_size": 46928,
+        "top_terms_by_label": {
+          "fake": [
+            [
+              "lula",
+              3042
+            ],
+            [
+              "disse",
+              2182
+            ],
+            [
+              "dilma",
+              1874
+            ],
+            [
+              "presidente",
+              1818
+            ],
+            [
+              "brasil",
+              1397
+            ],
+            [
+              "são",
+              1365
+            ],
+            [
+              "país",
+              1225
+            ],
+            [
+              "governo",
+              1184
+            ],
+            [
+              "temer",
+              1173
+            ],
+            [
+              "federal",
+              1160
+            ],
+            [
+              "sobre",
+              1122
+            ],
+            [
+              "ex-presidente",
+              1079
+            ],
+            [
+              "anos",
+              1078
+            ],
+            [
+              "ministro",
+              888
+            ],
+            [
+              "acordo",
+              887
+            ],
+            [
+              "vai",
+              864
+            ],
+            [
+              "durante",
+              853
+            ],
+            [
+              "moro",
+              842
+            ],
+            [
+              "pode",
+              839
+            ],
+            [
+              "milhões",
+              809
+            ]
+          ],
+          "true": [
+            [
+              "federal",
+              2133
+            ],
+            [
+              "presidente",
+              2106
+            ],
+            [
+              "lula",
+              1955
+            ],
+            [
+              "são",
+              1742
+            ],
+            [
+              "anos",
+              1668
+            ],
+            [
+              "sobre",
+              1616
+            ],
+            [
+              "nesta",
+              1571
+            ],
+            [
+              "temer",
+              1524
+            ],
+            [
+              "ex-presidente",
+              1345
+            ],
+            [
+              "diz",
+              1297
+            ],
+            [
+              "governo",
+              1288
+            ],
+            [
+              "lava",
+              1136
+            ],
+            [
+              "jato",
+              1133
+            ],
+            [
+              "disse",
+              1128
+            ],
+            [
+              "segundo",
+              1107
+            ],
+            [
+              "ano",
+              1050
+            ],
+            [
+              "dia",
+              1043
+            ],
+            [
+              "tribunal",
+              976
+            ],
+            [
+              "brasil",
+              974
+            ],
+            [
+              "país",
+              938
+            ]
+          ]
+        },
+        "document_frequency_log_odds": [
+          {
+            "term": "bem-informado",
+            "log2_odds_fake_vs_true": -8.457,
+            "documents_fake": 0,
+            "documents_true": 167
+          },
+          {
+            "term": "degravação",
+            "log2_odds_fake_vs_true": -7.692,
+            "documents_fake": 0,
+            "documents_true": 100
+          },
+          {
+            "term": "play",
+            "log2_odds_fake_vs_true": -6.351,
+            "documents_fake": 1,
+            "documents_true": 118
+          },
+          {
+            "term": "mdb",
+            "log2_odds_fake_vs_true": -6.122,
+            "documents_fake": 0,
+            "documents_true": 34
+          },
+          {
+            "term": "eldorado",
+            "log2_odds_fake_vs_true": -5.318,
+            "documents_fake": 3,
+            "documents_true": 134
+          },
+          {
+            "term": "marcaram",
+            "log2_odds_fake_vs_true": -4.734,
+            "documents_fake": 1,
+            "documents_true": 39
+          },
+          {
+            "term": "procuradora-geral",
+            "log2_odds_fake_vs_true": -4.404,
+            "documents_fake": 1,
+            "documents_true": 31
+          },
+          {
+            "term": "listou",
+            "log2_odds_fake_vs_true": -3.757,
+            "documents_fake": 2,
+            "documents_true": 33
+          },
+          {
+            "term": "fluminense",
+            "log2_odds_fake_vs_true": -3.713,
+            "documents_fake": 2,
+            "documents_true": 32
+          },
+          {
+            "term": "nesta",
+            "log2_odds_fake_vs_true": -3.694,
+            "documents_fake": 138,
+            "documents_true": 1228
+          },
+          {
+            "term": "detalhe",
+            "log2_odds_fake_vs_true": 4.44,
+            "documents_fake": 53,
+            "documents_true": 2
+          },
+          {
+            "term": "referindo",
+            "log2_odds_fake_vs_true": 4.46,
+            "documents_fake": 75,
+            "documents_true": 3
+          },
+          {
+            "term": "daily",
+            "log2_odds_fake_vs_true": 4.658,
+            "documents_fake": 37,
+            "documents_true": 1
+          },
+          {
+            "term": "finalizou",
+            "log2_odds_fake_vs_true": 4.658,
+            "documents_fake": 37,
+            "documents_true": 1
+          },
+          {
+            "term": "soltou",
+            "log2_odds_fake_vs_true": 5.177,
+            "documents_fake": 53,
+            "documents_true": 1
+          },
+          {
+            "term": "jon-un",
+            "log2_odds_fake_vs_true": 5.231,
+            "documents_fake": 55,
+            "documents_true": 1
+          },
+          {
+            "term": "internauta",
+            "log2_odds_fake_vs_true": 5.283,
+            "documents_fake": 57,
+            "documents_true": 1
+          },
+          {
+            "term": "coréia",
+            "log2_odds_fake_vs_true": 5.837,
+            "documents_fake": 137,
+            "documents_true": 2
+          },
+          {
+            "term": "lava-jato",
+            "log2_odds_fake_vs_true": 5.88,
+            "documents_fake": 297,
+            "documents_true": 5
+          },
+          {
+            "term": "resumindo",
+            "log2_odds_fake_vs_true": 6.619,
+            "documents_fake": 48,
+            "documents_true": 0
+          }
+        ],
+        "method": "NFKC-independent Unicode word regex; casefold; Portuguese stopword removal; document-frequency log-odds with 0.5 smoothing; minimum 30 documents."
+      }
+    }
+  },
+  "fakerecogna2": {
+    "word_count_by_label": {
+      "fake": {
+        "n": 26400,
+        "min": 1,
+        "p25": 23.0,
+        "p50": 50.0,
+        "p95": 193.0,
+        "p99": 385.02,
+        "max": 2020,
+        "mean": 69.384,
+        "std_population": 81.416
+      },
+      "true": {
+        "n": 26400,
+        "min": 2,
+        "p25": 97.0,
+        "p50": 112.0,
+        "p95": 140.0,
+        "p99": 160.0,
+        "max": 233,
+        "mean": 107.728,
+        "std_population": 24.68
+      }
+    },
+    "length_diagnostic": {
+      "rule": "predict true when words > threshold; diagnostic fitted on all records",
+      "threshold_words": 82,
+      "apparent_accuracy": 0.801,
+      "length_auc_true_as_positive": 0.809
+    },
+    "histogram": {
+      "edges": [
+        0,
+        20,
+        40,
+        60,
+        80,
+        100,
+        150,
+        200,
+        300,
+        500,
+        1000,
+        2500
+      ],
+      "percent_by_label": {
+        "fake": [
+          21.11,
+          19.708,
+          18.129,
+          12.413,
+          9.011,
+          11.11,
+          3.852,
+          2.617,
+          1.519,
+          0.466,
+          0.064
+        ],
+        "true": [
+          0.652,
+          1.496,
+          2.86,
+          6.337,
+          16.655,
+          69.636,
+          2.307,
+          0.057,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    }
+  },
+  "claim_lengths": {
+    "averitec": {
+      "train": {
+        "word_count_by_label": {
+          "Supported": {
+            "n": 849,
+            "min": 0,
+            "p25": 12.0,
+            "p50": 16.0,
+            "p95": 32.0,
+            "p99": 41.52,
+            "max": 59,
+            "mean": 16.993,
+            "std_population": 7.646
+          },
+          "Refuted": {
+            "n": 1742,
+            "min": 3,
+            "p25": 11.0,
+            "p50": 15.0,
+            "p95": 34.0,
+            "p99": 50.59,
+            "max": 73,
+            "mean": 16.983,
+            "std_population": 9.09
+          },
+          "Conflicting Evidence/Cherrypicking": {
+            "n": 195,
+            "min": 3,
+            "p25": 10.0,
+            "p50": 15.0,
+            "p95": 33.0,
+            "p99": 43.0,
+            "max": 43,
+            "mean": 15.964,
+            "std_population": 7.964
+          },
+          "Not Enough Evidence": {
+            "n": 282,
+            "min": 4,
+            "p25": 12.0,
+            "p50": 17.0,
+            "p95": 33.95,
+            "p99": 53.19,
+            "max": 64,
+            "mean": 18.216,
+            "std_population": 9.184
+          }
+        }
+      },
+      "dev": {
+        "word_count_by_label": {
+          "Refuted": {
+            "n": 305,
+            "min": 3,
+            "p25": 12.0,
+            "p50": 16.0,
+            "p95": 31.0,
+            "p99": 36.0,
+            "max": 47,
+            "mean": 17.525,
+            "std_population": 7.519
+          },
+          "Supported": {
+            "n": 122,
+            "min": 6,
+            "p25": 10.0,
+            "p50": 14.0,
+            "p95": 28.95,
+            "p99": 42.16,
+            "max": 49,
+            "mean": 16.115,
+            "std_population": 7.697
+          },
+          "Not Enough Evidence": {
+            "n": 35,
+            "min": 6,
+            "p25": 12.0,
+            "p50": 17.0,
+            "p95": 29.9,
+            "p99": 45.86,
+            "max": 53,
+            "mean": 17.429,
+            "std_population": 8.463
+          },
+          "Conflicting Evidence/Cherrypicking": {
+            "n": 38,
+            "min": 4,
+            "p25": 13.0,
+            "p50": 17.0,
+            "p95": 41.15,
+            "p99": 57.12,
+            "max": 66,
+            "mean": 20.395,
+            "std_population": 11.733
+          }
+        }
+      }
+    },
+    "feverous": {
+      "train": {
+        "word_count_by_label": {
+          "REFUTES": {
+            "n": 27215,
+            "min": 3,
+            "p25": 17.0,
+            "p50": 22.0,
+            "p95": 44.0,
+            "p99": 57.0,
+            "max": 117,
+            "mean": 24.251,
+            "std_population": 10.431
+          },
+          "SUPPORTS": {
+            "n": 41835,
+            "min": 4,
+            "p25": 18.0,
+            "p50": 24.0,
+            "p95": 47.0,
+            "p99": 60.0,
+            "max": 129,
+            "mean": 25.906,
+            "std_population": 10.879
+          },
+          "NOT ENOUGH INFO": {
+            "n": 2241,
+            "min": 4,
+            "p25": 18.0,
+            "p50": 24.0,
+            "p95": 46.0,
+            "p99": 57.0,
+            "max": 77,
+            "mean": 25.981,
+            "std_population": 10.769
+          }
+        }
+      },
+      "dev": {
+        "word_count_by_label": {
+          "REFUTES": {
+            "n": 3481,
+            "min": 6,
+            "p25": 17.0,
+            "p50": 23.0,
+            "p95": 43.0,
+            "p99": 59.0,
+            "max": 94,
+            "mean": 24.22,
+            "std_population": 10.424
+          },
+          "SUPPORTS": {
+            "n": 3908,
+            "min": 4,
+            "p25": 18.0,
+            "p50": 24.0,
+            "p95": 45.0,
+            "p99": 61.0,
+            "max": 107,
+            "mean": 25.489,
+            "std_population": 10.919
+          },
+          "NOT ENOUGH INFO": {
+            "n": 501,
+            "min": 5,
+            "p25": 19.0,
+            "p50": 24.0,
+            "p95": 46.0,
+            "p99": 59.0,
+            "max": 72,
+            "mean": 25.946,
+            "std_population": 10.8
+          }
+        }
+      },
+      "test": {
+        "word_count_by_label": {
+          "SEM RÓTULO": {
+            "n": 7845,
+            "min": 3,
+            "p25": 18.0,
+            "p50": 23.0,
+            "p95": 46.0,
+            "p99": 59.0,
+            "max": 79,
+            "mean": 25.294,
+            "std_population": 10.683
+          }
+        }
+      }
+    }
+  }
+}

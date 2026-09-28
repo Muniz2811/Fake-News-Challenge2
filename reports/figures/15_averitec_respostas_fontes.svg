@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="455" viewBox="0 0 1250 455" role="img" aria-labelledby="title desc">
+<title id="title">AVeriTeC: tipos de resposta e meios das fontes</title><desc id="desc">Distribuição das 8.479 respostas do treino; porcentagens calculadas dentro de cada campo.</desc>
+<style>
+text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #263238; }
+.title { font-size: 24px; font-weight: 700; } .subtitle { font-size: 13px; fill: #5f6b72; }
+.label { font-size: 13px; } .value { font-size: 12px; font-weight: 600; }
+.axis { stroke: #9aa5aa; stroke-width: 1; } .grid { stroke: #e5e9eb; stroke-width: 1; }
+</style>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="30" y="36" class="title">AVeriTeC: tipos de resposta e meios das fontes</text>
+<text x="30" y="60" class="subtitle">Distribuição das 8.479 respostas do treino; porcentagens calculadas dentro de cada campo.</text>
+<line x1="390.0" y1="78" x2="390.0" y2="420" class="grid"/>
+<text x="390.0" y="441" text-anchor="middle" class="subtitle">0%</text>
+<line x1="516.0" y1="78" x2="516.0" y2="420" class="grid"/>
+<text x="516.0" y="441" text-anchor="middle" class="subtitle">20%</text>
+<line x1="642.0" y1="78" x2="642.0" y2="420" class="grid"/>
+<text x="642.0" y="441" text-anchor="middle" class="subtitle">40%</text>
+<line x1="768.0" y1="78" x2="768.0" y2="420" class="grid"/>
+<text x="768.0" y="441" text-anchor="middle" class="subtitle">60%</text>
+<line x1="894.0" y1="78" x2="894.0" y2="420" class="grid"/>
+<text x="894.0" y="441" text-anchor="middle" class="subtitle">80%</text>
+<line x1="1020.0" y1="78" x2="1020.0" y2="420" class="grid"/>
+<text x="1020.0" y="441" text-anchor="middle" class="subtitle">100%</text>
+<text x="380" y="108" text-anchor="end" class="label">tipo de resposta · Extractive</text>
+<rect x="390" y="94" width="339.6" height="20" rx="3" fill="#8064a2"/>
+<text x="736.6" y="109" class="value">4571 (53.9%)</text>
+<text x="380" y="140" text-anchor="end" class="label">tipo de resposta · Abstractive</text>
+<rect x="390" y="126" width="165.3" height="20" rx="3" fill="#8064a2"/>
+<text x="562.3" y="141" class="value">2225 (26.2%)</text>
+<text x="380" y="172" text-anchor="end" class="label">tipo de resposta · Boolean</text>
+<rect x="390" y="158" width="96.4" height="20" rx="3" fill="#8064a2"/>
+<text x="493.4" y="173" class="value">1297 (15.3%)</text>
+<text x="380" y="204" text-anchor="end" class="label">tipo de resposta · Unanswerable</text>
+<rect x="390" y="190" width="28.7" height="20" rx="3" fill="#8064a2"/>
+<text x="425.7" y="205" class="value">386 (4.6%)</text>
+<text x="380" y="236" text-anchor="end" class="label">meio da fonte · Web text</text>
+<rect x="390" y="222" width="430.1" height="20" rx="3" fill="#3f8f72"/>
+<text x="827.1" y="237" class="value">5788 (68.3%)</text>
+<text x="380" y="268" text-anchor="end" class="label">meio da fonte · PDF</text>
+<rect x="390" y="254" width="74.6" height="20" rx="3" fill="#3f8f72"/>
+<text x="471.6" y="269" class="value">1004 (11.8%)</text>
+<text x="380" y="300" text-anchor="end" class="label">meio da fonte · Metadata</text>
+<rect x="390" y="286" width="38.6" height="20" rx="3" fill="#3f8f72"/>
+<text x="435.6" y="301" class="value">520 (6.1%)</text>
+<text x="380" y="332" text-anchor="end" class="label">meio da fonte · &lt;missing&gt;</text>
+<rect x="390" y="318" width="28.8" height="20" rx="3" fill="#3f8f72"/>
+<text x="425.8" y="333" class="value">387 (4.6%)</text>
+<text x="380" y="364" text-anchor="end" class="label">meio da fonte · Web table</text>
+<rect x="390" y="350" width="28.5" height="20" rx="3" fill="#3f8f72"/>
+<text x="425.5" y="365" class="value">383 (4.5%)</text>
+<text x="380" y="396" text-anchor="end" class="label">meio da fonte · Image/graphic</text>
+<rect x="390" y="382" width="13.4" height="20" rx="3" fill="#3f8f72"/>
+<text x="410.4" y="397" class="value">181 (2.1%)</text>
+</svg>

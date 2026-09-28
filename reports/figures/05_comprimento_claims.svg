@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="583" viewBox="0 0 1250 583" role="img" aria-labelledby="title desc">
+<title id="title">Comprimento das alegações por classe</title><desc id="desc">Mediana (P50) e percentil 95 em palavras nos splits de treino.</desc>
+<style>
+text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #263238; }
+.title { font-size: 24px; font-weight: 700; } .subtitle { font-size: 13px; fill: #5f6b72; }
+.label { font-size: 13px; } .value { font-size: 12px; font-weight: 600; }
+.axis { stroke: #9aa5aa; stroke-width: 1; } .grid { stroke: #e5e9eb; stroke-width: 1; }
+</style>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="30" y="36" class="title">Comprimento das alegações por classe</text>
+<text x="30" y="60" class="subtitle">Mediana (P50) e percentil 95 em palavras nos splits de treino.</text>
+<line x1="390.0" y1="78" x2="390.0" y2="548" class="grid"/>
+<text x="390.0" y="569" text-anchor="middle" class="subtitle">0</text>
+<line x1="516.0" y1="78" x2="516.0" y2="548" class="grid"/>
+<text x="516.0" y="569" text-anchor="middle" class="subtitle">9</text>
+<line x1="642.0" y1="78" x2="642.0" y2="548" class="grid"/>
+<text x="642.0" y="569" text-anchor="middle" class="subtitle">19</text>
+<line x1="768.0" y1="78" x2="768.0" y2="548" class="grid"/>
+<text x="768.0" y="569" text-anchor="middle" class="subtitle">28</text>
+<line x1="894.0" y1="78" x2="894.0" y2="548" class="grid"/>
+<text x="894.0" y="569" text-anchor="middle" class="subtitle">38</text>
+<line x1="1020.0" y1="78" x2="1020.0" y2="548" class="grid"/>
+<text x="1020.0" y="569" text-anchor="middle" class="subtitle">47</text>
+<text x="380" y="108" text-anchor="end" class="label">AVeriTeC · Supported · P50</text>
+<rect x="390" y="94" width="214.5" height="20" rx="3" fill="#57a6a1"/>
+<text x="611.5" y="109" class="value">16.0</text>
+<text x="380" y="140" text-anchor="end" class="label">AVeriTeC · Supported · P95</text>
+<rect x="390" y="126" width="428.9" height="20" rx="3" fill="#d68c45"/>
+<text x="825.9" y="141" class="value">32.0</text>
+<text x="380" y="172" text-anchor="end" class="label">AVeriTeC · Refuted · P50</text>
+<rect x="390" y="158" width="201.1" height="20" rx="3" fill="#57a6a1"/>
+<text x="598.1" y="173" class="value">15.0</text>
+<text x="380" y="204" text-anchor="end" class="label">AVeriTeC · Refuted · P95</text>
+<rect x="390" y="190" width="455.7" height="20" rx="3" fill="#d68c45"/>
+<text x="852.7" y="205" class="value">34.0</text>
+<text x="380" y="236" text-anchor="end" class="label">AVeriTeC · Conflicting Evidence/Cherrypicking · P50</text>
+<rect x="390" y="222" width="201.1" height="20" rx="3" fill="#57a6a1"/>
+<text x="598.1" y="237" class="value">15.0</text>
+<text x="380" y="268" text-anchor="end" class="label">AVeriTeC · Conflicting Evidence/Cherrypicking · P95</text>
+<rect x="390" y="254" width="442.3" height="20" rx="3" fill="#d68c45"/>
+<text x="839.3" y="269" class="value">33.0</text>
+<text x="380" y="300" text-anchor="end" class="label">AVeriTeC · Not Enough Evidence · P50</text>
+<rect x="390" y="286" width="227.9" height="20" rx="3" fill="#57a6a1"/>
+<text x="624.9" y="301" class="value">17.0</text>
+<text x="380" y="332" text-anchor="end" class="label">AVeriTeC · Not Enough Evidence · P95</text>
+<rect x="390" y="318" width="455.1" height="20" rx="3" fill="#d68c45"/>
+<text x="852.1" y="333" class="value">34.0</text>
+<text x="380" y="364" text-anchor="end" class="label">FEVEROUS · REFUTES · P50</text>
+<rect x="390" y="350" width="294.9" height="20" rx="3" fill="#57a6a1"/>
+<text x="691.9" y="365" class="value">22.0</text>
+<text x="380" y="396" text-anchor="end" class="label">FEVEROUS · REFUTES · P95</text>
+<rect x="390" y="382" width="589.8" height="20" rx="3" fill="#d68c45"/>
+<text x="986.8" y="397" class="value">44.0</text>
+<text x="380" y="428" text-anchor="end" class="label">FEVEROUS · SUPPORTS · P50</text>
+<rect x="390" y="414" width="321.7" height="20" rx="3" fill="#57a6a1"/>
+<text x="718.7" y="429" class="value">24.0</text>
+<text x="380" y="460" text-anchor="end" class="label">FEVEROUS · SUPPORTS · P95</text>
+<rect x="390" y="446" width="630.0" height="20" rx="3" fill="#d68c45"/>
+<text x="1024.0" y="461" class="value">47.0</text>
+<text x="380" y="492" text-anchor="end" class="label">FEVEROUS · NOT ENOUGH INFO · P50</text>
+<rect x="390" y="478" width="321.7" height="20" rx="3" fill="#57a6a1"/>
+<text x="718.7" y="493" class="value">24.0</text>
+<text x="380" y="524" text-anchor="end" class="label">FEVEROUS · NOT ENOUGH INFO · P95</text>
+<rect x="390" y="510" width="616.6" height="20" rx="3" fill="#d68c45"/>
+<text x="1013.6" y="525" class="value">46.0</text>
+</svg>

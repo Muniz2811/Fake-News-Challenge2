@@ -22,10 +22,27 @@ except ImportError:
 
 TAXONOMIES = {
     "fakebr": ("fake", "true"),
+    "fakerecogna2": ("fake", "true"),
     "averitec": ("Supported", "Refuted", "Not Enough Evidence", "Conflicting Evidence/Cherrypicking"),
     "feverous": ("SUPPORTS", "REFUTES", "NOT ENOUGH INFO"),
 }
 EVIDENCE_ID = re.compile(r"^(.+?)_(header_cell|table_caption|sentence|cell|item)_(\d+(?:_\d+)*)$")
+FAKEBR_METADATA_METRICS = {
+    18: "pausality",
+    20: "avg_sentence_length",
+    21: "avg_word_length",
+    22: "spelling_error_percentage",
+    23: "emotiveness",
+    24: "diversity",
+}
+
+
+def report_path(path: Path) -> str:
+    """Prefer portable project-relative paths in versioned reports."""
+    try:
+        return path.resolve().relative_to(ROOT.resolve()).as_posix()
+    except ValueError:
+        return str(path.resolve())
 
 
 def date_year(value) -> str:
@@ -64,9 +81,9 @@ def summarize(values) -> dict:
     def percentile(q):
         location = (len(values) - 1) * q
         lo, hi = math.floor(location), math.ceil(location)
-        return round(values[lo] + (values[hi] - values[lo]) * (location - lo), 2)
+        return round(values[lo] + (values[hi] - values[lo]) * (location - lo), 4)
     return {"n": len(values), "min": values[0], "p50": percentile(.5), "p95": percentile(.95),
-            "p99": percentile(.99), "max": values[-1], "mean": round(sum(values) / len(values), 2)}
+            "p99": percentile(.99), "max": values[-1], "mean": round(sum(values) / len(values), 4)}
 
 
 def fingerprint(text: str) -> str:
@@ -210,10 +227,19 @@ def analyze_fakebr(path: Path, processed: Path, samples: Path) -> dict:
                             domain = urlsplit(lines[1]).netloc.lower()
                             profile.categories[f"source_domain_{label}"][domain or "<missing>"] += 1
                             profile.categories[f"publication_year_{label}"][date_year(lines[3])] += 1
+                        for line_index, metric in FAKEBR_METADATA_METRICS.items():
+                            if line_index >= len(lines):
+                                continue
+                            try:
+                                value = float(lines[line_index].replace(",", "."))
+                            except ValueError:
+                                profile.quality[f"invalid_metadata_{metric}"] += 1
+                            else:
+                                profile.metrics[f"metadata_{metric}_{label}"].append(value)
         result[variant] = profile.report()
         result[variant]["pairs"] = {"unique_ids": len(pairs), "complete": sum(len(v) == 2 for v in pairs.values()),
                                     "incomplete_ids": [k for k, v in pairs.items() if len(v) != 2]}
-        result[variant]["processed_file"] = str(output)
+        result[variant]["processed_file"] = report_path(output)
         write_json(samples / f"fakebr_{variant}.json", profile.sample)
         print(f"Fake.br/{variant}: {profile.n}", flush=True)
     csv_files = sorted((path / "preprocessed").glob("*.csv"))
@@ -230,6 +256,50 @@ def analyze_fakebr(path: Path, processed: Path, samples: Path) -> dict:
         result["preprocessed_csv"].append({"file": file.name, "rows": count, "columns": columns,
                                            "types_from_csv": "str (before explicit conversion)", "labels": dict(labels)})
     return result
+
+
+def analyze_fakerecogna(path: Path, samples: Path) -> dict:
+    profile = Profile("fakerecogna2", "extractive")
+    csv.field_size_limit(10_000_000)
+    with path.open(encoding="utf-8-sig", newline="") as stream:
+        reader = csv.DictReader(stream)
+        for index, raw in enumerate(reader):
+            raw_label = str(raw.get("Label", "")).strip()
+            if raw_label not in {"0", "1"}:
+                profile.quality["invalid_label"] += 1
+                continue
+            label = "fake" if raw_label == "1" else "true"
+            text = str(raw.get("Noticia") or "")
+            source_url = str(raw.get("URL") or "").strip()
+            row = {
+                "id": str(raw.get("Unnamed: 0") or index),
+                "title": raw.get("Titulo"),
+                "subtitle": raw.get("Subtitulo"),
+                "category": raw.get("Categoria"),
+                "author": raw.get("Autor"),
+                "date": raw.get("Data"),
+                "url": source_url or None,
+                "text": text,
+                "label": label,
+                "label_id": int(raw_label),
+                "language": "pt-BR",
+                "text_variant": "extractive_summary",
+            }
+            profile.add(row, index)
+            profile.metrics[f"words_{label}"].append(len(text.split()))
+            profile.metrics[f"title_words_{label}"].append(len(str(raw.get("Titulo") or "").split()))
+            category = str(raw.get("Categoria") or "<missing>").strip().casefold() or "<missing>"
+            profile.categories[f"category_{label}"][category] += 1
+            profile.categories["category_all"][category] += 1
+            source = urlsplit(source_url).netloc.casefold() if source_url else "<missing>"
+            profile.categories[f"source_domain_{label}"][source or "<missing>"] += 1
+            profile.categories[f"publication_year_{label}"][date_year(raw.get("Data"))] += 1
+    result = profile.report()
+    result["input"] = {"path": report_path(path), "sha256": sha256(path), "bytes": path.stat().st_size}
+    result["text_variant"] = "extractive_summary"
+    write_json(samples / "fakerecogna2_extractive.json", profile.sample)
+    print(f"fakerecogna2/extractive: {profile.n}; labels={dict(profile.labels)}", flush=True)
+    return {"extractive": result}
 
 
 def add_averitec(profile: Profile, row: dict):
@@ -272,6 +342,16 @@ def add_averitec(profile: Profile, row: dict):
     profile.metrics["claim_qa_justification_words"].append(
         len(row["claim"].split()) + qa_words + profile.metrics["justification_words"][-1])
     profile.categories["claim_year"][date_year(row.get("claim_date"))] += 1
+    for key in ("location_ISO_code", "reporting_source", "speaker"):
+        value = row.get(key)
+        profile.categories[key][str(value).strip() if value not in (None, "") else "<missing>"] += 1
+    for key in ("claim_types", "fact_checking_strategies"):
+        values = row.get(key)
+        if not isinstance(values, list) or not values:
+            profile.categories[key]["<missing>"] += 1
+            continue
+        for value in values:
+            profile.categories[key][str(value).strip() if value not in (None, "") else "<missing>"] += 1
 
 
 def add_feverous(profile: Profile, row: dict):
@@ -334,7 +414,7 @@ def analyze_json_dataset(name: str, directory: Path, samples: Path):
                 add_feverous(profile, row)
         profile.quality.update(skipped)
         result[split] = profile.report()
-        result[split]["input"] = {"path": str(path), "sha256": sha256(path), "bytes": path.stat().st_size}
+        result[split]["input"] = {"path": report_path(path), "sha256": sha256(path), "bytes": path.stat().st_size}
         split_hashes[split] = profile.hashes
         write_json(samples / f"{name}_{split}.json", profile.sample)
         print(f"{name}/{split}: {profile.n}; labels={dict(profile.labels)}", flush=True)
@@ -356,7 +436,7 @@ def render_markdown(report: dict) -> str:
              "## Rótulos por variante/split", "", "| Dataset | Split | N | Rótulo | Contagem | % dos rotulados |",
              "|---|---|---:|---|---:|---:|"]
     profiles = []
-    for dataset in ("fakebr", "averitec", "feverous"):
+    for dataset in ("fakebr", "fakerecogna2", "averitec", "feverous"):
         for split, data in report[dataset].items():
             if not isinstance(data, dict) or "records" not in data:
                 continue
@@ -412,10 +492,14 @@ def main():
               "platform": platform.platform(), "manifest_sha256": sha256(manifest_path),
               "provenance": {"fakebr_revision": manifest["fakebr"]["revision"],
                              "fakebr_working_tree_status": manifest["fakebr"]["working_tree_status"],
-                             "averitec_revision": manifest["averitec_revision"]},
-              "method": "All records; JSONL streamed; one AVeriTeC JSON split at a time; no tokenizer/model loaded."}
+                             "averitec_revision": manifest["averitec_revision"],
+                             "fakerecogna_revision": manifest["fakerecogna_revision"]},
+              "method": "All locally acquired records; JSONL streamed; CSV parsed with the standard library; no tokenizer/model loaded."}
     samples = args.output_dir / "samples"
     report["fakebr"] = analyze_fakebr(args.fakebr_dir, args.processed_dir, samples)
+    report["fakerecogna2"] = analyze_fakerecogna(
+        args.data_dir / "fakerecogna2" / "fakerecogna_extrativo.csv", samples
+    )
     report["averitec"] = analyze_json_dataset("averitec", args.data_dir / "averitec", samples)
     report["feverous"] = analyze_json_dataset("feverous", args.data_dir / "feverous", samples)
     write_json(args.output_dir / "eda.json", report)

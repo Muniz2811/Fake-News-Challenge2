@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="685" viewBox="0 0 1100 685" role="img" aria-labelledby="title desc">
+<title id="title">Termos que mais diferenciam as classes do Fake.br</title><desc id="desc">Log2 das chances de presença por documento na variante normalizada; associação não implica causalidade.</desc>
+<style>
+text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #263238; }
+.title { font-size: 24px; font-weight: 700; } .subtitle { font-size: 13px; fill: #5f6b72; }
+.label { font-size: 13px; } .value { font-size: 12px; font-weight: 600; }
+.axis { stroke: #9aa5aa; stroke-width: 1; } .grid { stroke: #e5e9eb; stroke-width: 1; }
+</style>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="30" y="36" class="title">Termos que mais diferenciam as classes do Fake.br</text>
+<text x="30" y="60" class="subtitle">Log2 das chances de presença por documento na variante normalizada; associação não implica causalidade.</text>
+<line x1="550" y1="80" x2="550" y2="645" class="axis"/>
+<rect x="130.0" y="93" width="420.0" height="18" rx="2" fill="#3f8f72"/>
+<text x="542" y="107" text-anchor="end" class="label">bem-informado</text>
+<text x="123.0" y="107" text-anchor="end" class="value">-8.46</text>
+<rect x="168.0" y="120" width="382.0" height="18" rx="2" fill="#3f8f72"/>
+<text x="542" y="134" text-anchor="end" class="label">degravação</text>
+<text x="161.0" y="134" text-anchor="end" class="value">-7.69</text>
+<rect x="234.6" y="147" width="315.4" height="18" rx="2" fill="#3f8f72"/>
+<text x="542" y="161" text-anchor="end" class="label">play</text>
+<text x="227.6" y="161" text-anchor="end" class="value">-6.35</text>
+<rect x="246.0" y="174" width="304.0" height="18" rx="2" fill="#3f8f72"/>
+<text x="542" y="188" text-anchor="end" class="label">mdb</text>
+<text x="239.0" y="188" text-anchor="end" class="value">-6.12</text>
+<rect x="285.9" y="201" width="264.1" height="18" rx="2" fill="#3f8f72"/>
+<text x="542" y="215" text-anchor="end" class="label">eldorado</text>
+<text x="278.9" y="215" text-anchor="end" class="value">-5.32</text>
+<rect x="314.9" y="228" width="235.1" height="18" rx="2" fill="#3f8f72"/>
+<text x="542" y="242" text-anchor="end" class="label">marcaram</text>
+<text x="307.9" y="242" text-anchor="end" class="value">-4.73</text>
+<rect x="331.3" y="255" width="218.7" height="18" rx="2" fill="#3f8f72"/>
+<text x="542" y="269" text-anchor="end" class="label">procuradora-geral</text>
+<text x="324.3" y="269" text-anchor="end" class="value">-4.40</text>
+<rect x="363.4" y="282" width="186.6" height="18" rx="2" fill="#3f8f72"/>
+<text x="542" y="296" text-anchor="end" class="label">listou</text>
+<text x="356.4" y="296" text-anchor="end" class="value">-3.76</text>
+<rect x="365.6" y="309" width="184.4" height="18" rx="2" fill="#3f8f72"/>
+<text x="542" y="323" text-anchor="end" class="label">fluminense</text>
+<text x="358.6" y="323" text-anchor="end" class="value">-3.71</text>
+<rect x="366.5" y="336" width="183.5" height="18" rx="2" fill="#3f8f72"/>
+<text x="542" y="350" text-anchor="end" class="label">nesta</text>
+<text x="359.5" y="350" text-anchor="end" class="value">-3.69</text>
+<rect x="550.0" y="363" width="220.5" height="18" rx="2" fill="#d95f5f"/>
+<text x="558" y="377" class="label">detalhe</text>
+<text x="777.5" y="377" text-anchor="start" class="value">+4.44</text>
+<rect x="550.0" y="390" width="221.5" height="18" rx="2" fill="#d95f5f"/>
+<text x="558" y="404" class="label">referindo</text>
+<text x="778.5" y="404" text-anchor="start" class="value">+4.46</text>
+<rect x="550.0" y="417" width="231.3" height="18" rx="2" fill="#d95f5f"/>
+<text x="558" y="431" class="label">daily</text>
+<text x="788.3" y="431" text-anchor="start" class="value">+4.66</text>
+<rect x="550.0" y="444" width="231.3" height="18" rx="2" fill="#d95f5f"/>
+<text x="558" y="458" class="label">finalizou</text>
+<text x="788.3" y="458" text-anchor="start" class="value">+4.66</text>
+<rect x="550.0" y="471" width="257.1" height="18" rx="2" fill="#d95f5f"/>
+<text x="558" y="485" class="label">soltou</text>
+<text x="814.1" y="485" text-anchor="start" class="value">+5.18</text>
+<rect x="550.0" y="498" width="259.8" height="18" rx="2" fill="#d95f5f"/>
+<text x="558" y="512" class="label">jon-un</text>
+<text x="816.8" y="512" text-anchor="start" class="value">+5.23</text>
+<rect x="550.0" y="525" width="262.4" height="18" rx="2" fill="#d95f5f"/>
+<text x="558" y="539" class="label">internauta</text>
+<text x="819.4" y="539" text-anchor="start" class="value">+5.28</text>
+<rect x="550.0" y="552" width="289.9" height="18" rx="2" fill="#d95f5f"/>
+<text x="558" y="566" class="label">coréia</text>
+<text x="846.9" y="566" text-anchor="start" class="value">+5.84</text>
+<rect x="550.0" y="579" width="292.0" height="18" rx="2" fill="#d95f5f"/>
+<text x="558" y="593" class="label">lava-jato</text>
+<text x="849.0" y="593" text-anchor="start" class="value">+5.88</text>
+<rect x="550.0" y="606" width="328.7" height="18" rx="2" fill="#d95f5f"/>
+<text x="558" y="620" class="label">resumindo</text>
+<text x="885.7" y="620" text-anchor="start" class="value">+6.62</text>
+<text x="340.0" y="670" text-anchor="middle" class="subtitle">mais associado a true</text>
+<text x="760.0" y="670" text-anchor="middle" class="subtitle">mais associado a fake</text>
+</svg>

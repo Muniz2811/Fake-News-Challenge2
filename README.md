@@ -1,69 +1,223 @@
-# Análise de dados para verificação de notícias
+# Contraponto — verificação investigativa de notícias
 
-Etapa inicial de um projeto de verificação de notícias com IA, dedicada à aquisição e análise exploratória (EDA) das bases Fake.br, AVeriTeC e FEVEROUS.
+O Contraponto é um assistente de investigação de notícias que combina análise linguística, extração de alegações, busca de evidências e diálogo socrático. O objetivo não é substituir o julgamento do usuário, mas ajudá-lo a examinar criticamente uma informação e consultar as fontes utilizadas.
+
+O MVP atual será textual e integrado ao Telegram. O módulo do WhatsApp, áudio e demais formatos multimodais ficam para versões posteriores.
+
+Este repositório reúne:
+
+- scripts reproduzíveis para adquirir as bases de dados;
+- a Análise Exploratória de Dados (EDA) das quatro bases selecionadas;
+- os requisitos e o backlog do MVP;
+- a estrutura inicial do bot do Telegram e do motor central, que será incrementada pelas issues.
 
 ## Estrutura do projeto
 
 ```text
-Challenge2/
+Fake-News-Challenge2/
+├── src/
+│   └── contraponto/
+│       ├── bot.py                 # Estrutura inicial da interface Telegram
+│       └── motor_ia.py            # Estrutura inicial do Divã Socrático
 ├── scripts/
-│   ├── acquire.py
-│   └── eda.py
-├── Fake.br-Corpus/           # Base original do Fake.br
-├── data/
-│   ├── raw/                  # Bases baixadas e manifesto de origem
-│   └── processed/            # Dados padronizados do Fake.br
+│   ├── acquire.py                 # Aquisição reproduzível das bases
+│   ├── eda.py                     # EDA estrutural
+│   └── eda_visuals.py             # Métricas textuais e gráficos
+├── data/                          # Criada localmente e ignorada pelo Git
+│   ├── raw/                       # Downloads originais e manifesto
+│   └── processed/                 # Dados gerados pelo processamento
+├── Fake.br-Corpus/                # Clone local; ignorado pelo Git
 ├── reports/
-│   ├── EDA.md                # Relatório gerado pela análise
-│   ├── eda.json              # Estatísticas em formato JSON
-│   ├── RELATORIO_TECNICO.md  # Interpretação e recomendações de modelagem
-│   └── samples/              # Exemplos de registros para consulta
+│   ├── RELATORIO_TECNICO.md
+│   ├── REQUISITOS_E_PRIORIZACAO.md
+│   ├── ISSUES_MVP_TELEGRAM.md
+│   ├── eda.json
+│   ├── eda_nlp.json
+│   ├── figures/
+│   └── samples/
 ├── .gitignore
 └── README.md
 ```
 
-As pastas `data/` e `Fake.br-Corpus/` ficam no ambiente local e são ignoradas pelo Git. Os scripts permitem obter os dados novamente.
+## Bases de dados utilizadas
 
-## Scripts
+| Base | Papel no projeto | Conteúdo local |
+|---|---|---|
+| [Fake.br](https://github.com/roneysco/Fake.br-Corpus) | Análise linguística de notícias reais e falsas em português brasileiro. | 7.200 notícias, balanceadas entre 3.600 reais e 3.600 falsas. |
+| [FakeRecogna 2.0](https://huggingface.co/datasets/recogna-nlp/fakerecogna2-extrativa) | Complemento da análise linguística em português. | 52.800 resumos extrativos, balanceados entre as duas classes. |
+| [AVeriTeC](https://github.com/MichSchli/AVeriTeC) | Estrutura investigativa, perguntas, respostas, justificativas e evidências. | 3.068 alegações de treino e 500 de desenvolvimento. |
+| [FEVEROUS](https://fever.ai/dataset/feverous.html) | Verificação de alegações com evidências textuais e tabulares. | 87.026 alegações distribuídas entre treino, desenvolvimento e teste. |
 
-- **[acquire.py](scripts/acquire.py):** clona o Fake.br quando necessário, baixa as anotações do AVeriTeC e FEVEROUS e registra a origem e os checksums dos arquivos.
-- **[eda.py](scripts/eda.py):** analisa classes, tipos dos campos, dados ausentes, duplicatas e comprimentos. Gera os relatórios, as amostras e os JSONL padronizados do Fake.br.
+O snapshot completo da Wikipédia usado pelo FEVEROUS **não é baixado**. O projeto mantém apenas os arquivos de anotações necessários à EDA; o MVP usará fontes externas atuais para recuperar evidências.
 
-O `eda.py` utiliza funções do `acquire.py`; os dois devem ser mantidos juntos.
+## Por que as bases não estão no GitHub?
 
-## Como executar
+As pastas `data/` e `Fake.br-Corpus/` estão no `.gitignore`. Elas não são enviadas ao GitHub porque contêm arquivos grandes, cópias de fontes externas e dados que podem ser obtidos novamente.
 
-É necessário ter **Python 3.10+**, **Git** e acesso à internet para baixar as bases. Os scripts usam apenas a biblioteca padrão do Python, sem instalação de pacotes adicionais.
+Cada integrante deve clonar este repositório e executar `scripts/acquire.py` para reconstruir localmente a mesma organização de dados. O script utiliza revisões fixadas quando a fonte permite, valida os formatos e registra origem, tamanho e checksum dos arquivos em `data/raw/manifest.json`.
 
-Após clonar o repositório, abra o terminal na pasta do projeto, onde está este README, e execute os comandos na ordem abaixo.
+Portanto:
+
+- o GitHub armazena o código, os relatórios e o planejamento;
+- cada computador mantém sua própria cópia das bases;
+- ninguém deve usar `git add -f` para enviar `data/` ou `Fake.br-Corpus/`.
+
+## Configuração inicial — clone do projeto e aquisição das bases
+
+### 1. Pré-requisitos
+
+- Git;
+- Python 3.10 ou superior;
+- conexão com a internet durante a aquisição;
+- espaço local para as bases e os arquivos processados.
+
+Os scripts de aquisição e EDA usam somente a biblioteca padrão do Python. Não é necessário instalar pacotes para executar esta etapa.
+
+### 2. Clonar este repositório
+
+**macOS, Linux ou Windows:**
+
+```bash
+git clone https://github.com/Muniz2811/Fake-News-Challenge2.git
+cd Fake-News-Challenge2
+```
+
+### 3. Baixar todas as bases automaticamente
+
+Esta é a forma recomendada. Não é necessário clonar cada base manualmente.
+
+**macOS ou Linux:**
+
+```bash
+python3 scripts/acquire.py
+```
 
 **Windows / PowerShell:**
 
 ```powershell
-# 1. Baixar as bases e registrar sua origem
 python scripts/acquire.py
-
-# 2. Executar a análise e gerar os relatórios
-python scripts/eda.py
 ```
 
-**macOS / Linux:**
+O processo pode demorar conforme a conexão. O script exibe `Download` para arquivos novos e `Verified/reused` quando encontra uma cópia local válida.
+
+### 4. Estrutura criada pelo script
+
+Depois da aquisição, os arquivos locais ficam assim:
+
+```text
+Fake-News-Challenge2/
+├── Fake.br-Corpus/
+│   ├── full_texts/
+│   ├── size_normalized_texts/
+│   └── preprocessed/
+└── data/
+    └── raw/
+        ├── averitec/
+        │   ├── train.json
+        │   └── dev.json
+        ├── fakerecogna2/
+        │   └── fakerecogna_extrativo.csv
+        ├── feverous/
+        │   ├── train.jsonl
+        │   ├── dev.jsonl
+        │   └── test.jsonl
+        └── manifest.json
+```
+
+O comportamento por base é:
+
+- **Fake.br:** se `Fake.br-Corpus/` não existir, o script clona o repositório e posiciona a revisão definida no código. Se a pasta já existir, ela é inventariada sem executar `git pull`.
+- **FakeRecogna 2.0:** o CSV é baixado do Hugging Face para `data/raw/fakerecogna2/`.
+- **AVeriTeC:** os arquivos `train.json` e `dev.json` são baixados para `data/raw/averitec/`.
+- **FEVEROUS:** as anotações de treino, desenvolvimento e teste são baixadas para `data/raw/feverous/`.
+
+### 5. Reexecutar ou recuperar um download interrompido
+
+O comando de aquisição pode ser executado novamente:
 
 ```bash
 python3 scripts/acquire.py
-python3 scripts/eda.py
 ```
 
-As bases completas não vêm no clone: são obtidas pelo `acquire.py`, que reaproveita os arquivos já presentes. Depois da aquisição, a análise pode ser executada offline. Os resultados são salvos em `reports/`, e os dados padronizados do Fake.br, em `data/processed/`.
+Arquivos válidos são reutilizados. Downloads parciais usam arquivos temporários e podem ser retomados quando o servidor permite. Se um arquivo existente não corresponder ao manifesto, o script interrompe a execução em vez de sobrescrevê-lo silenciosamente.
 
-## Bases e formatos
+Também é possível usar diretórios alternativos:
 
-| Base | Resumo | Estrutura |
-|---|---|---|
-| [Fake.br](https://github.com/roneysco/Fake.br-Corpus) | 7.200 notícias em português: metade falsa, metade verdadeira. | TXT nas pastas `fake` e `true`, com metadados separados. Possui versões completas, truncadas e um CSV pré-processado. |
-| [AVeriTeC](https://github.com/MichSchli/AVeriTeC) | 3.068 alegações de treino e 500 de validação, em inglês, com quatro classes. | JSON com `claim`, `label`, `justification` e `questions`. Cada pergunta contém sua lista de `answers`. |
-| [FEVEROUS](https://github.com/Raldir/FEVEROUS) | 87.026 alegações em inglês, divididas entre treino, validação e teste. | JSONL com `claim`, `label` e `evidence`. O teste contém somente alegações, sem rótulos ou evidências. |
+```bash
+python3 scripts/acquire.py \
+  --data-dir /caminho/para/data/raw \
+  --fakebr-dir /caminho/para/Fake.br-Corpus
+```
 
-No Fake.br, arquivos com o mesmo número em `fake` e `true` formam um par. As versões completas e truncadas representam as mesmas notícias. No FEVEROUS, `evidence` contém IDs de frases e células de tabelas; seu texto depende de um dump separado da Wikipédia, não incluído.
+Ao usar caminhos alternativos, informe os mesmos parâmetros ao executar a EDA.
 
-Os resultados estão em [EDA.md](reports/EDA.md), e sua interpretação está no [relatório técnico](reports/RELATORIO_TECNICO.md).
+## Executar a EDA
+
+Execute os comandos na ordem abaixo, depois que a aquisição terminar.
+
+**macOS ou Linux:**
+
+```bash
+python3 scripts/eda.py
+python3 scripts/eda_visuals.py
+```
+
+**Windows / PowerShell:**
+
+```powershell
+python scripts/eda.py
+python scripts/eda_visuals.py
+```
+
+Os scripts produzem:
+
+- `data/processed/`: dados processados localmente;
+- `reports/EDA.md`: tabelas estruturais geradas pela análise;
+- `reports/eda.json`: estatísticas em formato JSON;
+- `reports/eda_nlp.json`: métricas textuais e diagnósticos adicionais;
+- `reports/figures/`: gráficos SVG;
+- `reports/samples/`: exemplos pequenos de registros.
+
+Quando a aquisição usar diretórios alternativos, execute:
+
+```bash
+python3 scripts/eda.py \
+  --data-dir /caminho/para/data/raw \
+  --fakebr-dir /caminho/para/Fake.br-Corpus
+
+python3 scripts/eda_visuals.py \
+  --data-dir /caminho/para/data/raw \
+  --fakebr-dir /caminho/para/Fake.br-Corpus
+```
+
+## Estrutura inicial do MVP
+
+O código da aplicação ainda é propositalmente mínimo:
+
+- [`src/contraponto/bot.py`](src/contraponto/bot.py) define o ponto inicial da interface com o Telegram;
+- [`src/contraponto/motor_ia.py`](src/contraponto/motor_ia.py) define o resultado da análise e o contrato inicial do motor central.
+
+O método principal do motor ainda não implementa a análise completa. Cada componente será acrescentado pelas issues do backlog, evitando concentrar toda a solução em um único arquivo antes de o grupo dividir o trabalho.
+
+## Documentação principal
+
+- `reports/EDA.md`: tabelas estruturais geradas novamente ao executar `scripts/eda.py`;
+- [Relatório técnico](reports/RELATORIO_TECNICO.md): recomendações de modelagem;
+- [Requisitos e priorização](reports/REQUISITOS_E_PRIORIZACAO.md): escopo reorganizado para o MVP no Telegram;
+- [Backlog de issues](reports/ISSUES_MVP_TELEGRAM.md): labels, cronograma, issues, dependências e configuração do GitHub Project.
+
+## Fluxo planejado do MVP
+
+```text
+Notícia em texto
+├── Análise da linguagem
+└── Extração de alegações
+    ├── Busca de fact-checks existentes
+    └── Busca de evidências
+         ↓
+Verificação de cada alegação
+         ↓
+Relatório com análise linguística e resultado factual separados
+         ↓
+Diálogo socrático no Telegram
+```
