@@ -15,7 +15,7 @@ class ResultadoAnalise:
 
 
 class MotorIA:
-    """Contrato inicial para os componentes que serão criados pelas issues do MVP."""
+    """Motor central; nesta etapa, apenas simula o recebimento do texto."""
 
     async def analisar_texto(self, texto: str) -> ResultadoAnalise:
         if not texto or not texto.strip():
@@ -23,6 +23,7 @@ class MotorIA:
 
         # TODO: integrar análise linguística, extração de alegações,
         # busca de evidências, verificação e diálogo socrático.
-        raise NotImplementedError(
-            "O fluxo de análise será implementado pelas próximas issues do MVP."
+        return ResultadoAnalise(
+            analise_linguistica="Análise simulada: texto recebido para investigação.",
+            resultado_factual="A verificação factual será implementada em uma próxima etapa.",
         )
