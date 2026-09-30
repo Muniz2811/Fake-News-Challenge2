@@ -1,19 +1,19 @@
 """Interface do Contraponto com o Telegram (python-telegram-bot ≥ 20)."""
 
+import logging
 import os
 import sys
 import uuid
-import logging
 from datetime import datetime, timedelta
 from typing import Dict, Optional
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
+    ContextTypes,
     MessageHandler,
     filters,
-    ContextTypes,
 )
 
 # Adiciona o diretório atual ao sys.path para permitir a importação direta dos módulos
@@ -44,11 +44,11 @@ class BotTelegram:
 
         if not token:
             raise ValueError("Token do Telegram não fornecido ou inválido.")
-
         self.app = ApplicationBuilder().token(token).build()
 
         # /start com deep-link (chat privado)
         self.app.add_handler(CommandHandler("start", self._cmd_start))
+        self.app.add_handler(CommandHandler("ajuda", self._cmd_ajuda))
 
         # Mensagens de texto em grupos autorizados
         self.app.add_handler(
@@ -57,6 +57,13 @@ class BotTelegram:
                 self._handle_group_message,
             )
         )
+        self.app.add_handler(
+            MessageHandler(
+                filters.ChatType.PRIVATE & ~filters.TEXT,
+                self._handle_incompatible_content,
+            )
+        )
+        self.app.add_error_handler(self._handle_error)
 
         # Mensagens de texto no privado (análise avulsa)
         self.app.add_handler(
@@ -169,15 +176,43 @@ class BotTelegram:
         relatorio = self._formatar_relatorio(resultado)
         await update.message.reply_text(relatorio, parse_mode="Markdown")
 
+    async def _cmd_ajuda(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        if not update.message or update.message.chat.type != "private":
+            return
+        await update.message.reply_text(
+            "Envie uma notícia ou alegação como texto para iniciar uma investigação. "
+            "Áudios, figurinhas e arquivos ainda não são aceitos. A análise atual é simulada."
+        )
+
+    async def _handle_incompatible_content(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        if update.message:
+            await update.message.reply_text(
+                "Por enquanto consigo investigar apenas texto. "
+                "Envie a notícia ou alegação como uma mensagem escrita."
+            )
+
     async def _handle_private_message(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         """Permite análise avulsa no chat privado."""
-        if not update.message or not update.message.text:
+        if not update.message:
+            return
+
+        texto = update.message.text or ""
+        if not texto.strip():
+            await update.message.reply_text(
+                "Não recebi um texto para investigar. Envie a notícia ou alegação por escrito."
+            )
             return
 
         try:
-            resultado = await self.motor.analisar_texto(update.message.text)
+            # A confirmação é enviada antes de chamar o motor, que pode demorar.
+            await update.message.reply_text("📩 Texto recebido. A investigação começou.")
+            resultado = await self.motor.analisar_texto(texto)
         except NotImplementedError:
             await update.message.reply_text(
                 "O fluxo de análise ainda não está totalmente implementado."
@@ -192,6 +227,11 @@ class BotTelegram:
 
         relatorio = self._formatar_relatorio(resultado)
         await update.message.reply_text(relatorio, parse_mode="Markdown")
+
+    async def _handle_error(
+        self, update: object, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        logger.error("Erro ao processar atualização do Telegram: %s", context.error)
 
     # ------------------------------------------------------------------ #
     #  Formatação                                                         #

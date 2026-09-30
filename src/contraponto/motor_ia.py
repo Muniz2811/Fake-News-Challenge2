@@ -17,6 +17,10 @@ class ResultadoAnalise:
 
 
 class MotorIA:
+<<<<<<< HEAD
+=======
+    """Motor central; nesta etapa, apenas simula o recebimento do texto."""
+>>>>>>> origin/main
 
   def __init__(self):
     self.extrator_claims = ExtratorAlegações()
@@ -42,3 +46,9 @@ class MotorIA:
         resultado_factual=resultado_claims.para_lista_numerada(),
         requer_revisao=False,
     )
+        # TODO: integrar análise linguística, extração de alegações,
+        # busca de evidências, verificação e diálogo socrático.
+        return ResultadoAnalise(
+            analise_linguistica="Análise simulada: texto recebido para investigação.",
+            resultado_factual="A verificação factual será implementada em uma próxima etapa.",
+        )
