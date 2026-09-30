@@ -15,13 +15,14 @@ class ResultadoAnalise:
 
 
 class MotorIA:
-    """Contrato inicial para os componentes que serão criados pelas issues."""
+    """Contrato inicial para os componentes que serão criados pelas issues do MVP."""
 
     async def analisar_texto(self, texto: str) -> ResultadoAnalise:
-        if not texto.strip():
+        if not texto or not texto.strip():
             raise ValueError("O texto da notícia não pode estar vazio.")
 
         # TODO: integrar análise linguística, extração de alegações,
         # busca de evidências, verificação e diálogo socrático.
-        raise NotImplementedError("O fluxo de análise será implementado pelas issues do MVP.")
-
+        raise NotImplementedError(
+            "O fluxo de análise será implementado pelas próximas issues do MVP."
+        )
