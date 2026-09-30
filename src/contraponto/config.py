@@ -3,13 +3,23 @@
 import os
 from dotenv import load_dotenv
 
-# Carrega as variáveis declaradas no ficheiro .env
+# Carrega as variáveis declaradas no arquivo .env
 load_dotenv()
 
-# Definição das variáveis no topo do módulo
+# Variáveis de ambiente para conexões externas
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GOOGLE_FACT_CHECK_KEY = os.getenv("GOOGLE_FACT_CHECK_KEY")
+
+# Limite configurável de alegações por mensagem (Requisito MVP-06)
+MAX_CLAIMS_PER_MESSAGE = int(os.getenv("MAX_CLAIMS_PER_MESSAGE", "5"))
+
+# Opcional: lista de IDs de grupos autorizados (separados por vírgula).
+# Se vazia ou não definida, o bot processa mensagens de qualquer grupo.
+_authorized_groups_env = os.getenv("AUTHORIZED_GROUPS", "")
+AUTHORIZED_GROUPS: list[int] = [
+    int(g.strip()) for g in _authorized_groups_env.split(",") if g.strip()
+]
 
 
 def validate_env() -> None:
@@ -27,6 +37,6 @@ def validate_env() -> None:
         raise ValueError(
             "❌ [ERRO DE CONFIGURAÇÃO] Variáveis de ambiente obrigatórias ausentes:\n"
             f"   -> {', '.join(missing)}\n\n"
-            "Por favor, crie um ficheiro '.env' na raiz do projeto (baseado em '.env.example') "
+            "Por favor, crie um arquivo '.env' na raiz do projeto (baseado em '.env.example') "
             "e preencha com as suas chaves de API."
         )

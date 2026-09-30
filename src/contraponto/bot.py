@@ -1,15 +1,14 @@
 """Interface do Contraponto com o Telegram (python-telegram-bot ≥ 20)."""
 
+import logging
 import os
 import sys
-import logging
 import uuid
 from datetime import datetime, timedelta
 from typing import Dict, Optional
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
-    Application,
     ApplicationBuilder,
     CommandHandler,
     ContextTypes,
@@ -20,37 +19,31 @@ from telegram.ext import (
 # Adiciona o diretório atual ao sys.path para permitir a importação direta dos módulos
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from config import TELEGRAM_BOT_TOKEN
+from config import TELEGRAM_BOT_TOKEN, AUTHORIZED_GROUPS, validate_env
 from motor_ia import MotorIA, ResultadoAnalise
 
-
 logger = logging.getLogger(__name__)
-_TTL_HORAS = 24
 
-
-class Config:
-    """Configurações específicas do bot, lidas do ambiente."""
-
-    def __init__(self) -> None:
-        self.telegram_bot_token = TELEGRAM_BOT_TOKEN
-        raw_groups = os.getenv("AUTHORIZED_GROUPS", "")
-        self.authorized_groups = {
-            int(group_id.strip()) for group_id in raw_groups.split(",") if group_id.strip()
-        }
+# Tempo de vida (em horas) das investigações armazenadas em memória.
+_TTL_HORAS: int = 24
 
 
 class BotTelegram:
 
-    def __init__(self, motor: Optional[MotorIA] = None) -> None:
-        self.config = Config()
-        self.motor = motor or MotorIA()
+    def __init__(
+        self,
+        motor: MotorIA,
+        token: str,
+        authorized_groups: list[int] | None = None,
+    ) -> None:
+        self.motor = motor
+        self.authorized_groups: list[int] = authorized_groups or []
 
         # Armazena UUID → {resultado, expires}
         self._investigacoes: Dict[str, dict] = {}
 
-        token = self.config.telegram_bot_token
         if not token:
-            raise ValueError("TELEGRAM_BOT_TOKEN não configurado no arquivo .env.")
+            raise ValueError("Token do Telegram não fornecido ou inválido.")
         self.app = ApplicationBuilder().token(token).build()
 
         # /start com deep-link (chat privado)
@@ -124,7 +117,7 @@ class BotTelegram:
         chat_id = update.message.chat_id
 
         # Se AUTHORIZED_GROUPS foi configurado, restringe.
-        if self.config.authorized_groups and chat_id not in self.config.authorized_groups:
+        if self.authorized_groups and chat_id not in self.authorized_groups:
             return
 
         texto = update.message.text
@@ -220,6 +213,11 @@ class BotTelegram:
             # A confirmação é enviada antes de chamar o motor, que pode demorar.
             await update.message.reply_text("📩 Texto recebido. A investigação começou.")
             resultado = await self.motor.analisar_texto(texto)
+        except NotImplementedError:
+            await update.message.reply_text(
+                "O fluxo de análise ainda não está totalmente implementado."
+            )
+            return
         except Exception:
             logger.exception("Erro ao analisar texto no privado")
             await update.message.reply_text(
@@ -271,20 +269,27 @@ class BotTelegram:
             f"Resultado factual:\n{resultado.resultado_factual}"
         )
 
-    def run(self) -> None:
-        """Inicia o polling da Telegram Bot API."""
-        self.app.run_polling()
-
-    # TODO: conectar este adaptador à Telegram Bot API.
-    # TODO: adicionar grupos autorizados, alerta e redirecionamento ao privado.
-
 
 def main() -> None:
+    """Ponto de entrada: valida ambiente, instancia dependências e inicia polling."""
     logging.basicConfig(
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
         level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
-    BotTelegram().run()
+
+    print("🔍 Validando variáveis de ambiente...")
+    validate_env()
+    print("✅ Configurações e variáveis de ambiente validadas com sucesso!")
+
+    motor = MotorIA()
+    bot = BotTelegram(
+        motor=motor,
+        token=TELEGRAM_BOT_TOKEN,
+        authorized_groups=AUTHORIZED_GROUPS if AUTHORIZED_GROUPS else None,
+    )
+
+    print("🤖 Contraponto iniciado — aguardando mensagens...")
+    bot.app.run_polling()
 
 
 if __name__ == "__main__":
