@@ -1,46 +1,32 @@
-"""Carregamento e validação de variáveis de ambiente do Contraponto."""
+"""Módulo de configuração e validação de variáveis de ambiente."""
 
-import logging
 import os
-from typing import List
+from dotenv import load_dotenv
 
-logger = logging.getLogger(__name__)
+# Carrega as variáveis declaradas no ficheiro .env
+load_dotenv()
+
+# Definição das variáveis no topo do módulo
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GOOGLE_FACT_CHECK_KEY = os.getenv("GOOGLE_FACT_CHECK_KEY")
 
 
-class Config:
-    """Centraliza a leitura das variáveis de ambiente necessárias ao bot."""
+def validate_env() -> None:
+    """Garante que as variáveis de ambiente obrigatórias foram carregadas.
 
-    def __init__(self) -> None:
-        self.telegram_bot_token: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
-        self.authorized_groups: List[int] = self._parse_authorized_groups()
+    Lança uma exceção explicativa caso falte alguma chave essencial.
+    """
+    missing = []
+    if not TELEGRAM_BOT_TOKEN:
+        missing.append("TELEGRAM_BOT_TOKEN")
+    if not OPENAI_API_KEY:
+        missing.append("OPENAI_API_KEY")
 
-        if not self.telegram_bot_token:
-            logger.warning(
-                "TELEGRAM_BOT_TOKEN não definido. O bot não conseguirá se conectar."
-            )
-
-        if not self.authorized_groups:
-            logger.info(
-                "AUTHORIZED_GROUPS vazio — o bot aceitará mensagens de qualquer grupo."
-            )
-
-    # ------------------------------------------------------------------
-    @staticmethod
-    def _parse_authorized_groups() -> List[int]:
-        raw = os.getenv("AUTHORIZED_GROUPS", "")
-        if not raw.strip():
-            return []
-
-        ids: List[int] = []
-        for token in raw.split(","):
-            token = token.strip()
-            if not token:
-                continue
-            try:
-                ids.append(int(token))
-            except ValueError:
-                logger.error(
-                    "AUTHORIZED_GROUPS contém valor não-numérico: %r — ignorado.",
-                    token,
-                )
-        return ids
+    if missing:
+        raise ValueError(
+            "❌ [ERRO DE CONFIGURAÇÃO] Variáveis de ambiente obrigatórias ausentes:\n"
+            f"   -> {', '.join(missing)}\n\n"
+            "Por favor, crie um ficheiro '.env' na raiz do projeto (baseado em '.env.example') "
+            "e preencha com as suas chaves de API."
+        )

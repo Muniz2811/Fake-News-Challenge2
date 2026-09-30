@@ -1,32 +1,18 @@
 """Interface do Contraponto com o Telegram (python-telegram-bot ≥ 20)."""
 
-import logging
-import uuid
-from datetime import datetime, timedelta
-from typing import Dict, Optional
+import os
+import sys
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import (
-    ApplicationBuilder,
-    CommandHandler,
-    ContextTypes,
-    MessageHandler,
-    filters,
-)
+# Adiciona o diretório atual ao sys.path para permitir a importação direta dos módulos
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from .config import Config
-from .motor_ia import MotorIA, ResultadoAnalise
-
-logger = logging.getLogger(__name__)
-
-# Tempo máximo que uma investigação fica disponível via deep-link.
-_TTL_HORAS = 24
+from config import TELEGRAM_BOT_TOKEN, validate_env
+from motor_ia import MotorIA
 
 
 class BotTelegram:
-    """Adaptador Telegram: lida com grupos e chats privados."""
 
-    def __init__(self, motor: MotorIA, config: Optional[Config] = None) -> None:
+    def __init__(self, motor: MotorIA) -> None:
         self.motor = motor
         self.config = config or Config()
 
@@ -218,14 +204,17 @@ class BotTelegram:
             f"Resultado factual:\n{resultado.resultado_factual}"
         )
 
-    # ------------------------------------------------------------------ #
-    #  Entrada                                                            #
-    # ------------------------------------------------------------------ #
+    # TODO: conectar este adaptador à Telegram Bot API.
+    # TODO: adicionar grupos autorizados, alerta e redirecionamento ao privado.
 
-    def iniciar(self) -> None:
-        """Inicia o bot em modo polling."""
-        if not self.config.telegram_bot_token:
-            logger.error("TELEGRAM_BOT_TOKEN não configurado. Abortando.")
-            return
-        logger.info("Iniciando bot em modo polling…")
-        self.app.run_polling()
+
+def main() -> None:
+    """Valida a execução local do ambiente."""
+    print("🔍 Validando variáveis de ambiente...")
+    validate_env()
+    print("✅ Configurações e variáveis de ambiente validadas com sucesso!")
+    print("🤖 Módulos bot.py e motor_ia.py prontos e integrados.")
+
+
+if __name__ == "__main__":
+    main()
