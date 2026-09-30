@@ -2,24 +2,49 @@
 
 import os
 import sys
+import uuid
+import logging
+from datetime import datetime, timedelta
+from typing import Dict, Optional
+
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    filters,
+    ContextTypes,
+)
 
 # Adiciona o diretório atual ao sys.path para permitir a importação direta dos módulos
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from config import TELEGRAM_BOT_TOKEN, validate_env
-from motor_ia import MotorIA
+from config import TELEGRAM_BOT_TOKEN, AUTHORIZED_GROUPS, validate_env
+from motor_ia import MotorIA, ResultadoAnalise
+
+logger = logging.getLogger(__name__)
+
+# Tempo de vida (em horas) das investigações armazenadas em memória.
+_TTL_HORAS: int = 24
 
 
 class BotTelegram:
 
-    def __init__(self, motor: MotorIA) -> None:
+    def __init__(
+        self,
+        motor: MotorIA,
+        token: str,
+        authorized_groups: list[int] | None = None,
+    ) -> None:
         self.motor = motor
-        self.config = config or Config()
+        self.authorized_groups: list[int] = authorized_groups or []
 
         # Armazena UUID → {resultado, expires}
         self._investigacoes: Dict[str, dict] = {}
 
-        token = self.config.telegram_bot_token or "MISSING"
+        if not token:
+            raise ValueError("Token do Telegram não fornecido ou inválido.")
+
         self.app = ApplicationBuilder().token(token).build()
 
         # /start com deep-link (chat privado)
@@ -85,7 +110,7 @@ class BotTelegram:
         chat_id = update.message.chat_id
 
         # Se AUTHORIZED_GROUPS foi configurado, restringe.
-        if self.config.authorized_groups and chat_id not in self.config.authorized_groups:
+        if self.authorized_groups and chat_id not in self.authorized_groups:
             return
 
         texto = update.message.text
@@ -204,16 +229,27 @@ class BotTelegram:
             f"Resultado factual:\n{resultado.resultado_factual}"
         )
 
-    # TODO: conectar este adaptador à Telegram Bot API.
-    # TODO: adicionar grupos autorizados, alerta e redirecionamento ao privado.
-
 
 def main() -> None:
-    """Valida a execução local do ambiente."""
+    """Ponto de entrada: valida ambiente, instancia dependências e inicia polling."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
+
     print("🔍 Validando variáveis de ambiente...")
     validate_env()
     print("✅ Configurações e variáveis de ambiente validadas com sucesso!")
-    print("🤖 Módulos bot.py e motor_ia.py prontos e integrados.")
+
+    motor = MotorIA()
+    bot = BotTelegram(
+        motor=motor,
+        token=TELEGRAM_BOT_TOKEN,
+        authorized_groups=AUTHORIZED_GROUPS if AUTHORIZED_GROUPS else None,
+    )
+
+    print("🤖 Contraponto iniciado — aguardando mensagens...")
+    bot.app.run_polling()
 
 
 if __name__ == "__main__":

@@ -11,6 +11,13 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GOOGLE_FACT_CHECK_KEY = os.getenv("GOOGLE_FACT_CHECK_KEY")
 
+# Opcional: lista de IDs de grupos autorizados (separados por vírgula).
+# Se vazia ou não definida, o bot processa mensagens de qualquer grupo.
+_authorized_groups_env = os.getenv("AUTHORIZED_GROUPS", "")
+AUTHORIZED_GROUPS: list[int] = [
+    int(g.strip()) for g in _authorized_groups_env.split(",") if g.strip()
+]
+
 
 def validate_env() -> None:
     """Garante que as variáveis de ambiente obrigatórias foram carregadas.
