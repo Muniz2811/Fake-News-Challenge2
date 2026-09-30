@@ -251,8 +251,8 @@ class BotTelegram:
         if resultado.resultado_factual:
             partes.append(f"*Resultado Factual:*\n{resultado.resultado_factual}\n")
 
-        if resultado.fontes:
-            lista = "\n".join(f"• {f}" for f in resultado.fontes)
+        if resultado.evidencias:
+            lista = "\n".join(f"• {e.url}" for e in resultado.evidencias if e.url)
             partes.append(f"*Fontes consultadas:*\n{lista}")
 
         return "\n".join(partes)
