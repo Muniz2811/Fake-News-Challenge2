@@ -2,28 +2,60 @@
 
 import os
 import sys
+import logging
+import uuid
+from datetime import datetime, timedelta
+from typing import Dict, Optional
+
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import (
+    Application,
+    ApplicationBuilder,
+    CommandHandler,
+    ContextTypes,
+    MessageHandler,
+    filters,
+)
 
 # Adiciona o diretório atual ao sys.path para permitir a importação direta dos módulos
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from config import TELEGRAM_BOT_TOKEN, validate_env
-from motor_ia import MotorIA
+from config import TELEGRAM_BOT_TOKEN
+from motor_ia import MotorIA, ResultadoAnalise
+
+
+logger = logging.getLogger(__name__)
+_TTL_HORAS = 24
+
+
+class Config:
+    """Configurações específicas do bot, lidas do ambiente."""
+
+    def __init__(self) -> None:
+        self.telegram_bot_token = TELEGRAM_BOT_TOKEN
+        raw_groups = os.getenv("AUTHORIZED_GROUPS", "")
+        self.authorized_groups = {
+            int(group_id.strip()) for group_id in raw_groups.split(",") if group_id.strip()
+        }
 
 
 class BotTelegram:
 
-    def __init__(self, motor: MotorIA) -> None:
-        self.motor = motor
-        self.config = config or Config()
+    def __init__(self, motor: Optional[MotorIA] = None) -> None:
+        self.config = Config()
+        self.motor = motor or MotorIA()
 
         # Armazena UUID → {resultado, expires}
         self._investigacoes: Dict[str, dict] = {}
 
-        token = self.config.telegram_bot_token or "MISSING"
+        token = self.config.telegram_bot_token
+        if not token:
+            raise ValueError("TELEGRAM_BOT_TOKEN não configurado no arquivo .env.")
         self.app = ApplicationBuilder().token(token).build()
 
         # /start com deep-link (chat privado)
         self.app.add_handler(CommandHandler("start", self._cmd_start))
+        self.app.add_handler(CommandHandler("ajuda", self._cmd_ajuda))
 
         # Mensagens de texto em grupos autorizados
         self.app.add_handler(
@@ -32,6 +64,13 @@ class BotTelegram:
                 self._handle_group_message,
             )
         )
+        self.app.add_handler(
+            MessageHandler(
+                filters.ChatType.PRIVATE & ~filters.TEXT,
+                self._handle_incompatible_content,
+            )
+        )
+        self.app.add_error_handler(self._handle_error)
 
         # Mensagens de texto no privado (análise avulsa)
         self.app.add_handler(
@@ -144,20 +183,43 @@ class BotTelegram:
         relatorio = self._formatar_relatorio(resultado)
         await update.message.reply_text(relatorio, parse_mode="Markdown")
 
+    async def _cmd_ajuda(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        if not update.message or update.message.chat.type != "private":
+            return
+        await update.message.reply_text(
+            "Envie uma notícia ou alegação como texto para iniciar uma investigação. "
+            "Áudios, figurinhas e arquivos ainda não são aceitos. A análise atual é simulada."
+        )
+
+    async def _handle_incompatible_content(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        if update.message:
+            await update.message.reply_text(
+                "Por enquanto consigo investigar apenas texto. "
+                "Envie a notícia ou alegação como uma mensagem escrita."
+            )
+
     async def _handle_private_message(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         """Permite análise avulsa no chat privado."""
-        if not update.message or not update.message.text:
+        if not update.message:
+            return
+
+        texto = update.message.text or ""
+        if not texto.strip():
+            await update.message.reply_text(
+                "Não recebi um texto para investigar. Envie a notícia ou alegação por escrito."
+            )
             return
 
         try:
-            resultado = await self.motor.analisar_texto(update.message.text)
-        except NotImplementedError:
-            await update.message.reply_text(
-                "O fluxo de análise ainda não está totalmente implementado."
-            )
-            return
+            # A confirmação é enviada antes de chamar o motor, que pode demorar.
+            await update.message.reply_text("📩 Texto recebido. A investigação começou.")
+            resultado = await self.motor.analisar_texto(texto)
         except Exception:
             logger.exception("Erro ao analisar texto no privado")
             await update.message.reply_text(
@@ -167,6 +229,11 @@ class BotTelegram:
 
         relatorio = self._formatar_relatorio(resultado)
         await update.message.reply_text(relatorio, parse_mode="Markdown")
+
+    async def _handle_error(
+        self, update: object, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        logger.error("Erro ao processar atualização do Telegram: %s", context.error)
 
     # ------------------------------------------------------------------ #
     #  Formatação                                                         #
@@ -204,16 +271,20 @@ class BotTelegram:
             f"Resultado factual:\n{resultado.resultado_factual}"
         )
 
+    def run(self) -> None:
+        """Inicia o polling da Telegram Bot API."""
+        self.app.run_polling()
+
     # TODO: conectar este adaptador à Telegram Bot API.
     # TODO: adicionar grupos autorizados, alerta e redirecionamento ao privado.
 
 
 def main() -> None:
-    """Valida a execução local do ambiente."""
-    print("🔍 Validando variáveis de ambiente...")
-    validate_env()
-    print("✅ Configurações e variáveis de ambiente validadas com sucesso!")
-    print("🤖 Módulos bot.py e motor_ia.py prontos e integrados.")
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        level=logging.INFO,
+    )
+    BotTelegram().run()
 
 
 if __name__ == "__main__":
