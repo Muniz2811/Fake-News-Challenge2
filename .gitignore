@@ -1,8 +1,17 @@
-/.venv/
+# Environment
+.venv/
+.env
+venv/
+
+# Python
 __pycache__/
 *.py[cod]
-/data/
-/Fake.br-Corpus/
-/AVeriTeC/
+*.pyo
+*.pyd
+
+# Data & Models
+data/
+Fake.br-Corpus/
+AVeriTeC/
 /FEVEROUS/
 /models/
