@@ -1,74 +1,56 @@
 """Estrutura do motor central do Divã Socrático."""
 
-import logging
 from dataclasses import dataclass, field
+import os
+import sys
 
-from claims import ExtratorAlegações, Alegacao
-from search import (
-    GoogleFactCheckAdapter,
-    TavilySearchAdapter,
-    WebSearchProvider,
-    Evidencia,
-)
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-logger = logging.getLogger(__name__)
+from claims import Alegacao, ExtratorAlegações
+from search import Evidencia, ProvedorBuscaWeb
+from verifier import VerificadorAlegações, VereditoAlegacao
 
 
 @dataclass
 class ResultadoAnalise:
-    """Mantém análise linguística, alegações e evidências separadas."""
-
-    analise_linguistica: str = ""
-    alegacoes: list[Alegacao] = field(default_factory=list)
-    evidencias: list[Evidencia] = field(default_factory=list)
-    resultado_factual: str = ""
-    requer_revisao: bool = False
+  analise_linguistica: str = ""
+  alegacoes: list[Alegacao] = field(default_factory=list)
+  evidencias: list[Evidencia] = field(default_factory=list)
+  vereditos: list[VereditoAlegacao] = field(default_factory=list)
+  resultado_factual: str = ""
+  requer_revisao: bool = False
 
 
 class MotorIA:
-    """Motor central; orquestra extração de alegações e busca de evidências."""
 
-    def __init__(
-        self,
-        provedores_busca: list[WebSearchProvider] | None = None,
-    ):
-        self.extrator_claims = ExtratorAlegações()
+  def __init__(self):
+    self.extrator_claims = ExtratorAlegações()
+    self.provedor_busca = ProvedorBuscaWeb()
+    self.verificador = VerificadorAlegações()
 
-        # Se nenhuma lista explícita for fornecida, usa os provedores padrão.
-        if provedores_busca is not None:
-            self.provedores_busca = provedores_busca
-        else:
-            self.provedores_busca: list[WebSearchProvider] = [
-                GoogleFactCheckAdapter(),
-                TavilySearchAdapter(),
-            ]
+  async def analisar_texto(self, texto: str) -> ResultadoAnalise:
+    if not texto or not texto.strip():
+      raise ValueError("O texto da notícia não pode estar vazio.")
 
-    async def analisar_texto(self, texto: str) -> ResultadoAnalise:
-        if not texto or not texto.strip():
-            raise ValueError("O texto da notícia não pode estar vazio.")
+    # 1. Extração de alegações (MVP-06)
+    resultado_claims = self.extrator_claims.extrair(texto)
 
-        # 1. Extração de alegações (MVP-06)
-        resultado_claims = self.extrator_claims.extrair(texto)
+    # 2. Busca de evidências e verificação individual por alegação (MVP-09 e MVP-10)
+    todas_evidencias = []
+    lista_vereditos = []
 
-        # 2. Busca de evidências por alegação individual (MVP-09)
-        todas_evidencias: list[Evidencia] = []
-        for alegacao in resultado_claims.alegacoes:
-            for provedor in self.provedores_busca:
-                try:
-                    evs = provedor.buscar_evidencias_por_alegacao(alegacao.texto)
-                    todas_evidencias.extend(evs)
-                except Exception:
-                    # Falha de um provedor nunca interrompe o pipeline
-                    logger.exception(
-                        "Provedor %s falhou para alegação: %.80s",
-                        type(provedor).__name__,
-                        alegacao.texto,
-                    )
+    for alegacao in resultado_claims.alegacoes:
+      evs = self.provedor_busca.buscar_evidencias_por_alegacao(alegacao.texto)
+      todas_evidencias.extend(evs)
 
-        return ResultadoAnalise(
-            analise_linguistica="Análise inicial de linguagem concluída.",
-            alegacoes=resultado_claims.alegacoes,
-            evidencias=todas_evidencias,
-            resultado_factual=resultado_claims.para_lista_numerada(),
-            requer_revisao=False,
-        )
+      veredito = self.verificador.verificar_alegacao(alegacao, evs)
+      lista_vereditos.append(veredito)
+
+    return ResultadoAnalise(
+        analise_linguistica="Análise de linguagem concluída.",
+        alegacoes=resultado_claims.alegacoes,
+        evidencias=todas_evidencias,
+        vereditos=lista_vereditos,
+        resultado_factual=resultado_claims.para_lista_numerada(),
+        requer_revisao=False,
+    )
