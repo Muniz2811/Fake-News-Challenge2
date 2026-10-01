@@ -1,56 +1,62 @@
-"""Estrutura do motor central do Divã Socrático."""
-
-from dataclasses import dataclass, field
+"""Motor central: extração, busca por provedor e verificação por alegação."""
+import logging
 import os
 import sys
+from dataclasses import dataclass, field
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 from claims import Alegacao, ExtratorAlegações
-from search import Evidencia, ProvedorBuscaWeb
-from verifier import VerificadorAlegações, VereditoAlegacao
+from search import Evidencia, GoogleFactCheckAdapter, TavilySearchAdapter, WebSearchProvider
+from verifier import ROTULOS_CATEGORIAS, VereditoAlegacao, VerificadorAlegacoes
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
 class ResultadoAnalise:
-  analise_linguistica: str = ""
-  alegacoes: list[Alegacao] = field(default_factory=list)
-  evidencias: list[Evidencia] = field(default_factory=list)
-  vereditos: list[VereditoAlegacao] = field(default_factory=list)
-  resultado_factual: str = ""
-  requer_revisao: bool = False
+    """Mantém linguagem, alegações, evidências e conclusões individuais separadas."""
+
+    analise_linguistica: str = ""
+    alegacoes: list[Alegacao] = field(default_factory=list)
+    evidencias: list[Evidencia] = field(default_factory=list)
+    resultado_factual: str = ""
+    requer_revisao: bool = False
+    vereditos: list[VereditoAlegacao] = field(default_factory=list)
 
 
 class MotorIA:
+    def __init__(
+        self, provedores_busca: list[WebSearchProvider] | None = None,
+        verificador: VerificadorAlegacoes | None = None,
+    ):
+        self.extrator_claims = ExtratorAlegações()
+        self.provedores_busca = provedores_busca if provedores_busca is not None else [
+            GoogleFactCheckAdapter(), TavilySearchAdapter(),
+        ]
+        self.verificador = verificador if verificador is not None else VerificadorAlegacoes()
 
-  def __init__(self):
-    self.extrator_claims = ExtratorAlegações()
-    self.provedor_busca = ProvedorBuscaWeb()
-    self.verificador = VerificadorAlegações()
-
-  async def analisar_texto(self, texto: str) -> ResultadoAnalise:
-    if not texto or not texto.strip():
-      raise ValueError("O texto da notícia não pode estar vazio.")
-
-    # 1. Extração de alegações (MVP-06)
-    resultado_claims = self.extrator_claims.extrair(texto)
-
-    # 2. Busca de evidências e verificação individual por alegação (MVP-09 e MVP-10)
-    todas_evidencias = []
-    lista_vereditos = []
-
-    for alegacao in resultado_claims.alegacoes:
-      evs = self.provedor_busca.buscar_evidencias_por_alegacao(alegacao.texto)
-      todas_evidencias.extend(evs)
-
-      veredito = self.verificador.verificar_alegacao(alegacao, evs)
-      lista_vereditos.append(veredito)
-
-    return ResultadoAnalise(
-        analise_linguistica="Análise de linguagem concluída.",
-        alegacoes=resultado_claims.alegacoes,
-        evidencias=todas_evidencias,
-        vereditos=lista_vereditos,
-        resultado_factual=resultado_claims.para_lista_numerada(),
-        requer_revisao=False,
-    )
+    async def analisar_texto(self, texto: str) -> ResultadoAnalise:
+        if not texto or not texto.strip():
+            raise ValueError("O texto da notícia não pode estar vazio.")
+        extracao = self.extrator_claims.extrair(texto)
+        evidencias = []
+        vereditos = []
+        for alegacao in extracao.alegacoes:
+            individuais = []
+            for provedor in self.provedores_busca:
+                try:
+                    individuais.extend(provedor.buscar_evidencias_por_alegacao(alegacao.texto))
+                except Exception:
+                    logger.warning("Provedor %s indisponível.", type(provedor).__name__)
+            evidencias.extend(individuais)
+            vereditos.append(self.verificador.verificar_alegacao(alegacao, individuais))
+        factual = "\n\n".join(
+            f"{v.alegacao_id}. {v.texto_alegacao}\n"
+            f"Conclusão: {ROTULOS_CATEGORIAS[v.categoria]}\n{v.justificativa}"
+            for v in vereditos
+        ) or "Nenhuma alegação verificável foi identificada no texto."
+        return ResultadoAnalise(
+            analise_linguistica="Análise inicial de linguagem concluída.",
+            alegacoes=extracao.alegacoes, evidencias=evidencias, vereditos=vereditos,
+            resultado_factual=factual, requer_revisao=False,
+        )
