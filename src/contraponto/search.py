@@ -28,6 +28,8 @@ class Evidencia:
     published_at: str | None = None
     relevance_score: float = 0.0
     source_type: str = "unknown"  # "official", "fact_check", "news", "secondary", "unknown"
+    checked_claim: str | None = None
+    textual_rating: str | None = None
 
 
 # ------------------------------------------------------------------ #
@@ -147,28 +149,28 @@ class GoogleFactCheckAdapter(WebSearchProvider):
                 claims = data.get("claims", [])
 
                 for item in claims[:max_results]:
-                    text_claim = item.get("text", alegacao)
+                    text_claim = item.get("text") or None
                     reviews = item.get("claimReview", [])
 
                     for review in reviews:
                         publisher_info = review.get("publisher", {})
                         pub_name = publisher_info.get("name", "Fonte Desconhecida")
-                        title = review.get("title") or f"Checagem sobre: {text_claim}"
+                        title = review.get("title") or "Checagem factual"
                         url = review.get("url", "")
-                        review_date = review.get("reviewDate") or None
-                        rating = review.get("textualRating", "Checagem registrada")
-
-                        tipo = classificar_fonte(url, pub_name)
+                        review_date = review.get("reviewDate") or item.get("claimDate") or None
+                        rating = review.get("textualRating") or None
 
                         evidencias.append(
                             Evidencia(
                                 title=title,
                                 url=url,
                                 publisher=pub_name,
-                                snippet=f"Veredito do Checador: {rating}",
+                                snippet=f"Veredito do Checador: {rating}" if rating else "",
                                 published_at=review_date,
                                 relevance_score=0.0,
-                                source_type=tipo,
+                                source_type="fact_check",
+                                checked_claim=text_claim,
+                                textual_rating=rating,
                             )
                         )
             else:
