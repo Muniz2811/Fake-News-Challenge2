@@ -8,9 +8,13 @@ load_dotenv()
 
 # Variáveis de ambiente para conexões externas
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# Opcional: sem chave, a extração usa regras e o verificador conserva a abstenção.
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip() or None
 GOOGLE_FACT_CHECK_KEY = os.getenv("GOOGLE_FACT_CHECK_KEY")
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+LANGUAGE_RISK_MODEL_PATH = os.getenv(
+    "LANGUAGE_RISK_MODEL_PATH", "models/language_risk/baseline_tfidf_logreg.joblib"
+)
 
 # Limite configurável de alegações por mensagem (Requisito MVP-06)
 MAX_CLAIMS_PER_MESSAGE = int(os.getenv("MAX_CLAIMS_PER_MESSAGE", "5"))
@@ -31,8 +35,6 @@ def validate_env() -> None:
     missing = []
     if not TELEGRAM_BOT_TOKEN:
         missing.append("TELEGRAM_BOT_TOKEN")
-    if not OPENAI_API_KEY:
-        missing.append("OPENAI_API_KEY")
 
     if missing:
         raise ValueError(

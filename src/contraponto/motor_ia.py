@@ -1,4 +1,5 @@
 """Motor central: extração, busca por provedor e verificação por alegação."""
+import asyncio
 import logging
 import os
 import sys
@@ -6,6 +7,8 @@ from dataclasses import dataclass, field
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from claims import Alegacao, ExtratorAlegações
+from config import LANGUAGE_RISK_MODEL_PATH
+from language_risk import AnalisadorLinguistico, formatar_analise_linguistica
 from search import Evidencia, GoogleFactCheckAdapter, TavilySearchAdapter, WebSearchProvider
 from verifier import ROTULOS_CATEGORIAS, VereditoAlegacao, VerificadorAlegacoes
 
@@ -22,22 +25,29 @@ class ResultadoAnalise:
     resultado_factual: str = ""
     requer_revisao: bool = False
     vereditos: list[VereditoAlegacao] = field(default_factory=list)
+    score_linguistico: float | None = None
 
 
 class MotorIA:
     def __init__(
         self, provedores_busca: list[WebSearchProvider] | None = None,
         verificador: VerificadorAlegacoes | None = None,
+        analisador_linguistico: AnalisadorLinguistico | None = None,
     ):
         self.extrator_claims = ExtratorAlegações()
         self.provedores_busca = provedores_busca if provedores_busca is not None else [
             GoogleFactCheckAdapter(), TavilySearchAdapter(),
         ]
         self.verificador = verificador if verificador is not None else VerificadorAlegacoes()
+        self.analisador_linguistico = (
+            analisador_linguistico if analisador_linguistico is not None
+            else AnalisadorLinguistico(LANGUAGE_RISK_MODEL_PATH)
+        )
 
     async def analisar_texto(self, texto: str) -> ResultadoAnalise:
         if not texto or not texto.strip():
             raise ValueError("O texto da notícia não pode estar vazio.")
+        score = await asyncio.to_thread(self.analisador_linguistico.analisar, texto)
         extracao = self.extrator_claims.extrair(texto)
         evidencias = []
         vereditos = []
@@ -56,7 +66,10 @@ class MotorIA:
             for v in vereditos
         ) or "Nenhuma alegação verificável foi identificada no texto."
         return ResultadoAnalise(
-            analise_linguistica="Análise inicial de linguagem concluída.",
+            analise_linguistica=formatar_analise_linguistica(
+                score, self.analisador_linguistico.indisponibilidade,
+            ),
             alegacoes=extracao.alegacoes, evidencias=evidencias, vereditos=vereditos,
             resultado_factual=factual, requer_revisao=False,
+            score_linguistico=score,
         )
