@@ -141,6 +141,23 @@ class TestMotorLanguageRisk(unittest.IsolatedAsyncioTestCase):
         self.assertIn("indisponível", result.analise_linguistica)
         self.assertEqual(result.vereditos[0].categoria, "evidencia_insuficiente")
 
+    async def test_unavailable_provider_is_reported_once(self):
+        analyzer = MagicMock()
+        analyzer.analisar.return_value = None
+        analyzer.indisponibilidade = "modelo treinado não encontrado"
+        provider = MagicMock()
+        provider.buscar_evidencias_por_alegacao.side_effect = RuntimeError("timeout")
+        with patch("motor_ia.ExtratorAlegações") as extractor, patch("verifier.OPENAI_API_KEY", None):
+            extractor.return_value.extrair.return_value = ResultadoExtracao(
+                "Texto", [Alegacao(1, "Alegação A"), Alegacao(2, "Alegação B")],
+            )
+            motor = MotorIA([provider], VerificadorAlegacoes(), analyzer)
+        result = await motor.analisar_texto("Texto")
+        self.assertEqual(
+            result.etapas_indisponiveis, ["Fonte indisponível: a busca no MagicMock não respondeu."],
+        )
+        self.assertEqual(len(result.vereditos), 2)
+
 
 if __name__ == "__main__":
     unittest.main()

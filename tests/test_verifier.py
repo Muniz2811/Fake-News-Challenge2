@@ -263,7 +263,10 @@ class TestMotor(unittest.IsolatedAsyncioTestCase):
         for verdict in result.vereditos:
             self.assertIn(verdict.texto_alegacao, report)
             self.assertIn(verdict.categoria, report)
-            self.assertIn(verdict.justificativa, report)
+            evidence_id, evidence_text = verdict.justificativa.split("] ", 1)
+            self.assertIn(evidence_text, report)
+            self.assertNotIn(evidence_id.lstrip("["), report)
+        self.assertIn("Fonte indisponível", report)
 
     async def test_empty_provider_list_and_empty_input(self):
         with patch("motor_ia.ExtratorAlegações") as extractor, patch("verifier.OPENAI_API_KEY", None):
