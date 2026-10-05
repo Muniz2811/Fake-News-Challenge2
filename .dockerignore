@@ -1,0 +1,20 @@
+# Contexto permitido: só dependências de execução e código da aplicação.
+**
+!Dockerfile
+!requirements.txt
+!src/
+!src/contraponto/
+!src/contraponto/**
+# Mesmo dentro de src, nunca incluir credenciais ou caches.
+**/.env
+**/.env.*
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/.git/
+**/.venv/
+**/data/
+**/models/
+**/reports/
+**/*.joblib
+**/*.ipynb

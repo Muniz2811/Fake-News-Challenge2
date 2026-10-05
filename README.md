@@ -199,6 +199,203 @@ O código da aplicação ainda é propositalmente mínimo:
 
 O método principal do motor ainda não implementa a análise completa. Cada componente será acrescentado pelas issues do backlog, evitando concentrar toda a solução em um único arquivo antes de o grupo dividir o trabalho.
 
+## Executar o bot com Docker (Windows, macOS e Linux)
+
+Esta execução não exige Python nem ambiente virtual no computador. Instale
+[Docker Desktop](https://docs.docker.com/desktop/) no Windows ou macOS; no Linux,
+use Docker Desktop ou [Docker Engine](https://docs.docker.com/engine/install/)
+com o [plugin Compose](https://docs.docker.com/compose/install/linux/).
+No Windows, use contêineres Linux. Abra o Docker Desktop e aguarde o mecanismo
+iniciar antes de executar os comandos.
+
+### 1. Preparar o projeto e a configuração local
+
+Clone o repositório e entre na pasta `Fake-News-Challenge2`. Use uma revisão que
+contenha `Dockerfile` e `compose.yaml`; depois que este PR for integrado, eles
+estarão disponíveis na `main`. Não é necessário baixar bases para executar o bot.
+
+Confira a instalação:
+
+```sh
+docker --version
+docker compose version
+```
+
+Se ainda não houver `.env`, copie o exemplo. **Preserve um `.env` já existente.**
+
+Windows / PowerShell:
+
+```powershell
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+```
+
+macOS / Linux:
+
+```sh
+test -f .env || cp .env.example .env
+```
+
+Edite esse arquivo local no seu editor:
+
+| Variável | Configuração |
+|---|---|
+| `TELEGRAM_BOT_TOKEN` | Obrigatória. Token do bot criado com `/newbot` no `@BotFather`. |
+| `OPENAI_API_KEY` | Opcional. Deixe vazia para extração por regras e verificação conservadora. |
+| `GOOGLE_FACT_CHECK_KEY` | Opcional. Habilita Google Fact Check quando preenchida. |
+| `TAVILY_API_KEY` | Opcional. Habilita busca web quando preenchida. |
+| `MAX_CLAIMS_PER_MESSAGE` | Limite de alegações, por padrão `5`. |
+| `AUTHORIZED_GROUPS` | IDs separados por vírgula; vazia permite os grupos em que o bot participar. |
+
+Sem as duas chaves de busca, a análise continua sem evidências externas e se
+abstém de concluir. Sem OpenAI, não são feitas chamadas à OpenAI. Configure as
+chaves apenas no `.env` local, nunca no Dockerfile ou no workflow do GitHub.
+
+O Compose entrega as variáveis ao processo por `env_file`; não copia nem monta
+o arquivo `.env` dentro do contêiner. A imagem instala somente
+`requirements.txt` e contém o código de `src/contraponto`, sem bases, modelos,
+relatórios ou ferramentas de treino. **O score TF-IDF + regressão logística
+fica indisponível nesta imagem mínima**, pois seu artefato e suas dependências
+não estão incluídos. O restante da investigação continua funcionando.
+Docker para treinamento e montagem do modelo ficam para uma issue separada.
+
+### 2. Construir e iniciar
+
+Encerre qualquer outra instância usando o mesmo token: dois processos de polling
+do mesmo bot podem causar conflito. Os comandos abaixo são iguais nos três
+sistemas operacionais, sempre na raiz do repositório:
+
+```sh
+docker compose build
+docker compose up
+```
+
+Aguarde a mensagem `Contraponto iniciado — aguardando mensagens...`.
+Uma configuração obrigatória ausente gera erro explicativo nos logs.
+
+Para executar em segundo plano:
+
+```sh
+docker compose up -d
+docker compose logs -f bot
+```
+
+O contêiner não precisa publicar portas: o Telegram é consultado por polling.
+A busca e o Telegram precisam de acesso à internet.
+
+### 3. Testar no Telegram
+
+Abra o chat privado do bot cujo token você configurou. Envie `/start` e `/ajuda`.
+Depois envie, por exemplo:
+
+> A universidade publicou um estudo sobre a qualidade da água.
+
+Confira a confirmação inicial e o relatório por alegação. Com OpenAI vazia,
+a extração usa o fallback de `claims.py`. Com os provedores vazios, espere
+abstenção por ausência de evidências; a frase acima não garante uma conclusão
+factual. Este teste manual verifica a conexão real com o Telegram.
+
+### 4. Encerrar ou atualizar
+
+```sh
+docker compose down
+```
+
+O Compose envia `SIGTERM`; o polling encerra antes da remoção do contêiner,
+com até 30 segundos de tolerância. As investigações temporárias estão em memória
+e se perdem ao reiniciar. Para sair apenas do acompanhamento dos logs, use
+`Ctrl+C`; com `up -d`, isso mantém o bot rodando.
+
+Depois de atualizar o código ou modificar o `.env`, recrie o serviço:
+
+```sh
+docker compose up -d --build --force-recreate
+```
+
+## CI mínimo com GitHub Actions
+
+O arquivo [`.github/workflows/ci.yaml`](.github/workflows/ci.yaml) executa em
+PRs direcionados à `main`, pushes na `main` e acionamento manual. Há dois jobs:
+
+1. **Python - lint e testes:** instala Python 3.13 e dependências de testes;
+   impede `.env` rastreado; roda Ruff para erros críticos (sintaxe e nomes
+   indefinidos) e toda a suíte `unittest`. O lint inicial não impõe uma
+   reformatação geral ao projeto.
+2. **Docker - build e smoke:** se o primeiro passar, valida Compose com valores
+   fictícios, executa `docker compose build` e testa a imagem. Confere imports,
+   usuário sem privilégios e ausência de arquivos indevidos; exercita o polling
+   real com transporte Telegram simulado, `/start`, mensagem textual sem OpenAI
+   e encerramento com `SIGTERM`, exigindo código de saída zero.
+
+O teste da imagem roda com `--network none` e não recebe o `.env` local.
+Não exige tokens reais nem faz chamadas pagas. A instalação de dependências
+durante o build exige rede. Isso é **CI**, sem implantação automática (CD),
+publicação de imagem ou início de um bot real no GitHub.
+
+### Configurar o CI passo a passo
+
+1. Revise as mudanças na branch `chore/docker-bot-ci`. Confirme que o `.env`
+   local existe e que `git ls-files .env` não retorna nada. A remoção desse
+   arquivo do índice deve entrar no commit, preservando sua cópia local.
+   Essa remoção não apaga segredos de commits antigos: credenciais expostas
+   anteriormente precisam ser revogadas no respectivo provedor.
+2. Faça commit dos arquivos desta implementação e envie a branch ao GitHub.
+   Não inclua `.env`, bases ou modelos. Exemplo:
+
+   ```sh
+   git add Dockerfile .dockerignore compose.yaml README.md requirements-ci.txt .github/workflows/ci.yaml tests/docker/check_image.py tests/docker/polling_probe.py src/contraponto/bot.py tests/test_logging_security.py
+   git diff --cached --stat
+   git commit -m "chore: dockerizar bot e adicionar CI de testes e build"
+   git push -u origin chore/docker-bot-ci
+   ```
+
+   Se `.env` ainda estiver rastreado em outro checkout, execute
+   `git rm --cached -- .env` antes do commit; isso preserva o arquivo local.
+3. No GitHub, abra **Settings → Actions → General** e permita GitHub Actions
+   e as actions oficiais `actions/checkout` e `actions/setup-python`. O
+   workflow solicita somente `contents: read`. **Não cadastre chaves reais
+   em Actions Secrets para este CI.** Se Actions já estiver habilitado,
+   nenhuma configuração adicional é necessária.
+4. Abra um PR dessa branch para `main`. Na aba **Checks**, acompanhe os dois
+   jobs. Também é possível vê-los em **Actions → CI do bot**. Corrija qualquer
+   falha antes do merge; novos commits no PR repetem os checks automaticamente.
+   O botão **Run workflow** fica disponível quando o workflow estiver na
+   branch padrão; então permite executar manualmente e selecionar a branch.
+5. Para bloquear merges com CI quebrado, após a primeira execução vá a
+   **Settings → Rules → Rulesets**, crie uma regra para `main` e habilite
+   **Require a pull request before merging** e **Require status checks to
+   pass**. Selecione `Python - lint e testes` e `Docker - build e smoke`,
+   conforme aparecerem na execução. Ative e salve a regra. Essa opção depende
+   das permissões e da disponibilidade de rulesets para o repositório.
+6. Depois que os checks passarem, revise e faça o merge do PR. A partir daí,
+   os integrantes podem usar os comandos Docker na `main`. O CI não faz
+   merge nem deploy por conta própria.
+
+Para reproduzir as verificações Python localmente, use o Python do seu ambiente
+virtual (no Windows, `.\.venv\Scripts\python.exe`; no macOS/Linux,
+`./.venv/bin/python`):
+
+```sh
+python -m pip install -r requirements.txt -r requirements-inference.txt -r requirements-ci.txt
+python -m ruff check --select E9,F821,F822,F823 src/contraponto tests
+python -m unittest discover -s tests -v
+```
+
+Com Docker instalado e a imagem construída, execute também:
+
+```sh
+python tests/docker/check_image.py
+```
+
+Esse último comando é uma ferramenta de desenvolvimento/CI e exige Python no
+host. **A execução normal do bot com Compose não exige Python no host.**
+O teste automatizado simula Telegram; o teste manual do chat continua necessário
+para validar seu token, conectividade e respostas dos provedores reais.
+
+Na preparação desta implementação, o lint e os 66 testes Python passaram, e o
+transporte simulado confirmou `/start` e o fallback local. Docker não estava
+disponível nesse computador: o build da imagem e o encerramento por `SIGTERM`
+no contêiner ainda precisam ser confirmados pelo job Docker ou por execução local.
+
 ## Testar o classificador linguístico no Telegram
 
 O motor usa o pipeline completo salvo por `scripts/ml/train_baseline.py`: os dois
