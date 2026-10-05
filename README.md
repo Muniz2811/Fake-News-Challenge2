@@ -199,8 +199,73 @@ O código da aplicação ainda é propositalmente mínimo:
 
 O método principal do motor ainda não implementa a análise completa. Cada componente será acrescentado pelas issues do backlog, evitando concentrar toda a solução em um único arquivo antes de o grupo dividir o trabalho.
 
+## Testar o classificador linguístico no Telegram
+
+O motor usa o pipeline completo salvo por `scripts/ml/train_baseline.py`: os dois
+vetorizadores TF-IDF e a regressão logística treinada. Cada mensagem é transformada
+com o vocabulário aprendido, sem novo treinamento. O score da classe `1=fake`
+aparece em **Análise da Linguagem**, separado das conclusões factuais. É um score
+experimental, não uma probabilidade calibrada de a notícia ser falsa. Nesta versão
+ele não aciona alertas em grupos.
+
+`OPENAI_API_KEY` é opcional. Deixe-a vazia ou remova-a do ambiente para executar
+sem OpenAI: o classificador linguístico continua local, a extração usa regras e
+as buscas continuam com as chaves dos provedores configurados. Sem a LLM, o
+verificador se abstém quando não há comparação segura. Regras ainda podem
+concluir apoiada, refutada ou conflitante com fact-checks comparáveis da mesma
+alegação e rótulos reconhecidos. O token do Telegram continua
+obrigatório. Remova também uma eventual chave OpenAI definida no terminal antes
+de reiniciar, pois variáveis já exportadas têm precedência sobre o `.env`.
+
+Para reconstruir o artefato depois de adquirir Fake.br e FakeRecogna conforme as
+instruções acima, use os scripts existentes e as dependências do treino:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-ml.txt
+.\.venv\Scripts\python.exe scripts/ml/prepare_language_data.py
+.\.venv\Scripts\python.exe scripts/ml/split_language_data.py
+$figurePath = Join-Path (Get-Location).Path 'data/processed/language_risk/baseline/validation.png'
+.\.venv\Scripts\python.exe scripts/ml/train_baseline.py --figure-output $figurePath
+```
+
+O treino usa semente 42, avalia somente a validação e salva as métricas em
+`data/processed/language_risk/baseline/metrics.json`. Para comparar com outro PC,
+confira as versões e os hashes dos arquivos de treino e validação registrados
+nas métricas. Com os mesmos dados, divisões e ambiente, espera-se reprodução das
+métricas; pequenas diferenças numéricas entre plataformas ainda são possíveis.
+
+Na raiz do repositório, com o ambiente virtual já criado:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-inference.txt
+Test-Path models/language_risk/baseline_tfidf_logreg.joblib
+.\.venv\Scripts\python.exe src/contraponto/bot.py
+```
+
+O segundo comando precisa retornar `True`. Se o modelo estiver em outro lugar,
+configure `LANGUAGE_RISK_MODEL_PATH` com o caminho do `.joblib` antes de iniciar o
+bot. Caminhos relativos são resolvidos a partir da raiz do repositório, mesmo
+quando o bot é iniciado em outra pasta. Use somente o artefato confiável gerado
+pelo treino e o mesmo ambiente de versões. Não é necessário instalar matplotlib
+para inferência.
+
+Encerre o processo antigo do bot antes de iniciar a nova versão. No chat privado,
+envie uma notícia em português e confira o score no relatório. Uma palavra ou
+frase muito curta não é um teste representativo do classificador treinado com
+notícias. A extração de alegações, Tavily, Google Fact Check e a verificação
+continuam no fluxo. Se faltar o artefato, as dependências ou houver erro de
+inferência, o relatório informa que a análise linguística está indisponível e
+continua a investigação factual, sem inventar um score.
+
+Testes locais, sem chamadas externas:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests
+```
+
 ## Documentação principal
 
+- [Guia com exemplos de TF-IDF, regressão logística e fallback de extração](reports/GUIA_REGRESSAO_LOGISTICA_E_EXTRACAO.md);
 - `reports/EDA.md`: tabelas estruturais geradas novamente ao executar `scripts/eda.py`;
 - [Relatório técnico](reports/RELATORIO_TECNICO.md): recomendações de modelagem;
 - [Requisitos e priorização](reports/REQUISITOS_E_PRIORIZACAO.md): escopo reorganizado para o MVP no Telegram;

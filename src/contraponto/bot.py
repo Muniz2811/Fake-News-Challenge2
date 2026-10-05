@@ -174,7 +174,7 @@ class BotTelegram:
             return
 
         relatorio = self._formatar_relatorio(resultado)
-        await update.message.reply_text(relatorio, parse_mode="Markdown")
+        await update.message.reply_text(relatorio)
 
     async def _cmd_ajuda(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -226,7 +226,7 @@ class BotTelegram:
             return
 
         relatorio = self._formatar_relatorio(resultado)
-        await update.message.reply_text(relatorio, parse_mode="Markdown")
+        await update.message.reply_text(relatorio)
 
     async def _handle_error(
         self, update: object, context: ContextTypes.DEFAULT_TYPE
@@ -239,21 +239,23 @@ class BotTelegram:
 
     @staticmethod
     def _formatar_relatorio(resultado: ResultadoAnalise) -> str:
-        partes = ["🔎 *Relatório de Investigação*\n"]
+        # Texto simples: alegações, justificativas e URLs podem conter caracteres
+        # de Markdown. Não submeter conteúdo dinâmico ao parser do Telegram.
+        partes = ["🔎 Relatório de Investigação\n"]
 
         if resultado.analise_linguistica:
-            partes.append(f"*Análise da Linguagem:*\n{resultado.analise_linguistica}\n")
+            partes.append(f"Análise da Linguagem:\n{resultado.analise_linguistica}\n")
 
         if resultado.alegacoes:
-            lista = "\n".join(f"• {a}" for a in resultado.alegacoes)
-            partes.append(f"*Alegações identificadas:*\n{lista}\n")
+            lista = "\n".join(f"{a.id}. {a.texto}" for a in resultado.alegacoes)
+            partes.append(f"Alegações identificadas:\n{lista}\n")
 
         if resultado.resultado_factual:
-            partes.append(f"*Resultado Factual:*\n{resultado.resultado_factual}\n")
+            partes.append(f"Resultado Factual:\n{resultado.resultado_factual}\n")
 
         if resultado.evidencias:
             lista = "\n".join(f"• {e.url}" for e in resultado.evidencias if e.url)
-            partes.append(f"*Fontes consultadas:*\n{lista}")
+            partes.append(f"Fontes consultadas:\n{lista}")
 
         return "\n".join(partes)
 
@@ -270,12 +272,19 @@ class BotTelegram:
         )
 
 
-def main() -> None:
-    """Ponto de entrada: valida ambiente, instancia dependências e inicia polling."""
+def _configurar_logging() -> None:
+    """Mantém logs da aplicação sem os URLs autenticados das requisições HTTP."""
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
+    for name in ("httpx", "httpx2", "httpcore"):
+        logging.getLogger(name).setLevel(logging.WARNING)
+
+
+def main() -> None:
+    """Ponto de entrada: valida ambiente, instancia dependências e inicia polling."""
+    _configurar_logging()
 
     print("🔍 Validando variáveis de ambiente...")
     validate_env()
