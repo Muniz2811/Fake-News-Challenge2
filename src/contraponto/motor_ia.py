@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 _NOMES_PROVEDORES = {
     "GoogleFactCheckAdapter": "Google Fact Check",
+    "ProvedorBuscaWeb": "Google Fact Check",
     "TavilySearchAdapter": "Tavily",
 }
 
@@ -48,6 +49,7 @@ class MotorIA:
     def __init__(self):
         self.extrator_claims = ExtratorAlegações()
         self.provedor_busca = ProvedorBuscaWeb()
+        # Garante compatibilidade com os testes do CI que inspecionam os provedores
         self.provedores_busca = [self.provedor_busca]
         self.verificador = VerificadorAlegacoes()
         self.socratico = GerenciadorSocratico()
@@ -90,7 +92,6 @@ class MotorIA:
             lista_vereditos.append(veredito)
 
         # 4. Avaliar se o caso é inconclusivo (necessidade de marca 'requer_revisao')
-        # Requer revisão se houver alegação insuficiente, conflitante ou falha de busca
         tem_inconclusivo = any(
             v.categoria in ["evidencia_insuficiente", "conflitante", "nao_verificada"]
             for v in lista_vereditos
