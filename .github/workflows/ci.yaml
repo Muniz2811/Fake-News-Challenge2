@@ -58,5 +58,5 @@ jobs:
           docker compose config --quiet
       - name: Construir imagem do bot
         run: docker compose build
-      - name: Testar imagem, fallback, polling e SIGTERM sem rede
+      - name: Testar imagem, modelo montado, fallback, polling e SIGTERM sem rede
         run: python tests/docker/check_image.py

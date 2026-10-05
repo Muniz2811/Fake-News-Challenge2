@@ -1,5 +1,8 @@
 """Teste de integração Docker: imagem limpa, handlers reais e SIGTERM sem rede."""
+import base64
+import json
 import subprocess
+import tempfile
 import time
 import uuid
 from pathlib import Path
@@ -27,6 +30,31 @@ def main():
         "for name in ['.git','.venv','data','models','reports','scripts','tests']); "
         "print('Conteudo da imagem e imports: OK')"
     ))
+    model_probe = ROOT / "tests/docker/model_probe.py"
+    probe_mount = f"type=bind,source={model_probe},target=/model_probe.py,readonly"
+    # Gera o artefato na própria imagem para garantir as mesmas versões de ML.
+    fixture = json.loads(docker(
+        "run", "--rm", "--network", "none", "--mount", probe_mount,
+        IMAGE, "python", "/model_probe.py", "fixture",
+    ))
+    with tempfile.TemporaryDirectory(dir=ROOT, prefix=".docker-test-model-") as folder:
+        models = Path(folder)
+        models.chmod(0o755)
+        language_dir = models / "language_risk"
+        language_dir.mkdir()
+        # Sem o bind somente leitura, o usuário do contêiner poderia escrever aqui.
+        language_dir.chmod(0o777)
+        artifact = base64.b64decode(fixture["artifact"])
+        model = language_dir / "baseline_tfidf_logreg.joblib"
+        model.write_bytes(artifact)
+        model.chmod(0o644)
+        print(docker(
+            "run", "--rm", "--network", "none", "--mount", probe_mount,
+            "--mount", f"type=bind,source={models},target=/app/models,readonly",
+            "--env", "LANGUAGE_RISK_MODEL_PATH=/app/models/language_risk/baseline_tfidf_logreg.joblib",
+            IMAGE, "python", "/model_probe.py", "verify", str(fixture["expected"]),
+        ))
+        assert model.read_bytes() == artifact, "A inferência alterou o artefato"
     name = "contraponto-smoke-" + uuid.uuid4().hex[:10]
     probe = ROOT / "tests/docker/polling_probe.py"
     try:

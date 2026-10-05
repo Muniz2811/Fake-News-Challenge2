@@ -2,6 +2,7 @@
 **
 !Dockerfile
 !requirements.txt
+!requirements-inference.txt
 !src/
 !src/contraponto/
 !src/contraponto/**

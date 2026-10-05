@@ -251,12 +251,40 @@ abstém de concluir. Sem OpenAI, não são feitas chamadas à OpenAI. Configure 
 chaves apenas no `.env` local, nunca no Dockerfile ou no workflow do GitHub.
 
 O Compose entrega as variáveis ao processo por `env_file`; não copia nem monta
-o arquivo `.env` dentro do contêiner. A imagem instala somente
-`requirements.txt` e contém o código de `src/contraponto`, sem bases, modelos,
-relatórios ou ferramentas de treino. **O score TF-IDF + regressão logística
-fica indisponível nesta imagem mínima**, pois seu artefato e suas dependências
-não estão incluídos. O restante da investigação continua funcionando.
-Docker para treinamento e montagem do modelo ficam para uma issue separada.
+o arquivo `.env` dentro do contêiner. A imagem instala `requirements.txt` e
+`requirements-inference.txt` e contém o código de `src/contraponto`, sem bases,
+modelos, relatórios ou ferramentas de treino. O Compose monta a pasta local
+`models/` em `/app/models`, somente para leitura, para habilitar a inferência.
+Docker para treinamento fica para uma issue separada.
+
+Para calcular o score TF-IDF + regressão logística, coloque seu artefato confiável
+exatamente neste caminho, relativo à raiz do projeto:
+
+```text
+models/language_risk/baseline_tfidf_logreg.joblib
+```
+
+A pasta é `language_risk`, com underscore, e não `languagerisk`. O modelo continua
+fora da imagem e do Git; cada computador precisa ter sua cópia. A configuração
+do Compose fixa `LANGUAGE_RISK_MODEL_PATH` em
+`/app/models/language_risk/baseline_tfidf_logreg.joblib`, prevalecendo sobre um
+eventual caminho do Windows/macOS no `.env`. Não é necessário alterar o `.env`.
+O artefato deve ser compatível com as versões de `requirements-inference.txt`;
+um modelo ausente ou incompatível deixa o score indisponível e preserva a
+investigação factual.
+
+Depois de atualizar esta branch, reconstrua e recrie o serviço para instalar as
+dependências e ativar a montagem:
+
+```sh
+git pull --ff-only
+docker compose up -d --build --force-recreate bot
+docker compose logs -f bot
+```
+
+Nos logs, confira `Modelo linguístico carregado: /app/models/language_risk/baseline_tfidf_logreg.joblib`.
+Quando substituir somente o `.joblib`, use `docker compose restart bot` para
+recarregar o modelo; não é necessário reconstruir a imagem nesse caso.
 
 ### 2. Construir e iniciar
 
@@ -322,7 +350,9 @@ PRs direcionados à `main`, pushes na `main` e acionamento manual. Há dois jobs
    reformatação geral ao projeto.
 2. **Docker - build e smoke:** se o primeiro passar, valida Compose com valores
    fictícios, executa `docker compose build` e testa a imagem. Confere imports,
-   usuário sem privilégios e ausência de arquivos indevidos; exercita o polling
+   usuário sem privilégios e ausência de arquivos indevidos; gera uma fixture
+   sintética e verifica inferência equivalente com o modelo montado somente para
+   leitura, sem modificar o artefato; exercita o polling
    real com transporte Telegram simulado, `/start`, mensagem textual sem OpenAI
    e encerramento com `SIGTERM`, exigindo código de saída zero.
 
@@ -342,7 +372,7 @@ publicação de imagem ou início de um bot real no GitHub.
    Não inclua `.env`, bases ou modelos. Exemplo:
 
    ```sh
-   git add Dockerfile .dockerignore compose.yaml README.md requirements-ci.txt .github/workflows/ci.yaml tests/docker/check_image.py tests/docker/polling_probe.py src/contraponto/bot.py tests/test_logging_security.py
+   git add Dockerfile .dockerignore compose.yaml README.md requirements-ci.txt .github/workflows/ci.yaml tests/docker/check_image.py tests/docker/model_probe.py tests/docker/polling_probe.py src/contraponto/bot.py tests/test_logging_security.py
    git diff --cached --stat
    git commit -m "chore: dockerizar bot e adicionar CI de testes e build"
    git push -u origin chore/docker-bot-ci
@@ -395,6 +425,7 @@ Na preparação desta implementação, o lint e os 66 testes Python passaram, e 
 transporte simulado confirmou `/start` e o fallback local. Docker não estava
 disponível nesse computador: o build da imagem e o encerramento por `SIGTERM`
 no contêiner ainda precisam ser confirmados pelo job Docker ou por execução local.
+O teste de montagem somente leitura e inferência na imagem também exige Docker.
 
 ## Testar o classificador linguístico no Telegram
 
