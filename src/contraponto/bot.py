@@ -2,6 +2,7 @@
 
 import logging
 import os
+import re
 import sys
 import uuid
 from datetime import datetime, timedelta
@@ -21,11 +22,58 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from config import TELEGRAM_BOT_TOKEN, AUTHORIZED_GROUPS, validate_env
 from motor_ia import MotorIA, ResultadoAnalise
+from verifier import ROTULOS_CATEGORIAS, VereditoAlegacao
 
 logger = logging.getLogger(__name__)
 
 # Tempo de vida (em horas) das investigações armazenadas em memória.
 _TTL_HORAS: int = 24
+
+# Limite do Telegram por mensagem. Contado em unidades UTF-16 (emojis fora do
+# BMP valem 2), o que nunca subestima o tamanho real.
+_LIMITE_MENSAGEM_TELEGRAM: int = 4096
+
+_SEPARADOR_SECAO = "━━━━━━━━━━━━━━━━"
+_AVISO_LINGUAGEM = (
+    "ℹ️ Esta seção mede apenas sinais do texto (estilo e padrões de escrita). "
+    "Ela não avalia se as informações são verdadeiras ou falsas."
+)
+_AVISO_FACTUAL = (
+    "ℹ️ Cada alegação foi comparada separadamente com as fontes encontradas. "
+    "O resultado factual não leva em conta a análise da linguagem."
+)
+_LIMITACOES_POR_CATEGORIA = {
+    "nao_verificada": (
+        "não foi possível concluir a verificação com segurança. Recomendamos revisão manual."
+    ),
+    "evidencia_insuficiente": (
+        "as fontes encontradas não permitem uma conclusão segura. Recomendamos revisão manual."
+    ),
+    "conflitante": "as fontes consultadas divergem entre si. Recomendamos revisão manual.",
+}
+# Identificadores internos de evidência (sha256) não ajudam o leitor no celular.
+_ID_EVIDENCIA = re.compile(r"^\[ev_[0-9a-f]{64}\] ", re.MULTILINE)
+
+
+def _tamanho_telegram(texto: str) -> int:
+    return len(texto.encode("utf-16-le")) // 2
+
+
+def _cortar_por_tamanho(texto: str, limite: int) -> list[str]:
+    """Último recurso: corta uma linha maior que o limite sem quebrar caracteres."""
+    pedacos: list[str] = []
+    atual: list[str] = []
+    tamanho = 0
+    for caractere in texto:
+        tamanho_caractere = _tamanho_telegram(caractere)
+        if tamanho + tamanho_caractere > limite:
+            pedacos.append("".join(atual))
+            atual, tamanho = [], 0
+        atual.append(caractere)
+        tamanho += tamanho_caractere
+    if atual:
+        pedacos.append("".join(atual))
+    return pedacos
 
 
 class BotTelegram:
@@ -173,8 +221,7 @@ class BotTelegram:
             )
             return
 
-        relatorio = self._formatar_relatorio(resultado)
-        await update.message.reply_text(relatorio)
+        await self._enviar_relatorio(update.message, resultado)
 
     async def _cmd_ajuda(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -225,8 +272,7 @@ class BotTelegram:
             )
             return
 
-        relatorio = self._formatar_relatorio(resultado)
-        await update.message.reply_text(relatorio)
+        await self._enviar_relatorio(update.message, resultado)
 
     async def _handle_error(
         self, update: object, context: ContextTypes.DEFAULT_TYPE
@@ -237,27 +283,103 @@ class BotTelegram:
     #  Formatação                                                         #
     # ------------------------------------------------------------------ #
 
+    async def _enviar_relatorio(self, message, resultado: ResultadoAnalise) -> None:
+        """Envia o relatório em uma ou mais mensagens, na ordem das seções."""
+        for parte in self._dividir_mensagem(self._formatar_relatorio(resultado)):
+            await message.reply_text(parte)
+
     @staticmethod
     def _formatar_relatorio(resultado: ResultadoAnalise) -> str:
         # Texto simples: alegações, justificativas e URLs podem conter caracteres
         # de Markdown. Não submeter conteúdo dinâmico ao parser do Telegram.
-        partes = ["🔎 Relatório de Investigação\n"]
+        # URLs em texto simples continuam clicáveis no Telegram.
+        secoes = [
+            "🔎 Relatório de Investigação",
+            BotTelegram._secao_linguagem(resultado),
+            BotTelegram._secao_factual(resultado),
+        ]
+        if resultado.etapas_indisponiveis:
+            avisos = "\n".join(f"• {etapa}" for etapa in resultado.etapas_indisponiveis)
+            secoes.append(f"{_SEPARADOR_SECAO}\n⚠️ Etapas indisponíveis\n{avisos}")
+        return "\n\n".join(secoes)
 
-        if resultado.analise_linguistica:
-            partes.append(f"Análise da Linguagem:\n{resultado.analise_linguistica}\n")
+    @staticmethod
+    def _secao_linguagem(resultado: ResultadoAnalise) -> str:
+        analise = resultado.analise_linguistica or "Análise linguística indisponível."
+        return f"{_SEPARADOR_SECAO}\n1️⃣ Análise da linguagem\n{_AVISO_LINGUAGEM}\n\n{analise}"
 
+    @staticmethod
+    def _secao_factual(resultado: ResultadoAnalise) -> str:
+        partes = [f"{_SEPARADOR_SECAO}\n2️⃣ Verificação factual por alegação\n{_AVISO_FACTUAL}"]
+        if resultado.vereditos:
+            partes.extend(BotTelegram._bloco_alegacao(v) for v in resultado.vereditos)
+            return "\n\n".join(partes)
+
+        # Sem vereditos individuais: preserva o conteúdo agregado disponível.
         if resultado.alegacoes:
             lista = "\n".join(f"{a.id}. {a.texto}" for a in resultado.alegacoes)
-            partes.append(f"Alegações identificadas:\n{lista}\n")
+            partes.append(f"Alegações identificadas:\n{lista}")
+            partes.append(resultado.resultado_factual or "Resultado factual indisponível.")
+        else:
+            partes.append(
+                resultado.resultado_factual
+                or "Nenhuma alegação verificável foi identificada no texto."
+            )
+        urls = [e.url for e in resultado.evidencias if e.url]
+        if urls:
+            partes.append("Fontes consultadas:\n" + "\n".join(urls))
+        return "\n\n".join(partes)
 
-        if resultado.resultado_factual:
-            partes.append(f"Resultado Factual:\n{resultado.resultado_factual}\n")
+    @staticmethod
+    def _bloco_alegacao(veredito: VereditoAlegacao) -> str:
+        rotulo = ROTULOS_CATEGORIAS.get(veredito.categoria, veredito.categoria)
+        justificativa = (
+            _ID_EVIDENCIA.sub("", veredito.justificativa).strip()
+            or "Justificativa indisponível."
+        )
+        urls = [url for url in veredito.fontes_citadas if url]
+        fontes = "\n".join(urls) if urls else "Nenhuma fonte disponível para esta alegação."
+        linhas = [
+            f"📌 Alegação {veredito.alegacao_id}",
+            f'"{veredito.texto_alegacao}"',
+            f"Resultado factual: {rotulo}",
+            f"Justificativa:\n{justificativa}",
+            f"Fontes:\n{fontes}",
+        ]
+        limitacao = _LIMITACOES_POR_CATEGORIA.get(veredito.categoria)
+        if limitacao:
+            linhas.append(f"Limitações: {limitacao}")
+        return "\n".join(linhas)
 
-        if resultado.evidencias:
-            lista = "\n".join(f"• {e.url}" for e in resultado.evidencias if e.url)
-            partes.append(f"Fontes consultadas:\n{lista}")
+    @staticmethod
+    def _dividir_mensagem(
+        texto: str, limite: int = _LIMITE_MENSAGEM_TELEGRAM
+    ) -> list[str]:
+        """Divide o texto em partes ≤ limite, preferindo quebrar entre parágrafos,
+        depois entre linhas e, só em último caso, dentro de uma linha."""
 
-        return "\n".join(partes)
+        def dividir(bloco: str, separadores: list[str]) -> list[str]:
+            if _tamanho_telegram(bloco) <= limite:
+                return [bloco]
+            if not separadores:
+                return _cortar_por_tamanho(bloco, limite)
+            separador, *restantes = separadores
+            pedacos: list[str] = []
+            atual = ""
+            for parte in bloco.split(separador):
+                for sub in dividir(parte, restantes):
+                    candidato = f"{atual}{separador}{sub}" if atual else sub
+                    if _tamanho_telegram(candidato) <= limite:
+                        atual = candidato
+                    else:
+                        if atual:
+                            pedacos.append(atual)
+                        atual = sub
+            if atual:
+                pedacos.append(atual)
+            return pedacos
+
+        return [p.strip() for p in dividir(texto, ["\n\n", "\n"]) if p.strip()]
 
     # ------------------------------------------------------------------ #
     #  Compat: API original                                               #

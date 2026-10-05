@@ -14,6 +14,11 @@ from verifier import ROTULOS_CATEGORIAS, VereditoAlegacao, VerificadorAlegacoes
 
 logger = logging.getLogger(__name__)
 
+_NOMES_PROVEDORES = {
+    "GoogleFactCheckAdapter": "Google Fact Check",
+    "TavilySearchAdapter": "Tavily",
+}
+
 
 @dataclass
 class ResultadoAnalise:
@@ -26,6 +31,7 @@ class ResultadoAnalise:
     requer_revisao: bool = False
     vereditos: list[VereditoAlegacao] = field(default_factory=list)
     score_linguistico: float | None = None
+    etapas_indisponiveis: list[str] = field(default_factory=list)
 
 
 class MotorIA:
@@ -51,6 +57,7 @@ class MotorIA:
         extracao = self.extrator_claims.extrair(texto)
         evidencias = []
         vereditos = []
+        indisponiveis: list[str] = []
         for alegacao in extracao.alegacoes:
             individuais = []
             for provedor in self.provedores_busca:
@@ -58,6 +65,10 @@ class MotorIA:
                     individuais.extend(provedor.buscar_evidencias_por_alegacao(alegacao.texto))
                 except Exception:
                     logger.warning("Provedor %s indisponível.", type(provedor).__name__)
+                    nome = _NOMES_PROVEDORES.get(type(provedor).__name__, type(provedor).__name__)
+                    aviso = f"Fonte indisponível: a busca no {nome} não respondeu."
+                    if aviso not in indisponiveis:
+                        indisponiveis.append(aviso)
             evidencias.extend(individuais)
             vereditos.append(self.verificador.verificar_alegacao(alegacao, individuais))
         factual = "\n\n".join(
@@ -71,5 +82,5 @@ class MotorIA:
             ),
             alegacoes=extracao.alegacoes, evidencias=evidencias, vereditos=vereditos,
             resultado_factual=factual, requer_revisao=False,
-            score_linguistico=score,
+            score_linguistico=score, etapas_indisponiveis=indisponiveis,
         )
