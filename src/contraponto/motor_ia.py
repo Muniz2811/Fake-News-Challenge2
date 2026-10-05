@@ -10,6 +10,7 @@ from claims import Alegacao, ExtratorAlegações
 from config import LANGUAGE_RISK_MODEL_PATH
 from language_risk import AnalisadorLinguistico, formatar_analise_linguistica
 from search import Evidencia, GoogleFactCheckAdapter, TavilySearchAdapter, WebSearchProvider
+from socratic import GerenciadorSocratico
 from verifier import ROTULOS_CATEGORIAS, VereditoAlegacao, VerificadorAlegacoes
 
 logger = logging.getLogger(__name__)
@@ -49,6 +50,7 @@ class MotorIA:
             analisador_linguistico if analisador_linguistico is not None
             else AnalisadorLinguistico(LANGUAGE_RISK_MODEL_PATH)
         )
+        self.socratico = GerenciadorSocratico()
 
     async def analisar_texto(self, texto: str) -> ResultadoAnalise:
         if not texto or not texto.strip():
