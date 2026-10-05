@@ -25,16 +25,15 @@ Não é necessário instalar Python para executar o bot com Docker.
    docker info
    ```
 
-3. Clone a branch que contém esta implementação e entre no projeto:
+3. Clone o repositório e entre no projeto:
 
    ```bash
-   git clone --branch chore/docker-bot-ci https://github.com/Muniz2811/Fake-News-Challenge2.git
+   git clone https://github.com/Muniz2811/Fake-News-Challenge2.git
    cd Fake-News-Challenge2
    ```
 
-   Se já clonou, use `git fetch origin`, `git switch chore/docker-bot-ci` e
-   `git pull --ff-only` dentro do repositório. Após o merge, a execução também
-   estará disponível na `main`.
+   Se já clonou, use `git switch main` e `git pull --ff-only` dentro do
+   repositório.
 4. Crie a configuração **somente se ainda não existir**:
 
    ```bash
@@ -114,6 +113,7 @@ Fake-News-Challenge2/
 ├── src/contraponto/          # Aplicação do bot.
 ├── scripts/                 # Aquisição, EDA e scripts de treino em ml/.
 ├── tests/                   # Testes Python e integração Docker em docker/.
+├── reports/                 # Saída local regenerável de EDA; ignorada pelo Git.
 ├── .github/workflows/ci.yaml # GitHub Actions: lint, testes e build.
 ├── Dockerfile
 ├── compose.yaml
@@ -124,16 +124,14 @@ Fake-News-Challenge2/
 ├── requirements-inference.txt
 ├── requirements-ci.txt
 ├── README.md
-├── reports/                 # Artefatos de EDA: JSON, figures/ e samples/.
 ├── data/                    # Dados locais; ignorados pelo Git.
 ├── Fake.br-Corpus/           # Base local; ignorada pelo Git.
 └── models/language_risk/     # Modelo local; ignorado pelo Git.
 ```
 
-Os documentos técnicos foram compartilhados via Docs. Os arquivos restantes
-de `reports/` são resultados de análise, gráficos e amostras; não são necessários
-para iniciar o bot. `data/`, `Fake.br-Corpus/` e `models/` são pastas locais e
-não acompanham o clone.
+`reports/` contém resultados gerados pelos scripts de EDA, como JSON, gráficos e
+amostras. Essa pasta não é versionada e pode ser recriada localmente. `data/`,
+`Fake.br-Corpus/` e `models/` também são pastas locais e não acompanham o clone.
 
 | Arquivo em `src/contraponto/` | Responsabilidade |
 |---|---|
@@ -144,6 +142,7 @@ não acompanham o clone.
 | `claims.py` | Produz alegações numeradas com texto, trecho e posição; usa OpenAI quando configurada ou regras como fallback. |
 | `search.py` | Adaptadores Google Fact Check/Tavily e evidências padronizadas: título, URL, publicador, trecho, data e metadados de checagem. |
 | `verifier.py` | Compara cada alegação com suas evidências, valida referências da LLM e mantém abstenção quando não há sustentação segura. |
+| `socratic.py` | Mantém a estrutura interna das sessões socráticas; a integração completa com os handlers do Telegram ainda é futura. |
 
 | Arquivo de suporte | Responsabilidade |
 |---|---|
