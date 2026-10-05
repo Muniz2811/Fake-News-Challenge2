@@ -1,288 +1,242 @@
-# Contraponto — verificação investigativa de notícias
+# Contraponto
 
-O Contraponto é um assistente de investigação de notícias que combina análise linguística, extração de alegações, busca de evidências e diálogo socrático. O objetivo não é substituir o julgamento do usuário, mas ajudá-lo a examinar criticamente uma informação e consultar as fontes utilizadas.
+Bot do Telegram para investigar notícias em português. Recebe texto, calcula um
+score linguístico local, extrai alegações, busca evidências e apresenta uma
+conclusão por alegação com justificativa e fontes.
 
-O MVP atual será textual e integrado ao Telegram. O módulo do WhatsApp, áudio e demais formatos multimodais ficam para versões posteriores.
+**O score TF-IDF + regressão logística mede associação aos padrões das bases de
+treino; não confirma que uma notícia é falsa.** A verificação factual é separada
+e usa: apoiada, refutada, evidência insuficiente, conflitante e não verificada.
+Sem evidências ou comparação segura, o verificador se abstém.
 
-Este repositório reúne:
+## Rodar no macOS com Docker Desktop
 
-- scripts reproduzíveis para adquirir as bases de dados;
-- a Análise Exploratória de Dados (EDA) das quatro bases selecionadas;
-- os requisitos e o backlog do MVP;
-- a estrutura inicial do bot do Telegram e do motor central, que será incrementada pelas issues.
+Não é necessário instalar Python para executar o bot com Docker.
 
-## Estrutura do projeto
+1. Instale o [Docker Desktop para Mac](https://docs.docker.com/desktop/setup/install/mac-install/):
+   escolha **Apple Silicon** para chips M1/M2/M3/M4… ou **Intel** conforme
+   ** → Sobre Este Mac**. Abra o `.dmg`, arraste Docker para Aplicativos, abra
+   o aplicativo e aguarde a inicialização.
+2. No Terminal, confira:
+
+   ```bash
+   docker --version
+   docker compose version
+   docker info
+   ```
+
+3. Clone a branch que contém esta implementação e entre no projeto:
+
+   ```bash
+   git clone --branch chore/docker-bot-ci https://github.com/Muniz2811/Fake-News-Challenge2.git
+   cd Fake-News-Challenge2
+   ```
+
+   Se já clonou, use `git fetch origin`, `git switch chore/docker-bot-ci` e
+   `git pull --ff-only` dentro do repositório. Após o merge, a execução também
+   estará disponível na `main`.
+4. Crie a configuração **somente se ainda não existir**:
+
+   ```bash
+   test -f .env || cp .env.example .env
+   ```
+
+   Preencha o token do Telegram no seu editor. Preserve um `.env` já configurado.
+5. Para habilitar o score, coloque o modelo confiável treinado pelo projeto em:
+
+   ```text
+   models/language_risk/baseline_tfidf_logreg.joblib
+   ```
+
+   A pasta é `language_risk`, com underscore. O modelo não vem no clone; cada
+   computador precisa ter sua cópia, compatível com `requirements-inference.txt`.
+6. Encerre outras instâncias usando o mesmo token, construa e inicie:
+
+   ```bash
+   docker compose build
+   docker compose up -d
+   docker compose logs -f bot
+   ```
+
+   Procure `Contraponto iniciado — aguardando mensagens...` e, com modelo válido,
+   `Modelo linguístico carregado: /app/models/language_risk/baseline_tfidf_logreg.joblib`.
+7. Abra o chat privado do bot, envie `/start` e depois um texto, por exemplo:
+
+   > A universidade publicou um estudo sobre a qualidade da água.
+
+   Confira a confirmação inicial e o relatório. A frase é apenas um teste do
+   fluxo; não garante uma conclusão factual. `/ajuda` apresenta as orientações.
+
+### Configuração
+
+| Variável no `.env` | Função |
+|---|---|
+| `TELEGRAM_BOT_TOKEN` | Obrigatória; obtenha com `/newbot` no `@BotFather`. |
+| `OPENAI_API_KEY` | Opcional; vazia habilita extração por regras e verificação conservadora. |
+| `GOOGLE_FACT_CHECK_KEY` | Opcional; habilita busca de checagens existentes. |
+| `TAVILY_API_KEY` | Opcional; habilita busca de evidências web. |
+| `MAX_CLAIMS_PER_MESSAGE` | Máximo de alegações por texto; padrão `5`. |
+| `AUTHORIZED_GROUPS` | IDs separados por vírgula; vazia permite os grupos em que o bot participar. |
+
+Apague os valores ilustrativos das chaves opcionais que não for utilizar.
+Sem OpenAI, `claims.py` divide o texto em frases, evita perguntas, frases com
+menos de quatro palavras e alguns marcadores de opinião, respeitando o limite.
+Esse fallback é uma heurística, não um extrator treinado. O verificador pode
+usar fact-checks comparáveis com rótulos reconhecidos; fora disso, se abstém.
+Sem chaves de busca, não há evidências externas. Modelo ausente ou incompatível
+deixa o score indisponível, mas preserva a investigação factual.
+
+A imagem inclui código e dependências de execução/inferência. O Compose entrega
+as variáveis ao processo e monta `models/` em `/app/models` **somente para
+leitura**. Não incorpora `.env`, modelos, bases ou relatórios à imagem. O caminho
+do modelo no Compose prevalece sobre `LANGUAGE_RISK_MODEL_PATH` no `.env`.
+
+### Parar e atualizar
+
+```bash
+docker compose down                         # Encerra o bot com SIGTERM.
+git pull --ff-only                          # Atualiza a branch atual.
+docker compose up -d --build --force-recreate bot
+```
+
+Se substituir apenas o `.joblib`, use `docker compose restart bot` para
+recarregá-lo. `Ctrl+C` sai dos logs sem parar o serviço iniciado com `-d`.
+Investigações temporárias ficam em memória e se perdem ao reiniciar.
+
+No Windows, instale Docker Desktop com contêineres Linux; no Linux, use Docker
+Engine com Compose. Os comandos de execução são os mesmos. No PowerShell,
+crie o exemplo com `if (-not (Test-Path .env)) { Copy-Item .env.example .env }`.
+
+## Estrutura e função dos arquivos
 
 ```text
 Fake-News-Challenge2/
-├── src/
-│   └── contraponto/
-│       ├── bot.py                 # Estrutura inicial da interface Telegram
-│       └── motor_ia.py            # Estrutura inicial do Divã Socrático
-├── scripts/
-│   ├── acquire.py                 # Aquisição reproduzível das bases
-│   ├── eda.py                     # EDA estrutural
-│   └── eda_visuals.py             # Métricas textuais e gráficos
-├── data/                          # Criada localmente e ignorada pelo Git
-│   ├── raw/                       # Downloads originais e manifesto
-│   └── processed/                 # Dados gerados pelo processamento
-├── Fake.br-Corpus/                # Clone local; ignorado pelo Git
-├── reports/
-│   ├── RELATORIO_TECNICO.md
-│   ├── REQUISITOS_E_PRIORIZACAO.md
-│   ├── ISSUES_MVP_TELEGRAM.md
-│   ├── eda.json
-│   ├── eda_nlp.json
-│   ├── figures/
-│   └── samples/
+├── src/contraponto/          # Aplicação do bot.
+├── scripts/                 # Aquisição, EDA e scripts de treino em ml/.
+├── tests/                   # Testes Python e integração Docker em docker/.
+├── .github/workflows/ci.yaml # GitHub Actions: lint, testes e build.
+├── Dockerfile
+├── compose.yaml
+├── .dockerignore
+├── .env.example
 ├── .gitignore
-└── README.md
+├── requirements.txt
+├── requirements-inference.txt
+├── requirements-ci.txt
+├── README.md
+├── reports/                 # Artefatos de EDA: JSON, figures/ e samples/.
+├── data/                    # Dados locais; ignorados pelo Git.
+├── Fake.br-Corpus/           # Base local; ignorada pelo Git.
+└── models/language_risk/     # Modelo local; ignorado pelo Git.
 ```
 
-## Bases de dados utilizadas
+Os documentos técnicos foram compartilhados via Docs. Os arquivos restantes
+de `reports/` são resultados de análise, gráficos e amostras; não são necessários
+para iniciar o bot. `data/`, `Fake.br-Corpus/` e `models/` são pastas locais e
+não acompanham o clone.
 
-| Base | Papel no projeto | Conteúdo local |
-|---|---|---|
-| [Fake.br](https://github.com/roneysco/Fake.br-Corpus) | Análise linguística de notícias reais e falsas em português brasileiro. | 7.200 notícias, balanceadas entre 3.600 reais e 3.600 falsas. |
-| [FakeRecogna 2.0](https://huggingface.co/datasets/recogna-nlp/fakerecogna2-extrativa) | Complemento da análise linguística em português. | 52.800 resumos extrativos, balanceados entre as duas classes. |
-| [AVeriTeC](https://github.com/MichSchli/AVeriTeC) | Estrutura investigativa, perguntas, respostas, justificativas e evidências. | 3.068 alegações de treino e 500 de desenvolvimento. |
-| [FEVEROUS](https://fever.ai/dataset/feverous.html) | Verificação de alegações com evidências textuais e tabulares. | 87.026 alegações distribuídas entre treino, desenvolvimento e teste. |
+| Arquivo em `src/contraponto/` | Responsabilidade |
+|---|---|
+| `bot.py` | Comandos e mensagens do Telegram, confirmação inicial, relatório dividido em mensagens e armazenamento temporário de investigações/deep links. |
+| `config.py` | Carrega variáveis, limites e grupos; valida o token obrigatório. |
+| `motor_ia.py` | Coordena inferência, extração, busca e verificação; devolve `ResultadoAnalise` com score e vereditos individuais. |
+| `language_risk.py` | Carrega uma vez o `.joblib` e aplica TF-IDF + regressão logística ao texto original. |
+| `claims.py` | Produz alegações numeradas com texto, trecho e posição; usa OpenAI quando configurada ou regras como fallback. |
+| `search.py` | Adaptadores Google Fact Check/Tavily e evidências padronizadas: título, URL, publicador, trecho, data e metadados de checagem. |
+| `verifier.py` | Compara cada alegação com suas evidências, valida referências da LLM e mantém abstenção quando não há sustentação segura. |
 
-O snapshot completo da Wikipédia usado pelo FEVEROUS **não é baixado**. O projeto mantém apenas os arquivos de anotações necessários à EDA; o MVP usará fontes externas atuais para recuperar evidências.
+| Arquivo de suporte | Responsabilidade |
+|---|---|
+| `Dockerfile` | Constrói a imagem Python 3.13 e inicia o bot com usuário sem privilégios. |
+| `compose.yaml` | Configura build, ambiente, modelo montado, reinício e encerramento. |
+| `.dockerignore` / `.gitignore` | Excluem arquivos do contexto de build e do versionamento, respectivamente. |
+| `.env.example` | Exemplo sem credenciais reais; `.env` guarda a configuração local. |
+| `requirements.txt` | Dependências do bot, APIs e configuração. |
+| `requirements-inference.txt` | Versões de joblib, NumPy, scikit-learn e SciPy para carregar o modelo. |
+| `requirements-ci.txt` | Ruff para lint; não é instalado na imagem do bot. |
+| `scripts/acquire.py` | Obtém Fake.br, FakeRecogna, AVeriTeC e anotações FEVEROUS, registrando um manifesto. |
+| `scripts/eda.py` / `scripts/eda_visuals.py` | Analisam formatos, distribuição e características textuais; geram artefatos em `reports/`. |
+| `scripts/ml/prepare_language_data.py` | Padroniza Fake.br e FakeRecogna em texto/rótulo e prepara os dados linguísticos. |
+| `scripts/ml/split_language_data.py` | Separa treino, validação e teste, controlando duplicatas/vazamento. |
+| `scripts/ml/train_baseline.py` | Treina TF-IDF de palavras/caracteres + regressão logística e salva modelo, métricas e gráfico de validação. |
 
-## Por que as bases não estão no GitHub?
+O fluxo atual aceita texto no Telegram. Diálogo socrático adaptativo, WhatsApp,
+áudio/imagem e treinamento com Docker são etapas futuras. Existem handlers de
+alerta/deep link, mas o motor atual retorna `requer_revisao=False`, portanto
+não aciona alertas automaticamente.
 
-As pastas `data/` e `Fake.br-Corpus/` estão no `.gitignore`. Elas não são enviadas ao GitHub porque contêm arquivos grandes, cópias de fontes externas e dados que podem ser obtidos novamente.
+## Desenvolvimento, dados e treinamento local
 
-Cada integrante deve clonar este repositório e executar `scripts/acquire.py` para reconstruir localmente a mesma organização de dados. O script utiliza revisões fixadas quando a fonte permite, valida os formatos e registra origem, tamanho e checksum dos arquivos em `data/raw/manifest.json`.
-
-Portanto:
-
-- o GitHub armazena o código, os relatórios e o planejamento;
-- cada computador mantém sua própria cópia das bases;
-- ninguém deve usar `git add -f` para enviar `data/` ou `Fake.br-Corpus/`.
-
-## Configuração inicial — clone do projeto e aquisição das bases
-
-### 1. Pré-requisitos
-
-- Git;
-- Python 3.10 ou superior;
-- conexão com a internet durante a aquisição;
-- espaço local para as bases e os arquivos processados.
-
-Os scripts de aquisição e EDA usam somente a biblioteca padrão do Python. Não é necessário instalar pacotes para executar esta etapa.
-
-### 2. Clonar este repositório
-
-**macOS, Linux ou Windows:**
+Para rodar sem Docker ou executar testes no macOS/Linux, use Python 3.13:
 
 ```bash
-git clone https://github.com/Muniz2811/Fake-News-Challenge2.git
-cd Fake-News-Challenge2
+python3.13 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt -r requirements-inference.txt -r requirements-ci.txt
+python src/contraponto/bot.py
 ```
 
-### 3. Baixar todas as bases automaticamente
+No Windows, crie com `py -3.13 -m venv .venv` e ative com
+`.\.venv\Scripts\Activate.ps1`. Não execute o bot nativo junto com o contêiner.
 
-Esta é a forma recomendada. Não é necessário clonar cada base manualmente.
-
-**macOS ou Linux:**
+Aquisição e treino são opcionais para quem já possui o modelo. No ambiente
+virtual, para reconstruí-lo:
 
 ```bash
-python3 scripts/acquire.py
-```
-
-**Windows / PowerShell:**
-
-```powershell
 python scripts/acquire.py
+python -m pip install matplotlib
+python scripts/ml/prepare_language_data.py
+python scripts/ml/split_language_data.py
+python scripts/ml/train_baseline.py --figure-output "$(pwd)/data/processed/language_risk/baseline/validation.png"
 ```
 
-O processo pode demorar conforme a conexão. O script exibe `Download` para arquivos novos e `Verified/reused` quando encontra uma cópia local válida.
+O treino linguístico usa Fake.br e FakeRecogna, rótulos `0=true` / `1=fake` e
+semente 42. Salva o `.joblib` em `models/language_risk/` e métricas em
+`data/processed/language_risk/baseline/`; AVeriTeC e FEVEROUS não entram nessa
+baseline. Para reproduzir resultados, mantenha dados, splits e versões iguais.
+Para EDA, execute `python scripts/eda.py` e `python scripts/eda_visuals.py`;
+eles podem recriar `reports/EDA.md` e os demais artefatos.
 
-### 4. Estrutura criada pelo script
+## Testes e CI
 
-Depois da aquisição, os arquivos locais ficam assim:
-
-```text
-Fake-News-Challenge2/
-├── Fake.br-Corpus/
-│   ├── full_texts/
-│   ├── size_normalized_texts/
-│   └── preprocessed/
-└── data/
-    └── raw/
-        ├── averitec/
-        │   ├── train.json
-        │   └── dev.json
-        ├── fakerecogna2/
-        │   └── fakerecogna_extrativo.csv
-        ├── feverous/
-        │   ├── train.jsonl
-        │   ├── dev.jsonl
-        │   └── test.jsonl
-        └── manifest.json
-```
-
-O comportamento por base é:
-
-- **Fake.br:** se `Fake.br-Corpus/` não existir, o script clona o repositório e posiciona a revisão definida no código. Se a pasta já existir, ela é inventariada sem executar `git pull`.
-- **FakeRecogna 2.0:** o CSV é baixado do Hugging Face para `data/raw/fakerecogna2/`.
-- **AVeriTeC:** os arquivos `train.json` e `dev.json` são baixados para `data/raw/averitec/`.
-- **FEVEROUS:** as anotações de treino, desenvolvimento e teste são baixadas para `data/raw/feverous/`.
-
-### 5. Reexecutar ou recuperar um download interrompido
-
-O comando de aquisição pode ser executado novamente:
+No ambiente virtual, execute:
 
 ```bash
-python3 scripts/acquire.py
+python -m unittest discover -s tests -v
+python -m ruff check --select E9,F821,F822,F823 src/contraponto tests
 ```
 
-Arquivos válidos são reutilizados. Downloads parciais usam arquivos temporários e podem ser retomados quando o servidor permite. Se um arquivo existente não corresponder ao manifesto, o script interrompe a execução em vez de sobrescrevê-lo silenciosamente.
+Os testes simulam APIs e não precisam de chaves reais. O lint detecta erros
+críticos de sintaxe e nomes indefinidos; não impõe toda a formatação do projeto.
 
-Também é possível usar diretórios alternativos:
+| Arquivo em `tests/` | O que verifica |
+|---|---|
+| `test_config.py` | Token obrigatório, OpenAI opcional e extração por regras. |
+| `test_bot_report.py` | Relatório, deep link, separação linguagem/fatos e limite de mensagens com emojis. |
+| `test_search.py` | Evidências, tipos de fonte, Tavily, ausência de chave e falhas de conexão. |
+| `test_verifier.py` | Abstenção, conflitos, negação, referências inventadas, respostas inválidas, estabilidade e fontes separadas por alegação. |
+| `test_language_risk.py` | Carregamento/inferência, equivalência com o pipeline, incompatibilidade e continuidade sem score. |
+| `test_logging_security.py` | Ocultação de credenciais fictícias nos logs e tracebacks. |
+| `docker/check_image.py` | Testa imagem limpa, inferência com montagem somente leitura, polling e encerramento por SIGTERM. |
+| `docker/model_probe.py` | Gera um modelo sintético e confere seu score e proteção contra escrita na montagem. |
+| `docker/polling_probe.py` | Simula o transporte Telegram para exercitar `/start` e uma mensagem pelo fluxo real sem OpenAI. |
+
+Para testar a imagem, com Docker disponível e Python no host:
 
 ```bash
-python3 scripts/acquire.py \
-  --data-dir /caminho/para/data/raw \
-  --fakebr-dir /caminho/para/Fake.br-Corpus
+docker compose build
+python tests/docker/check_image.py
 ```
 
-Ao usar caminhos alternativos, informe os mesmos parâmetros ao executar a EDA.
+Esse teste usa um artefato sintético, não altera seu modelo e roda os contêineres
+com rede desabilitada. O build precisa de internet para baixar dependências.
+Ele não substitui o teste manual com seu bot e os provedores reais.
 
-## Executar a EDA
-
-Execute os comandos na ordem abaixo, depois que a aquisição terminar.
-
-**macOS ou Linux:**
-
-```bash
-python3 scripts/eda.py
-python3 scripts/eda_visuals.py
-```
-
-**Windows / PowerShell:**
-
-```powershell
-python scripts/eda.py
-python scripts/eda_visuals.py
-```
-
-Os scripts produzem:
-
-- `data/processed/`: dados processados localmente;
-- `reports/EDA.md`: tabelas estruturais geradas pela análise;
-- `reports/eda.json`: estatísticas em formato JSON;
-- `reports/eda_nlp.json`: métricas textuais e diagnósticos adicionais;
-- `reports/figures/`: gráficos SVG;
-- `reports/samples/`: exemplos pequenos de registros.
-
-Quando a aquisição usar diretórios alternativos, execute:
-
-```bash
-python3 scripts/eda.py \
-  --data-dir /caminho/para/data/raw \
-  --fakebr-dir /caminho/para/Fake.br-Corpus
-
-python3 scripts/eda_visuals.py \
-  --data-dir /caminho/para/data/raw \
-  --fakebr-dir /caminho/para/Fake.br-Corpus
-```
-
-## Estrutura inicial do MVP
-
-O código da aplicação ainda é propositalmente mínimo:
-
-- [`src/contraponto/bot.py`](src/contraponto/bot.py) define o ponto inicial da interface com o Telegram;
-- [`src/contraponto/motor_ia.py`](src/contraponto/motor_ia.py) define o resultado da análise e o contrato inicial do motor central.
-
-O método principal do motor ainda não implementa a análise completa. Cada componente será acrescentado pelas issues do backlog, evitando concentrar toda a solução em um único arquivo antes de o grupo dividir o trabalho.
-
-## Testar o classificador linguístico no Telegram
-
-O motor usa o pipeline completo salvo por `scripts/ml/train_baseline.py`: os dois
-vetorizadores TF-IDF e a regressão logística treinada. Cada mensagem é transformada
-com o vocabulário aprendido, sem novo treinamento. O score da classe `1=fake`
-aparece em **Análise da Linguagem**, separado das conclusões factuais. É um score
-experimental, não uma probabilidade calibrada de a notícia ser falsa. Nesta versão
-ele não aciona alertas em grupos.
-
-`OPENAI_API_KEY` é opcional. Deixe-a vazia ou remova-a do ambiente para executar
-sem OpenAI: o classificador linguístico continua local, a extração usa regras e
-as buscas continuam com as chaves dos provedores configurados. Sem a LLM, o
-verificador se abstém quando não há comparação segura. Regras ainda podem
-concluir apoiada, refutada ou conflitante com fact-checks comparáveis da mesma
-alegação e rótulos reconhecidos. O token do Telegram continua
-obrigatório. Remova também uma eventual chave OpenAI definida no terminal antes
-de reiniciar, pois variáveis já exportadas têm precedência sobre o `.env`.
-
-Para reconstruir o artefato depois de adquirir Fake.br e FakeRecogna conforme as
-instruções acima, use os scripts existentes e as dependências do treino:
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements-ml.txt
-.\.venv\Scripts\python.exe scripts/ml/prepare_language_data.py
-.\.venv\Scripts\python.exe scripts/ml/split_language_data.py
-$figurePath = Join-Path (Get-Location).Path 'data/processed/language_risk/baseline/validation.png'
-.\.venv\Scripts\python.exe scripts/ml/train_baseline.py --figure-output $figurePath
-```
-
-O treino usa semente 42, avalia somente a validação e salva as métricas em
-`data/processed/language_risk/baseline/metrics.json`. Para comparar com outro PC,
-confira as versões e os hashes dos arquivos de treino e validação registrados
-nas métricas. Com os mesmos dados, divisões e ambiente, espera-se reprodução das
-métricas; pequenas diferenças numéricas entre plataformas ainda são possíveis.
-
-Na raiz do repositório, com o ambiente virtual já criado:
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements-inference.txt
-Test-Path models/language_risk/baseline_tfidf_logreg.joblib
-.\.venv\Scripts\python.exe src/contraponto/bot.py
-```
-
-O segundo comando precisa retornar `True`. Se o modelo estiver em outro lugar,
-configure `LANGUAGE_RISK_MODEL_PATH` com o caminho do `.joblib` antes de iniciar o
-bot. Caminhos relativos são resolvidos a partir da raiz do repositório, mesmo
-quando o bot é iniciado em outra pasta. Use somente o artefato confiável gerado
-pelo treino e o mesmo ambiente de versões. Não é necessário instalar matplotlib
-para inferência.
-
-Encerre o processo antigo do bot antes de iniciar a nova versão. No chat privado,
-envie uma notícia em português e confira o score no relatório. Uma palavra ou
-frase muito curta não é um teste representativo do classificador treinado com
-notícias. A extração de alegações, Tavily, Google Fact Check e a verificação
-continuam no fluxo. Se faltar o artefato, as dependências ou houver erro de
-inferência, o relatório informa que a análise linguística está indisponível e
-continua a investigação factual, sem inventar um score.
-
-Testes locais, sem chamadas externas:
-
-```powershell
-.\.venv\Scripts\python.exe -m unittest discover -s tests
-```
-
-## Documentação principal
-
-- [Guia com exemplos de TF-IDF, regressão logística e fallback de extração](reports/GUIA_REGRESSAO_LOGISTICA_E_EXTRACAO.md);
-- `reports/EDA.md`: tabelas estruturais geradas novamente ao executar `scripts/eda.py`;
-- [Relatório técnico](reports/RELATORIO_TECNICO.md): recomendações de modelagem;
-- [Requisitos e priorização](reports/REQUISITOS_E_PRIORIZACAO.md): escopo reorganizado para o MVP no Telegram;
-- [Backlog de issues](reports/ISSUES_MVP_TELEGRAM.md): labels, cronograma, issues, dependências e configuração do GitHub Project.
-
-## Fluxo planejado do MVP
-
-```text
-Notícia em texto
-├── Análise da linguagem
-└── Extração de alegações
-    ├── Busca de fact-checks existentes
-    └── Busca de evidências
-         ↓
-Verificação de cada alegação
-         ↓
-Relatório com análise linguística e resultado factual separados
-         ↓
-Diálogo socrático no Telegram
-```
+O workflow [`.github/workflows/ci.yaml`](.github/workflows/ci.yaml) roda em PRs
+para `main`, pushes na `main` e execução manual. Primeiro executa lint e testes;
+depois valida Compose, constrói e testa a imagem. Para ativar, permita GitHub
+Actions em **Settings → Actions → General** e abra o PR. Acompanhe **Checks**;
+não cadastre tokens reais para esse CI. Para bloquear merges com falhas,
+configure ruleset de `main` exigindo `Python - lint e testes` e
+`Docker - build e smoke`. Não há deploy, treinamento nem publicação automática
+da imagem.

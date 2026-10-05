@@ -20,7 +20,10 @@ from telegram.ext import (
 # Adiciona o diretório atual ao sys.path para permitir a importação direta dos módulos
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from config import TELEGRAM_BOT_TOKEN, AUTHORIZED_GROUPS, validate_env
+from config import (
+    TELEGRAM_BOT_TOKEN, AUTHORIZED_GROUPS, OPENAI_API_KEY,
+    GOOGLE_FACT_CHECK_KEY, TAVILY_API_KEY, validate_env,
+)
 from motor_ia import MotorIA, ResultadoAnalise
 from verifier import ROTULOS_CATEGORIAS, VereditoAlegacao
 
@@ -394,12 +397,27 @@ class BotTelegram:
         )
 
 
+class _RedactingFormatter(logging.Formatter):
+    """Remove credenciais inclusive de mensagens de erro e tracebacks."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        texto = super().format(record)
+        texto = re.sub(r"bot\d+:[A-Za-z0-9_-]+", "bot[CREDENCIAL OCULTA]", texto)
+        for chave in (TELEGRAM_BOT_TOKEN, OPENAI_API_KEY, GOOGLE_FACT_CHECK_KEY, TAVILY_API_KEY):
+            if chave:
+                texto = texto.replace(chave, "[CREDENCIAL OCULTA]")
+        return texto
+
+
 def _configurar_logging() -> None:
     """Mantém logs da aplicação sem os URLs autenticados das requisições HTTP."""
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
+    formatter = _RedactingFormatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+    for handler in logging.getLogger().handlers:
+        handler.setFormatter(formatter)
     for name in ("httpx", "httpx2", "httpcore"):
         logging.getLogger(name).setLevel(logging.WARNING)
 

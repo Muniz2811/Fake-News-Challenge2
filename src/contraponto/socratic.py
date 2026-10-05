@@ -35,7 +35,7 @@ class GerenciadorSocratico:
     ) -> str:
         """Inicia uma nova jornada socrática para o usuário adaptada por persona."""
         perguntas = self._gerar_perguntas_iniciais(noticia_original, vereditos, persona_modo)
-        
+
         estado = EstadoSocratico(
             noticia_original=noticia_original,
             vereditos=vereditos,
@@ -44,9 +44,9 @@ class GerenciadorSocratico:
             perguntas_geradas=perguntas
         )
         self._sessoes[user_id] = estado
-        
+
         primeira_pergunta = perguntas[0]
-        
+
         header = "🏛️ **Diálogo Socrático (Contra)**\n"
         if persona_modo == "Acolhedor":
             header += "Oi! Vamos analisar juntas(os) esta mensagem em até 3 perguntas simples?\n"
@@ -67,7 +67,7 @@ class GerenciadorSocratico:
             return "Não há nenhuma sessão ativa do Diálogo Socrático. Envie uma mensagem para iniciar!"
 
         estado = self._sessoes[user_id]
-        
+
         # Registra a resposta do usuário
         resposta_limpa = resposta_texto.strip()
         estado.respostas_usuario.append(resposta_limpa)
@@ -80,7 +80,7 @@ class GerenciadorSocratico:
         # Prepara a próxima pergunta considerando a resposta que o usuário acabou de enviar
         proxima_pergunta = estado.perguntas_geradas[estado.pergunta_atual_index]
         num_p = estado.pergunta_atual_index + 1
-        
+
         feedback = f" Entendi o seu ponto quando disse: *'{resposta_limpa}'*.\n\n"
         return f"{feedback}**Pergunta {num_p}/3:** {proxima_pergunta}"
 
@@ -99,7 +99,7 @@ class GerenciadorSocratico:
     ) -> List[str]:
         """Gere perguntas adaptadas com base nos vereditos e na persona."""
         alegacao_txt = vereditos[0].texto_alegacao if vereditos else noticia
-        
+
         if persona_modo == "Acolhedor":  # Dona Sônia
             return [
                 f"Ao ler '{alegacao_txt}', o que mais te chamou atenção ou trouxe preocupação?",
@@ -145,6 +145,6 @@ class GerenciadorSocratico:
             "A informação pode mudar conforme novos dados surjam. A decisão final sobre a veracidade e o compartilhamento é sempre sua.\n\n"
             "_(Sessão finalizada. Envie uma nova mensagem sempre que desejar investigar!)_"
         )
-        
+
         del self._sessoes[user_id]
         return sintese
