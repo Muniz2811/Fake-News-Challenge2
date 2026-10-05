@@ -3,13 +3,10 @@
 import os
 import sys
 import logging
-import uuid
-from datetime import datetime, timedelta
-from typing import Dict, Optional
+from typing import Optional
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import Update
 from telegram.ext import (
-    Application,
     ApplicationBuilder,
     CommandHandler,
     ContextTypes,
@@ -25,7 +22,6 @@ from motor_ia import MotorIA, ResultadoAnalise
 
 
 logger = logging.getLogger(__name__)
-_TTL_HORAS = 24
 
 
 class Config:
@@ -34,9 +30,16 @@ class Config:
     def __init__(self) -> None:
         self.telegram_bot_token = TELEGRAM_BOT_TOKEN
         raw_groups = os.getenv("AUTHORIZED_GROUPS", "")
-        self.authorized_groups = {
-            int(group_id.strip()) for group_id in raw_groups.split(",") if group_id.strip()
-        }
+        try:
+            self.authorized_groups = {
+                int(group_id.strip())
+                for group_id in raw_groups.split(",")
+                if group_id.strip()
+            }
+        except ValueError as exc:
+            raise ValueError(
+                "AUTHORIZED_GROUPS deve conter IDs numéricos separados por vírgula."
+            ) from exc
 
 
 class BotTelegram:
@@ -44,9 +47,6 @@ class BotTelegram:
     def __init__(self, motor: Optional[MotorIA] = None) -> None:
         self.config = Config()
         self.motor = motor or MotorIA()
-
-        # Armazena UUID → {resultado, expires}
-        self._investigacoes: Dict[str, dict] = {}
 
         token = self.config.telegram_bot_token
         if not token:
@@ -81,80 +81,31 @@ class BotTelegram:
         )
 
     # ------------------------------------------------------------------ #
-    #  Armazenamento temporário com TTL                                   #
-    # ------------------------------------------------------------------ #
-
-    def _store(self, resultado: ResultadoAnalise) -> str:
-        """Gera UUID, armazena resultado com TTL e faz limpeza oportuna."""
-        self._purge_expired()
-        analise_id = str(uuid.uuid4())
-        self._investigacoes[analise_id] = {
-            "resultado": resultado,
-            "expires": datetime.now() + timedelta(hours=_TTL_HORAS),
-        }
-        return analise_id
-
-    def _fetch(self, analise_id: str) -> Optional[ResultadoAnalise]:
-        """Retorna o resultado se existir e não tiver expirado."""
-        registro = self._investigacoes.get(analise_id)
-        if not registro:
-            return None
-        if registro["expires"] < datetime.now():
-            del self._investigacoes[analise_id]
-            return None
-        return registro["resultado"]
-
-    def _purge_expired(self) -> None:
-        agora = datetime.now()
-        expirados = [k for k, v in self._investigacoes.items() if v["expires"] < agora]
-        for k in expirados:
-            del self._investigacoes[k]
-
-    # ------------------------------------------------------------------ #
     #  Handlers                                                           #
     # ------------------------------------------------------------------ #
 
     async def _handle_group_message(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
-        """Analisa mensagens em grupos autorizados; alerta se requer revisão."""
+        """Encaminha texto apenas de grupos autorizados ao motor, sem o reter."""
         if not update.message or not update.message.text:
             return
 
         chat_id = update.message.chat_id
-
-        # Se AUTHORIZED_GROUPS foi configurado, restringe.
-        if self.config.authorized_groups and chat_id not in self.config.authorized_groups:
+        if chat_id not in self.config.authorized_groups:
             return
 
-        texto = update.message.text
         try:
-            resultado = await self.motor.analisar_texto(texto)
+            await self.motor.analisar_texto(update.message.text)
         except NotImplementedError:
-            logger.debug("Motor de análise ainda não implementado — ignorando.")
+            logger.debug("O motor ainda não está implementado.")
             return
-        except Exception:
-            logger.exception("Erro ao analisar texto no grupo %s", chat_id)
-            return
-
-        if not resultado.requer_revisao:
-            return
-
-        analise_id = self._store(resultado)
-
-        bot_me = await context.bot.get_me()
-        deep_link = f"https://t.me/{bot_me.username}?start={analise_id}"
-
-        teclado = InlineKeyboardMarkup(
-            [[InlineKeyboardButton("🔎 Ler relatório detalhado", url=deep_link)]]
-        )
-
-        mensagem_aviso = (
-            "⚠️ Nossa IA identificou alegações nesta mensagem que podem "
-            "requerer contexto adicional. Verifique os fatos antes de compartilhar."
-        )
-
-        await update.message.reply_text(mensagem_aviso, reply_markup=teclado)
+        except Exception as exc:
+            # Exceções podem incluir o texto recebido; registre apenas o tipo.
+            logger.error(
+                "Falha ao encaminhar texto ao motor (%s).",
+                type(exc).__name__,
+            )
 
     async def _cmd_start(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -169,19 +120,9 @@ class BotTelegram:
             )
             return
 
-        analise_id = context.args[0]
-        resultado = self._fetch(analise_id)
-
-        if resultado is None:
-            await update.message.reply_text(
-                "O link de investigação não é mais válido ou expirou.\n"
-                "Se quiser uma nova análise, encaminhe o texto original "
-                "diretamente para mim."
-            )
-            return
-
-        relatorio = self._formatar_relatorio(resultado)
-        await update.message.reply_text(relatorio, parse_mode="Markdown")
+        await update.message.reply_text(
+            "Envie mensagens textuais em um grupo autorizado para encaminhá-las ao motor."
+        )
 
     async def _cmd_ajuda(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -220,8 +161,8 @@ class BotTelegram:
             # A confirmação é enviada antes de chamar o motor, que pode demorar.
             await update.message.reply_text("📩 Texto recebido. A investigação começou.")
             resultado = await self.motor.analisar_texto(texto)
-        except Exception:
-            logger.exception("Erro ao analisar texto no privado")
+        except Exception as exc:
+            logger.error("Erro ao analisar texto no privado (%s).", type(exc).__name__)
             await update.message.reply_text(
                 "Ocorreu um erro durante a análise. Tente novamente mais tarde."
             )
@@ -233,30 +174,26 @@ class BotTelegram:
     async def _handle_error(
         self, update: object, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
-        logger.error("Erro ao processar atualização do Telegram: %s", context.error)
-
-    # ------------------------------------------------------------------ #
-    #  Formatação                                                         #
-    # ------------------------------------------------------------------ #
+        logger.error(
+            "Erro ao processar atualização do Telegram (%s).",
+            type(context.error).__name__,
+        )
 
     @staticmethod
     def _formatar_relatorio(resultado: ResultadoAnalise) -> str:
         partes = ["🔎 *Relatório de Investigação*\n"]
-
         if resultado.analise_linguistica:
             partes.append(f"*Análise da Linguagem:*\n{resultado.analise_linguistica}\n")
-
         if resultado.alegacoes:
-            lista = "\n".join(f"• {a}" for a in resultado.alegacoes)
-            partes.append(f"*Alegações identificadas:*\n{lista}\n")
-
+            partes.append(
+                "*Alegações identificadas:*\n"
+                + "\n".join(f"• {alegacao}" for alegacao in resultado.alegacoes)
+                + "\n"
+            )
         if resultado.resultado_factual:
             partes.append(f"*Resultado Factual:*\n{resultado.resultado_factual}\n")
-
         if resultado.fontes:
-            lista = "\n".join(f"• {f}" for f in resultado.fontes)
-            partes.append(f"*Fontes consultadas:*\n{lista}")
-
+            partes.append("*Fontes consultadas:*\n" + "\n".join(f"• {fonte}" for fonte in resultado.fontes))
         return "\n".join(partes)
 
     # ------------------------------------------------------------------ #
@@ -275,8 +212,6 @@ class BotTelegram:
         """Inicia o polling da Telegram Bot API."""
         self.app.run_polling()
 
-    # TODO: conectar este adaptador à Telegram Bot API.
-    # TODO: adicionar grupos autorizados, alerta e redirecionamento ao privado.
 
 
 def main() -> None:
