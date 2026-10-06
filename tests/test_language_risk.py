@@ -125,7 +125,8 @@ class TestMotorLanguageRisk(unittest.IsolatedAsyncioTestCase):
         self.assertIn("0,930", result.analise_linguistica)
         self.assertIn("não confirma", result.analise_linguistica)
         self.assertEqual(result.vereditos[0].categoria, "evidencia_insuficiente")
-        self.assertFalse(result.requer_revisao)
+        # MVP-13: abstenção factual exige revisão, independentemente do score.
+        self.assertTrue(result.requer_revisao)
         from bot import BotTelegram
         self.assertIn(result.analise_linguistica, BotTelegram._formatar_relatorio(result))
 

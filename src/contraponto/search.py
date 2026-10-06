@@ -116,6 +116,7 @@ class GoogleFactCheckAdapter(WebSearchProvider):
 
     def __init__(self, api_key: str | None = None):
         self.api_key = api_key if api_key is not None else GOOGLE_FACT_CHECK_KEY
+        self.ultimo_erro: str | None = None
         self.base_url = (
             "https://factchecktools.googleapis.com/v1alpha1/claims:search"
         )
@@ -127,6 +128,7 @@ class GoogleFactCheckAdapter(WebSearchProvider):
 
         Garante degradação graciosa em caso de indisponibilidade, erros ou falta de chave.
         """
+        self.ultimo_erro = None
         if not alegacao or not alegacao.strip():
             return []
 
@@ -174,14 +176,15 @@ class GoogleFactCheckAdapter(WebSearchProvider):
                             )
                         )
             else:
+                self.ultimo_erro = f"http_{response.status_code}"
                 logger.warning(
-                    "Google Fact Check retornou status %s para alegação: %.80s",
+                    "Google Fact Check retornou status %s.",
                     response.status_code,
-                    alegacao,
                 )
-        except Exception:
+        except Exception as exc:
             # Indisponibilidade do provedor não interrompe o fluxo principal
-            logger.exception("Erro ao consultar Google Fact Check API.")
+            self.ultimo_erro = type(exc).__name__
+            logger.warning("Erro ao consultar Google Fact Check API (%s).", type(exc).__name__)
 
         return evidencias
 
@@ -198,6 +201,7 @@ class TavilySearchAdapter(WebSearchProvider):
 
     def __init__(self, api_key: str | None = None):
         self.api_key = api_key if api_key is not None else TAVILY_API_KEY
+        self.ultimo_erro: str | None = None
 
     def buscar_evidencias_por_alegacao(
         self, alegacao: str, max_results: int = 5
@@ -208,6 +212,7 @@ class TavilySearchAdapter(WebSearchProvider):
         erro, houver timeout ou qualquer exceção, retorna lista vazia sem
         interromper o pipeline.
         """
+        self.ultimo_erro = None
         if not alegacao or not alegacao.strip():
             return []
 
@@ -227,10 +232,10 @@ class TavilySearchAdapter(WebSearchProvider):
             )
 
             if response.status_code != 200:
+                self.ultimo_erro = f"http_{response.status_code}"
                 logger.warning(
-                    "Tavily retornou status %s para alegação: %.80s",
+                    "Tavily retornou status %s.",
                     response.status_code,
-                    alegacao,
                 )
                 return []
 
@@ -258,11 +263,14 @@ class TavilySearchAdapter(WebSearchProvider):
             return evidencias
 
         except requests.exceptions.Timeout:
-            logger.warning("Timeout ao consultar Tavily para: %.80s", alegacao)
+            self.ultimo_erro = "Timeout"
+            logger.warning("Timeout ao consultar Tavily.")
         except requests.exceptions.ConnectionError:
+            self.ultimo_erro = "ConnectionError"
             logger.warning("Erro de conexão ao consultar Tavily.")
-        except Exception:
-            logger.exception("Erro inesperado ao consultar Tavily API.")
+        except Exception as exc:
+            self.ultimo_erro = type(exc).__name__
+            logger.warning("Erro inesperado ao consultar Tavily API (%s).", type(exc).__name__)
 
         return []
 
