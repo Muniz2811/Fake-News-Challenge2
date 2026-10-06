@@ -1,0 +1,19 @@
+services:
+  bot:
+    image: contraponto-bot:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      LANGUAGE_RISK_MODEL_PATH: /app/models/language_risk/baseline_tfidf_logreg.joblib
+    volumes:
+      - type: bind
+        source: ./models
+        target: /app/models
+        read_only: true
+    init: true
+    stop_signal: SIGTERM
+    stop_grace_period: 30s
+    restart: unless-stopped
