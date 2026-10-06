@@ -238,6 +238,7 @@ críticos de sintaxe e nomes indefinidos; não impõe toda a formatação do pro
 | `test_search.py` | Evidências, tipos de fonte, Tavily, ausência de chave e falhas de conexão. |
 | `test_verifier.py` | Abstenção, conflitos, negação, referências inventadas, respostas inválidas, estabilidade e fontes separadas por alegação. |
 | `test_language_risk.py` | Carregamento/inferência, equivalência com o pipeline, incompatibilidade e continuidade sem score. |
+| `test_motor_resilience.py` | Score preservado, falhas reais simuladas dos adaptadores, continuidade por alegação e marca de revisão sem perder resultados anteriores. |
 | `test_logging_security.py` | Ocultação de credenciais fictícias nos logs e tracebacks. |
 | `docker/check_image.py` | Testa imagem limpa, inferência com montagem somente leitura, polling e encerramento por SIGTERM. |
 | `docker/model_probe.py` | Gera um modelo sintético e confere seu score e proteção contra escrita na montagem. |

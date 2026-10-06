@@ -9,8 +9,10 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from claims import ExtratorAlegações, Alegacao
-from search import ProvedorBuscaWeb, Evidencia
-from verifier import VerificadorAlegacoes, VereditoAlegacao
+from search import GoogleFactCheckAdapter, TavilySearchAdapter, WebSearchProvider, Evidencia
+from config import LANGUAGE_RISK_MODEL_PATH
+from language_risk import AnalisadorLinguistico, formatar_analise_linguistica
+from verifier import VerificadorAlegacoes, VereditoAlegacao, ROTULOS_CATEGORIAS as ROTULOS_FACTUAIS
 from socratic import GerenciadorSocratico
 
 logger = logging.getLogger(__name__)
@@ -46,49 +48,87 @@ class ResultadoAnalise:
 
 class MotorIA:
 
-    def __init__(self):
+    def __init__(
+        self, provedores_busca: list[WebSearchProvider] | None = None,
+        verificador: VerificadorAlegacoes | None = None,
+        analisador_linguistico: AnalisadorLinguistico | None = None,
+    ):
         self.extrator_claims = ExtratorAlegações()
-        self.provedor_busca = ProvedorBuscaWeb()
-        # Garante compatibilidade com os testes do CI que inspecionam os provedores
-        self.provedores_busca = [self.provedor_busca]
-        self.verificador = VerificadorAlegacoes()
+        self.provedores_busca = provedores_busca if provedores_busca is not None else [
+            GoogleFactCheckAdapter(), TavilySearchAdapter(),
+        ]
+        self.provedor_busca = self.provedores_busca[0] if self.provedores_busca else None
+        self.verificador = verificador if verificador is not None else VerificadorAlegacoes()
+        self.analisador_linguistico = (
+            analisador_linguistico if analisador_linguistico is not None
+            else AnalisadorLinguistico(LANGUAGE_RISK_MODEL_PATH)
+        )
         self.socratico = GerenciadorSocratico()
 
     async def analisar_texto(self, texto: str) -> ResultadoAnalise:
         if not texto or not texto.strip():
             raise ValueError("O texto da notícia não pode estar vazio.")
 
+        indisponiveis: list[str] = []
+        score = None
+        motivo_linguistico = self.analisador_linguistico.indisponibilidade
+        try:
+            score = await asyncio.to_thread(self.analisador_linguistico.analisar, texto)
+            motivo_linguistico = self.analisador_linguistico.indisponibilidade
+        except Exception as err:
+            logger.error("Falha na análise linguística (%s).", type(err).__name__)
+            motivo_linguistico = "falha na inferência"
+            indisponiveis.append("Análise linguística indisponível nesta investigação.")
+
         # 1. Extração de alegações (MVP-06) com resiliência
         try:
-            resultado_claims = self.extrator_claims.extrair(texto)
+            resultado_claims = await asyncio.to_thread(self.extrator_claims.extrair, texto)
             alegacoes_extraidas = resultado_claims.alegacoes
         except Exception as err:
-            logger.error("Falha ao extrair alegações: %s", err)
+            logger.error("Falha ao extrair alegações (%s).", type(err).__name__)
             alegacoes_extraidas = []
+            indisponiveis.append("Extração de alegações indisponível nesta investigação.")
 
         todas_evidencias: list[Evidencia] = []
         lista_vereditos: list[VereditoAlegacao] = []
-        indisponiveis: list[str] = []
 
         # 2. Busca de evidências (MVP-09) tratando falhas sem derrubar a aplicação
         for alegacao in alegacoes_extraidas:
             evs_alegacao: list[Evidencia] = []
             for provedor in self.provedores_busca:
                 try:
-                    evs_alegacao.extend(
-                        provedor.buscar_evidencias_por_alegacao(alegacao.texto)
-                    )
+                    evs_alegacao.extend(await asyncio.to_thread(
+                        provedor.buscar_evidencias_por_alegacao, alegacao.texto,
+                    ))
+                    # Adaptadores preservam lista vazia em falhas, mas sinalizam a causa.
+                    erro = getattr(provedor, "ultimo_erro", None)
+                    if isinstance(erro, str) and erro:
+                        nome = _NOMES_PROVEDORES.get(type(provedor).__name__, type(provedor).__name__)
+                        aviso = f"Fonte indisponível: a busca no {nome} não respondeu."
+                        if aviso not in indisponiveis:
+                            indisponiveis.append(aviso)
                 except Exception as ex:
-                    logger.warning("Provedor %s indisponível: %s", type(provedor).__name__, ex)
+                    logger.warning("Provedor %s indisponível (%s).", type(provedor).__name__, type(ex).__name__)
                     nome = _NOMES_PROVEDORES.get(type(provedor).__name__, type(provedor).__name__)
-                    aviso = f"Fonte de busca externa ({nome}) esteve indisponível durante a consulta."
+                    aviso = f"Fonte indisponível: a busca no {nome} não respondeu."
                     if aviso not in indisponiveis:
                         indisponiveis.append(aviso)
 
             todas_evidencias.extend(evs_alegacao)
 
             # 3. Verificação Conservadora por Alegação (MVP-10)
-            veredito = self.verificador.verificar_alegacao(alegacao, evs_alegacao)
+            try:
+                veredito = await asyncio.to_thread(
+                    self.verificador.verificar_alegacao, alegacao, evs_alegacao,
+                )
+            except Exception as err:
+                logger.error("Falha na verificação (%s).", type(err).__name__)
+                veredito = VerificadorAlegacoes._abster(
+                    alegacao, "Verificação indisponível. Abstenção aplicada.",
+                )
+                aviso = "Verificação factual indisponível nesta investigação."
+                if aviso not in indisponiveis:
+                    indisponiveis.append(aviso)
             lista_vereditos.append(veredito)
 
         # 4. Avaliar se o caso é inconclusivo (necessidade de marca 'requer_revisao')
@@ -103,6 +143,7 @@ class MotorIA:
             status_txt = ROTULOS_CATEGORIAS.get(v.categoria, v.categoria)
             linhas_relatorio.append(f"{idx}. **Alegação:** '{v.texto_alegacao}'")
             linhas_relatorio.append(f"   • **Situação:** {status_txt}")
+            linhas_relatorio.append(f"Conclusão: {ROTULOS_FACTUAIS[v.categoria]}")
             linhas_relatorio.append(f"   • **Justificativa:** {v.justificativa}")
             if v.fontes_citadas:
                 linhas_relatorio.append(f"   • **Fontes:** {', '.join(v.fontes_citadas)}")
@@ -124,12 +165,12 @@ class MotorIA:
         factual = "\n".join(linhas_relatorio) or "Nenhuma alegação verificável foi identificada no texto enviado."
 
         return ResultadoAnalise(
-            analise_linguistica="Análise de linguagem e resiliência concluídas.",
+            analise_linguistica=formatar_analise_linguistica(score, motivo_linguistico),
             alegacoes=alegacoes_extraidas,
             evidencias=todas_evidencias,
             vereditos=lista_vereditos,
             resultado_factual=factual,
             requer_revisao=tem_inconclusivo,
-            score_linguistico=None,
+            score_linguistico=score,
             etapas_indisponiveis=indisponiveis,
         )
