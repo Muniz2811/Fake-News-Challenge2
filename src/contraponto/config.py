@@ -19,12 +19,15 @@ LANGUAGE_RISK_MODEL_PATH = os.getenv(
 # Limite configurável de alegações por mensagem (Requisito MVP-06)
 MAX_CLAIMS_PER_MESSAGE = int(os.getenv("MAX_CLAIMS_PER_MESSAGE", "5"))
 
-# Opcional: lista de IDs de grupos autorizados (separados por vírgula).
-# Se vazia ou não definida, o bot processa mensagens de qualquer grupo.
-_authorized_groups_env = os.getenv("AUTHORIZED_GROUPS", "")
-AUTHORIZED_GROUPS: list[int] = [
-    int(g.strip()) for g in _authorized_groups_env.split(",") if g.strip()
-]
+def parse_authorized_groups(value: str) -> list[int]:
+    """Lê IDs explícitos; configuração vazia não autoriza nenhum grupo."""
+    try:
+        return list(dict.fromkeys(int(group.strip()) for group in value.split(",") if group.strip()))
+    except ValueError:
+        raise ValueError("AUTHORIZED_GROUPS deve conter IDs numéricos separados por vírgula.") from None
+
+
+AUTHORIZED_GROUPS: list[int] = parse_authorized_groups(os.getenv("AUTHORIZED_GROUPS", ""))
 
 
 def validate_env() -> None:

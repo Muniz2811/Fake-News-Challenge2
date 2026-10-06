@@ -75,7 +75,7 @@ Não é necessário instalar Python para executar o bot com Docker.
 | `GOOGLE_FACT_CHECK_KEY` | Opcional; habilita busca de checagens existentes. |
 | `TAVILY_API_KEY` | Opcional; habilita busca de evidências web. |
 | `MAX_CLAIMS_PER_MESSAGE` | Máximo de alegações por texto; padrão `5`. |
-| `AUTHORIZED_GROUPS` | IDs separados por vírgula; vazia permite os grupos em que o bot participar. |
+| `AUTHORIZED_GROUPS` | IDs separados por vírgula; vazia não autoriza nenhum grupo. |
 
 Apague os valores ilustrativos das chaves opcionais que não for utilizar.
 Sem OpenAI, `claims.py` divide o texto em frases, evita perguntas, frases com
@@ -160,9 +160,31 @@ amostras. Essa pasta não é versionada e pode ser recriada localmente. `data/`,
 | `scripts/ml/train_baseline.py` | Treina TF-IDF de palavras/caracteres + regressão logística e salva modelo, métricas e gráfico de validação. |
 
 O fluxo atual aceita texto no Telegram. Diálogo socrático adaptativo, WhatsApp,
-áudio/imagem e treinamento com Docker são etapas futuras. Existem handlers de
-alerta/deep link, mas o motor atual retorna `requer_revisao=False`, portanto
-não aciona alertas automaticamente.
+áudio/imagem e treinamento com Docker são etapas futuras. O motor marca
+`requer_revisao=True` em casos inconclusivos ou com falhas externas; em grupos
+autorizados, o bot envia apenas um alerta curto e um deep link para o relatório
+privado. O score linguístico não decide o veredito factual nem o alerta.
+
+### Autorizar um grupo de teste (MVP-03)
+
+1. Adicione seu bot ao grupo e envie `/chatid` (ou `/chatid@NomeDoBot`). O comando
+   mostra apenas o identificador do grupo atual, sem analisar suas mensagens.
+2. Cadastre esse ID em `AUTHORIZED_GROUPS` no `.env`. Para vários grupos, use
+   vírgulas, por exemplo `AUTHORIZED_GROUPS=-1001234567890,-1009876543210`.
+   Grupos não cadastrados são ignorados; configuração vazia permite só o privado.
+3. Recrie o serviço com `docker compose up -d --force-recreate bot`.
+4. Para receber textos comuns, ajuste o **Privacy Mode**: bots administradores
+   recebem essas mensagens; para um bot não administrador, use `/setprivacy`
+   no `@BotFather` e desative a privacidade apenas se o grupo concordar. Pode
+   ser necessário remover e adicionar o bot novamente após a alteração.
+   Consulte a [documentação oficial do Telegram](https://core.telegram.org/bots/features#privacy-mode).
+
+Áudios, imagens, vídeos, documentos e figurinhas de grupos não entram na análise.
+O processamento não grava mensagens em arquivos ou banco. Resultados de casos
+que exigem revisão ficam temporariamente em memória para o deep link, com TTL
+de 24 horas. Os handlers do bot registram apenas tipos de falha, sem incluir o
+texto recebido ou IDs de grupos. A revisão dos logs dos demais componentes é
+parte da MVP-14. O teste em grupo real continua necessário para validar a configuração.
 
 ## Desenvolvimento, dados e treinamento local
 
@@ -211,6 +233,7 @@ críticos de sintaxe e nomes indefinidos; não impõe toda a formatação do pro
 | Arquivo em `tests/` | O que verifica |
 |---|---|
 | `test_config.py` | Token obrigatório, OpenAI opcional e extração por regras. |
+| `test_group_authorization.py` | Grupos explícitos, lista vazia, `/chatid`, logs dos handlers e fluxo alerta → deep link → relatório privado. |
 | `test_bot_report.py` | Relatório, deep link, separação linguagem/fatos e limite de mensagens com emojis. |
 | `test_search.py` | Evidências, tipos de fonte, Tavily, ausência de chave e falhas de conexão. |
 | `test_verifier.py` | Abstenção, conflitos, negação, referências inventadas, respostas inválidas, estabilidade e fontes separadas por alegação. |

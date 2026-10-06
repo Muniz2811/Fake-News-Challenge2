@@ -83,12 +83,13 @@ class BotTelegram:
 
     def __init__(
         self,
-        motor: MotorIA,
-        token: str,
+        motor: MotorIA | None = None,
+        token: str | None = None,
         authorized_groups: list[int] | None = None,
     ) -> None:
-        self.motor = motor
-        self.authorized_groups: list[int] = authorized_groups or []
+        self.motor = motor if motor is not None else MotorIA()
+        self.authorized_groups = list(AUTHORIZED_GROUPS if authorized_groups is None else authorized_groups)
+        token = TELEGRAM_BOT_TOKEN if token is None else token
 
         # Armazena UUID → {resultado, expires}
         self._investigacoes: Dict[str, dict] = {}
@@ -100,6 +101,7 @@ class BotTelegram:
         # /start com deep-link (chat privado)
         self.app.add_handler(CommandHandler("start", self._cmd_start))
         self.app.add_handler(CommandHandler("ajuda", self._cmd_ajuda))
+        self.app.add_handler(CommandHandler("chatid", self._cmd_chatid))
 
         # Mensagens de texto em grupos autorizados
         self.app.add_handler(
@@ -162,13 +164,16 @@ class BotTelegram:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         """Analisa mensagens em grupos autorizados; alerta se requer revisão."""
-        if not update.message or not update.message.text:
+        if (
+            not update.message or not update.message.text or not update.message.text.strip()
+            or update.message.chat.type not in {"group", "supergroup"}
+        ):
             return
 
         chat_id = update.message.chat_id
 
-        # Se AUTHORIZED_GROUPS foi configurado, restringe.
-        if self.authorized_groups and chat_id not in self.authorized_groups:
+        # Falha fechada: lista vazia não autoriza qualquer grupo.
+        if chat_id not in self.authorized_groups:
             return
 
         texto = update.message.text
@@ -177,8 +182,8 @@ class BotTelegram:
         except NotImplementedError:
             logger.debug("Motor de análise ainda não implementado — ignorando.")
             return
-        except Exception:
-            logger.exception("Erro ao analisar texto no grupo %s", chat_id)
+        except Exception as exc:
+            logger.error("Erro ao analisar texto no grupo (%s).", type(exc).__name__)
             return
 
         if not resultado.requer_revisao:
@@ -199,6 +204,15 @@ class BotTelegram:
         )
 
         await update.message.reply_text(mensagem_aviso, reply_markup=teclado)
+
+    async def _cmd_chatid(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Mostra apenas o ID do grupo atual, sem analisar ou registrar mensagens."""
+        if not update.message:
+            return
+        if update.message.chat.type in {"group", "supergroup"}:
+            await update.message.reply_text(f"ID deste grupo: {update.message.chat_id}")
+        else:
+            await update.message.reply_text("Use /chatid dentro do grupo que deseja autorizar.")
 
     async def _cmd_start(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -233,7 +247,8 @@ class BotTelegram:
             return
         await update.message.reply_text(
             "Envie uma notícia ou alegação como texto para iniciar uma investigação. "
-            "Áudios, figurinhas e arquivos ainda não são aceitos. A análise atual é simulada."
+            "Áudios, figurinhas e arquivos ainda não são aceitos. "
+            "No grupo, use /chatid para consultar o ID e cadastre-o em AUTHORIZED_GROUPS."
         )
 
     async def _handle_incompatible_content(
@@ -268,8 +283,8 @@ class BotTelegram:
                 "O fluxo de análise ainda não está totalmente implementado."
             )
             return
-        except Exception:
-            logger.exception("Erro ao analisar texto no privado")
+        except Exception as exc:
+            logger.error("Erro ao analisar texto no privado (%s).", type(exc).__name__)
             await update.message.reply_text(
                 "Ocorreu um erro durante a análise. Tente novamente mais tarde."
             )
@@ -280,7 +295,7 @@ class BotTelegram:
     async def _handle_error(
         self, update: object, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
-        logger.error("Erro ao processar atualização do Telegram: %s", context.error)
+        logger.error("Erro ao processar atualização do Telegram (%s).", type(context.error).__name__)
 
     # ------------------------------------------------------------------ #
     #  Formatação                                                         #
