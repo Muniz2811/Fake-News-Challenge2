@@ -9,6 +9,61 @@ treino; não confirma que uma notícia é falsa.** A verificação factual é se
 e usa: apoiada, refutada, evidência insuficiente, conflitante e não verificada.
 Sem evidências ou comparação segura, o verificador se abstém.
 
+## Usar Qwen local com Ollama
+
+Não é necessária uma chave OpenAI. Com o aplicativo Ollama aberto, execute:
+
+```bash
+ollama --version
+ollama pull qwen3:8b
+ollama list
+```
+
+Se `ollama serve` responder `address already in use` na porta `11434`, isso
+normalmente significa que o aplicativo já iniciou o servidor; não abra uma
+segunda instância. Confirme com:
+
+```bash
+curl http://localhost:11434/api/tags
+```
+
+Para rodar o bot diretamente no macOS, configure no `.env`:
+
+```dotenv
+LLM_BASE_URL=http://localhost:11434/v1
+LLM_API_KEY=ollama
+LLM_MODEL=qwen3:8b
+LLM_TIMEOUT_SECONDS=90
+LLM_MAX_TOKENS=1024
+MAX_EVIDENCES_PER_CLAIM=2
+MAX_EVIDENCE_SNIPPET_CHARS=600
+```
+
+Para rodar o bot dentro do Docker Desktop, use no lugar:
+
+```dotenv
+LLM_BASE_URL=http://host.docker.internal:11434/v1
+```
+
+O valor de `LLM_API_KEY` é exigido pelo formato do cliente, mas o Ollama local
+não valida essa chave. O Qwen executa três tarefas: extração estruturada de
+alegações, comparação NLI de cada alegação com seus próprios trechos e geração
+das perguntas do diálogo socrático. No NLI, o modelo devolve somente IDs e
+relações; justificativas, citações e categorias finais são montadas e validadas
+em Python. As evidências são ranqueadas e limitadas antes da inferência. Saída
+inválida ou servidor fora do ar ativa extração por regras ou abstenção, sem
+derrubar o bot e sem esconder as fontes consultadas.
+
+Para avaliar o checkpoint sem Telegram nem APIs de busca:
+
+```bash
+LLM_BASE_URL=http://localhost:11434/v1 LLM_API_KEY=ollama LLM_MODEL=qwen3:8b \
+python scripts/evaluate_qwen.py
+```
+
+O checkpoint e o protocolo estão registrados em
+[`docs/avaliacao-qwen.md`](docs/avaliacao-qwen.md).
+
 ## Rodar no macOS com Docker Desktop
 
 Não é necessário instalar Python para executar o bot com Docker.
@@ -71,14 +126,21 @@ Não é necessário instalar Python para executar o bot com Docker.
 | Variável no `.env` | Função |
 |---|---|
 | `TELEGRAM_BOT_TOKEN` | Obrigatória; obtenha com `/newbot` no `@BotFather`. |
-| `OPENAI_API_KEY` | Opcional; vazia habilita extração por regras e verificação conservadora. |
+| `LLM_BASE_URL` | Opcional; endpoint `/v1` do Ollama. Vazia mantém fallback/abstenção. |
+| `LLM_API_KEY` | Para Ollama, use `ollama`; não é uma credencial real. |
+| `LLM_MODEL` | Checkpoint; use `qwen3:8b` com Ollama. |
+| `LLM_TIMEOUT_SECONDS` | Timeout por chamada; padrão `90`. |
+| `LLM_MAX_TOKENS` | Teto de geração por resposta; padrão `1024`. |
+| `MAX_EVIDENCES_PER_CLAIM` | Máximo de evidências enviadas ao NLI; padrão `2`. |
+| `MAX_EVIDENCE_SNIPPET_CHARS` | Máximo de caracteres por trecho no contexto; padrão `600`. |
+| `OPENAI_API_KEY` | Compatibilidade opcional; não é necessária para usar Ollama. |
 | `GOOGLE_FACT_CHECK_KEY` | Opcional; habilita busca de checagens existentes. |
 | `TAVILY_API_KEY` | Opcional; habilita busca de evidências web. |
 | `MAX_CLAIMS_PER_MESSAGE` | Máximo de alegações por texto; padrão `5`. |
 | `AUTHORIZED_GROUPS` | IDs separados por vírgula; vazia não autoriza nenhum grupo. |
 
 Apague os valores ilustrativos das chaves opcionais que não for utilizar.
-Sem OpenAI, `claims.py` divide o texto em frases, evita perguntas, frases com
+Sem uma LLM configurada, `claims.py` divide o texto em frases, evita perguntas, frases com
 menos de quatro palavras e alguns marcadores de opinião, respeitando o limite.
 Esse fallback é uma heurística, não um extrator treinado. O verificador pode
 usar fact-checks comparáveis com rótulos reconhecidos; fora disso, se abstém.
@@ -137,12 +199,13 @@ amostras. Essa pasta não é versionada e pode ser recriada localmente. `data/`,
 |---|---|
 | `bot.py` | Comandos e mensagens do Telegram, confirmação inicial, relatório dividido em mensagens e armazenamento temporário de investigações/deep links. |
 | `config.py` | Carrega variáveis, limites e grupos; valida o token obrigatório. |
+| `llm.py` | Expõe um contrato único de JSON estruturado para Ollama ou outro endpoint compatível. |
 | `motor_ia.py` | Coordena inferência, extração, busca e verificação; devolve `ResultadoAnalise` com score e vereditos individuais. |
 | `language_risk.py` | Carrega uma vez o `.joblib` e aplica TF-IDF + regressão logística ao texto original. |
-| `claims.py` | Produz alegações numeradas com texto, trecho e posição; usa OpenAI quando configurada ou regras como fallback. |
+| `claims.py` | Produz alegações numeradas com texto, trecho e posição; usa a LLM local quando configurada ou regras como fallback. |
 | `search.py` | Adaptadores Google Fact Check/Tavily e evidências padronizadas: título, URL, publicador, trecho, data e metadados de checagem. |
 | `verifier.py` | Compara cada alegação com suas evidências, valida referências da LLM e mantém abstenção quando não há sustentação segura. |
-| `socratic.py` | Mantém a estrutura interna das sessões socráticas; a integração completa com os handlers do Telegram ainda é futura. |
+| `socratic.py` | Mantém sessões por usuário/chat, expiração, até três perguntas e síntese sem tratar respostas como fatos. |
 
 | Arquivo de suporte | Responsabilidade |
 |---|---|
@@ -159,8 +222,9 @@ amostras. Essa pasta não é versionada e pode ser recriada localmente. `data/`,
 | `scripts/ml/split_language_data.py` | Separa treino, validação e teste, controlando duplicatas/vazamento. |
 | `scripts/ml/train_baseline.py` | Treina TF-IDF de palavras/caracteres + regressão logística e salva modelo, métricas e gráfico de validação. |
 
-O fluxo atual aceita texto no Telegram. Diálogo socrático adaptativo, WhatsApp,
-áudio/imagem e treinamento com Docker são etapas futuras. O motor marca
+O fluxo atual aceita texto no Telegram e oferece o diálogo socrático pelo botão
+do relatório privado. WhatsApp, áudio/imagem e treinamento com Docker são etapas
+futuras. O motor marca
 `requer_revisao=True` em casos inconclusivos ou com falhas externas; em grupos
 autorizados, o bot envia apenas um alerta curto e um deep link para o relatório
 privado. O score linguístico não decide o veredito factual nem o alerta.
@@ -232,7 +296,8 @@ críticos de sintaxe e nomes indefinidos; não impõe toda a formatação do pro
 
 | Arquivo em `tests/` | O que verifica |
 |---|---|
-| `test_config.py` | Token obrigatório, OpenAI opcional e extração por regras. |
+| `test_config.py` | Token obrigatório, LLM opcional e extração por regras. |
+| `test_local_llm.py` | Contratos estruturados, validação da origem, fallback e sessões socráticas sem executar modelo no CI. |
 | `test_group_authorization.py` | Grupos explícitos, lista vazia, `/chatid`, logs dos handlers e fluxo alerta → deep link → relatório privado. |
 | `test_bot_report.py` | Relatório, deep link, separação linguagem/fatos e limite de mensagens com emojis. |
 | `test_search.py` | Evidências, tipos de fonte, Tavily, ausência de chave e falhas de conexão. |

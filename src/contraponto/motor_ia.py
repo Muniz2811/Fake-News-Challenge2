@@ -14,6 +14,7 @@ from config import LANGUAGE_RISK_MODEL_PATH
 from language_risk import AnalisadorLinguistico, formatar_analise_linguistica
 from verifier import VerificadorAlegacoes, VereditoAlegacao, ROTULOS_CATEGORIAS as ROTULOS_FACTUAIS
 from socratic import GerenciadorSocratico
+from llm import ProvedorLLM, criar_provedor_llm
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,7 @@ ROTULOS_CATEGORIAS = {
 class ResultadoAnalise:
     """Mantém a análise factual, evidências, resiliência e sinalização de revisão."""
 
+    texto_original: str = ""
     analise_linguistica: str = ""
     alegacoes: list[Alegacao] = field(default_factory=list)
     evidencias: list[Evidencia] = field(default_factory=list)
@@ -52,18 +54,31 @@ class MotorIA:
         self, provedores_busca: list[WebSearchProvider] | None = None,
         verificador: VerificadorAlegacoes | None = None,
         analisador_linguistico: AnalisadorLinguistico | None = None,
+        llm: ProvedorLLM | None = None,
+        extrator_claims: ExtratorAlegações | None = None,
+        gerenciador_socratico: GerenciadorSocratico | None = None,
     ):
-        self.extrator_claims = ExtratorAlegações()
+        provedor_llm = llm if llm is not None else criar_provedor_llm()
+        self.extrator_claims = (
+            extrator_claims if extrator_claims is not None
+            else ExtratorAlegações(llm=provedor_llm)
+        )
         self.provedores_busca = provedores_busca if provedores_busca is not None else [
             GoogleFactCheckAdapter(), TavilySearchAdapter(),
         ]
         self.provedor_busca = self.provedores_busca[0] if self.provedores_busca else None
-        self.verificador = verificador if verificador is not None else VerificadorAlegacoes()
+        self.verificador = (
+            verificador if verificador is not None
+            else VerificadorAlegacoes(llm=provedor_llm)
+        )
         self.analisador_linguistico = (
             analisador_linguistico if analisador_linguistico is not None
             else AnalisadorLinguistico(LANGUAGE_RISK_MODEL_PATH)
         )
-        self.socratico = GerenciadorSocratico()
+        self.socratico = (
+            gerenciador_socratico if gerenciador_socratico is not None
+            else GerenciadorSocratico(llm=provedor_llm)
+        )
 
     async def analisar_texto(self, texto: str) -> ResultadoAnalise:
         if not texto or not texto.strip():
@@ -165,6 +180,7 @@ class MotorIA:
         factual = "\n".join(linhas_relatorio) or "Nenhuma alegação verificável foi identificada no texto enviado."
 
         return ResultadoAnalise(
+            texto_original=texto,
             analise_linguistica=formatar_analise_linguistica(score, motivo_linguistico),
             alegacoes=alegacoes_extraidas,
             evidencias=todas_evidencias,
