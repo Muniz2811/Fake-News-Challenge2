@@ -5,6 +5,7 @@ import unittest
 
 import test_search  # noqa: F401  # Instala stubs antes dos módulos da aplicação.
 from claims import ExtratorAlegações
+from llm import _validar_base_url
 from socratic import GerenciadorSocratico
 from verifier import VereditoAlegacao
 
@@ -20,6 +21,24 @@ class FakeLLM:
         if isinstance(resposta, Exception):
             raise resposta
         return resposta
+
+
+class TestTransporteLLM(unittest.TestCase):
+    def test_https_and_local_ollama_are_allowed(self):
+        for url in (
+            "https://llm.example/v1",
+            "http://localhost:11434/v1",
+            "http://127.0.0.1:11434/v1",
+            "http://host.docker.internal:11434/v1",
+        ):
+            with self.subTest(url=url):
+                _validar_base_url(url)
+
+    def test_external_plain_http_is_rejected(self):
+        for url in ("http://llm.example/v1", "ftp://llm.example/v1", "https://"):
+            with self.subTest(url=url):
+                with self.assertRaisesRegex(ValueError, "HTTPS"):
+                    _validar_base_url(url)
 
 
 class TestExtracaoQwen(unittest.TestCase):

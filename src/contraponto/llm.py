@@ -2,6 +2,7 @@
 
 import json
 from typing import Any, Protocol
+from urllib.parse import urlparse
 
 from openai import OpenAI
 
@@ -60,9 +61,26 @@ class LLMCompativelOpenAI:
         return dados
 
 
+_HOSTS_HTTP_LOCAIS = {"localhost", "127.0.0.1", "::1", "host.docker.internal"}
+
+
+def _validar_base_url(base_url: str) -> None:
+    """Exige HTTPS fora da máquina local, sem impedir o Ollama local."""
+    url = urlparse(base_url)
+    host = (url.hostname or "").casefold()
+    if url.scheme == "https" and url.netloc:
+        return
+    if url.scheme == "http" and host in _HOSTS_HTTP_LOCAIS:
+        return
+    raise ValueError(
+        "LLM_BASE_URL deve usar HTTPS; HTTP é permitido apenas para o Ollama local."
+    )
+
+
 def criar_provedor_llm() -> ProvedorLLM | None:
     """Cria o provedor configurado; sem configuração, preserva os fallbacks locais."""
     if LLM_BASE_URL:
+        _validar_base_url(LLM_BASE_URL)
         cliente = OpenAI(
             base_url=LLM_BASE_URL,
             api_key=LLM_API_KEY or "ollama",

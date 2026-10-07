@@ -1,4 +1,5 @@
 """Verificação individual, referências validadas e abstenção conservadora."""
+from collections import OrderedDict
 from copy import deepcopy
 from dataclasses import asdict, dataclass, field, replace
 import hashlib
@@ -22,6 +23,8 @@ from search import Evidencia
 logger = logging.getLogger(__name__)
 
 _MAX_CHARS_TRECHO_RELATORIO = 160
+_CACHE_TTL_SEGUNDOS = 24 * 60 * 60
+_CACHE_MAX_ENTRADAS = 1000
 _DOMINIOS_NAO_ACEITOS = {
     "facebook.com",
     "instagram.com",
@@ -123,7 +126,16 @@ class VerificadorAlegacoes:
         self.client = getattr(self.llm, "client", None)
         self.max_evidencias = max(1, max_evidencias)
         self.max_chars_trecho = max(100, max_chars_trecho)
-        self._cache: dict[str, VereditoAlegacao] = {}
+        self._cache: OrderedDict[str, tuple[float, VereditoAlegacao]] = OrderedDict()
+
+    def _limpar_cache(self) -> None:
+        agora = time.monotonic()
+        expiradas = [
+            chave for chave, (expira_em, _) in self._cache.items()
+            if expira_em <= agora
+        ]
+        for chave in expiradas:
+            del self._cache[chave]
 
     @staticmethod
     def _abster(
@@ -216,8 +228,14 @@ class VerificadorAlegacoes:
         if not registros:
             return self._abster(alegacao, "Sem evidências comparáveis à alegação. Abstenção aplicada.")
         chave = json.dumps([alegacao.id, alegacao.texto, list(registros)], ensure_ascii=False)
+        self._limpar_cache()
         if chave in self._cache:
-            return deepcopy(self._cache[chave])
+            _, resultado = self._cache.pop(chave)
+            self._cache[chave] = (
+                time.monotonic() + _CACHE_TTL_SEGUNDOS,
+                resultado,
+            )
+            return deepcopy(resultado)
         conhecidas = {
             eid: _relacao_factcheck(ev) for eid, ev in registros.items()
             if ev.source_type == "fact_check"
@@ -235,7 +253,12 @@ class VerificadorAlegacoes:
             )
         else:
             resultado = self._consultar_modelo(alegacao, registros, conhecidas)
-        self._cache[chave] = deepcopy(resultado)
+        self._cache[chave] = (
+            time.monotonic() + _CACHE_TTL_SEGUNDOS,
+            deepcopy(resultado),
+        )
+        while len(self._cache) > _CACHE_MAX_ENTRADAS:
+            self._cache.popitem(last=False)
         return resultado
 
     def _consultar_modelo(

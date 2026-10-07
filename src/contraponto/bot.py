@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 
 # Tempo de vida (em horas) das investigações armazenadas em memória.
 _TTL_HORAS: int = 24
+_MAX_INVESTIGACOES: int = 1000
 
 # Limite do Telegram por mensagem. Contado em unidades UTF-16 (emojis fora do
 # BMP valem 2), o que nunca subestima o tamanho real.
@@ -151,6 +152,8 @@ class BotTelegram:
             "resultado": resultado,
             "expires": datetime.now() + timedelta(hours=_TTL_HORAS),
         }
+        while len(self._investigacoes) > _MAX_INVESTIGACOES:
+            self._investigacoes.pop(next(iter(self._investigacoes)))
         return analise_id
 
     def _fetch(self, analise_id: str) -> Optional[ResultadoAnalise]:
@@ -578,7 +581,7 @@ def main() -> None:
     bot = BotTelegram(
         motor=motor,
         token=TELEGRAM_BOT_TOKEN,
-        authorized_groups=AUTHORIZED_GROUPS if AUTHORIZED_GROUPS else None,
+        authorized_groups=AUTHORIZED_GROUPS,
     )
 
     print("🤖 Contraponto iniciado — aguardando mensagens...")

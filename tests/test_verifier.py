@@ -186,6 +186,25 @@ class TestVerifier(unittest.TestCase):
         result.fontes_citadas.clear()
         self.assertTrue(verifier.verificar_alegacao(self.claim, evs).fontes_citadas)
 
+    def test_cache_expires_and_respects_size_limit(self):
+        verifier = VerificadorAlegacoes()
+        result = verifier.verificar_alegacao(
+            self.claim, [evidence(rating="Correto")],
+        )
+        verifier._cache["expirada"] = (-1.0, result)
+        verifier._limpar_cache()
+        self.assertNotIn("expirada", verifier._cache)
+
+        second_claim = Alegacao(2, "A medida Y entrou em vigor")
+        second_evidence = evidence(
+            rating="Verdadeiro",
+            checked=second_claim.texto,
+            url="https://outra.example/checagem",
+        )
+        with patch("verifier._CACHE_MAX_ENTRADAS", 1):
+            verifier.verificar_alegacao(second_claim, [second_evidence])
+        self.assertEqual(len(verifier._cache), 1)
+
     def test_only_validated_data_in_rationale(self):
         evs = [evidence()]
         data = payload(evs, ["apoia"])

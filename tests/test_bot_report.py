@@ -2,7 +2,7 @@
 import logging
 from types import SimpleNamespace
 import unittest
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import test_search  # noqa: F401  # Impede leitura de .env e chamadas externas.
 from bot import BotTelegram, _configurar_logging
@@ -46,6 +46,13 @@ class TestBotReport(unittest.IsolatedAsyncioTestCase):
         self.assertIn(self.result.alegacoes[0].texto, calls[1].args[0])
         self.assertIn(self.result.evidencias[0].url, calls[1].args[0])
         self.assertNotIn("Alegacao(", calls[1].args[0])
+
+    def test_temporary_investigations_respect_size_limit(self):
+        self.bot._investigacoes = {}
+        with patch("bot._MAX_INVESTIGACOES", 2):
+            identifiers = [self.bot._store(self.result) for _ in range(3)]
+        self.assertNotIn(identifiers[0], self.bot._investigacoes)
+        self.assertEqual(set(self.bot._investigacoes), set(identifiers[1:]))
 
     async def test_deep_link_uses_the_same_safe_format(self):
         self.bot._fetch = lambda _id: self.result

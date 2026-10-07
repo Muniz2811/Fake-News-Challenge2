@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Variáveis de ambiente para conexões externas
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip() or None
 # Opcional: sem chave, a extração usa regras e o verificador conserva a abstenção.
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip() or None
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "").strip() or None
@@ -17,8 +17,8 @@ LLM_TIMEOUT_SECONDS = float(os.getenv("LLM_TIMEOUT_SECONDS", "90"))
 LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "1024"))
 MAX_EVIDENCES_PER_CLAIM = int(os.getenv("MAX_EVIDENCES_PER_CLAIM", "2"))
 MAX_EVIDENCE_SNIPPET_CHARS = int(os.getenv("MAX_EVIDENCE_SNIPPET_CHARS", "600"))
-GOOGLE_FACT_CHECK_KEY = os.getenv("GOOGLE_FACT_CHECK_KEY")
-TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+GOOGLE_FACT_CHECK_KEY = os.getenv("GOOGLE_FACT_CHECK_KEY", "").strip() or None
+TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "").strip() or None
 LANGUAGE_RISK_MODEL_PATH = os.getenv(
     "LANGUAGE_RISK_MODEL_PATH", "models/language_risk/baseline_tfidf_logreg.joblib"
 )
