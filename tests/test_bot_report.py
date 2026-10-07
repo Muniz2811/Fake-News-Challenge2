@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import AsyncMock, MagicMock
 
-import test_search  # Impede leitura de .env e chamadas externas.
+import test_search  # noqa: F401  # Impede leitura de .env e chamadas externas.
 from bot import BotTelegram, _configurar_logging
 from claims import Alegacao
 from motor_ia import ResultadoAnalise
@@ -80,6 +80,7 @@ class TestBotReport(unittest.IsolatedAsyncioTestCase):
 
     async def test_button_starts_dialogue_from_stored_investigation(self):
         self.bot.socratico = MagicMock()
+        self.bot.socratico.tem_sessao_ativa.return_value = False
         self.bot.socratico.iniciar_sessao.return_value = "Pergunta 1/3: Qual é a fonte?"
         self.bot._fetch = lambda _id: self.result
         query = SimpleNamespace(
@@ -93,7 +94,7 @@ class TestBotReport(unittest.IsolatedAsyncioTestCase):
         await self.bot._iniciar_dialogo_socratico(
             SimpleNamespace(callback_query=query), SimpleNamespace(),
         )
-        query.answer.assert_awaited_once()
+        query.answer.assert_awaited_once_with("Preparando o diálogo…")
         self.bot.socratico.iniciar_sessao.assert_called_once_with(
             7, self.result.texto_original, self.result.vereditos, chat_id=11,
         )
@@ -112,7 +113,9 @@ class TestBotReport(unittest.IsolatedAsyncioTestCase):
         self.bot.socratico.processar_resposta.assert_called_once_with(
             7, "Texto de teste", 11,
         )
-        self.message.reply_text.assert_awaited_once_with("Pergunta 2/3: Por quê?")
+        self.assertEqual(self.message.reply_text.await_count, 2)
+        self.assertIn("relacionando sua resposta", self.message.reply_text.await_args_list[0].args[0])
+        self.assertEqual(self.message.reply_text.await_args_list[1].args[0], "Pergunta 2/3: Por quê?")
 
 
 EV_ID = "ev_" + "a" * 64

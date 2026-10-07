@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 import unittest
 
-import test_search
+import test_search  # noqa: F401  # Instala stubs antes dos módulos da aplicação.
 from claims import ExtratorAlegações
 from socratic import GerenciadorSocratico
 from verifier import VereditoAlegacao
@@ -73,20 +73,37 @@ class TestDialogoSocratico(unittest.TestCase):
 
     def test_three_questions_adaptation_and_validated_summary(self):
         llm = FakeLLM([
-            {"pergunta": "Qual fonte primária poderia confirmar essa informação?"},
-            {"pergunta": "Que detalhe da fonte ainda deixa espaço para dúvida?"},
-            {"pergunta": "Que contexto você buscaria antes de compartilhar?"},
+            {
+                "relacao": "nao_comprovada_pela_investigacao",
+                "ids_alegacoes_usadas": [1],
+                "resposta": "A investigação não confirma que houve intenção política.",
+                "pergunta": "O que fez você relacionar essa notícia a uma intenção política?",
+            },
+            {
+                "relacao": "nao_comprovada_pela_investigacao",
+                "ids_alegacoes_usadas": [1],
+                "resposta": "As fontes não identificam filiação partidária das pessoas envolvidas.",
+                "pergunta": "Que informação mostraria se essa suspeita tem fundamento?",
+            },
+            {
+                "relacao": "nao_comprovada_pela_investigacao",
+                "ids_alegacoes_usadas": [1],
+                "resposta": "A manipulação mencionada não foi confirmada pelo material consultado.",
+                "pergunta": "",
+            },
         ])
         dialogo = GerenciadorSocratico(llm=llm)
         inicio = dialogo.iniciar_sessao(7, "Notícia", self.vereditos, chat_id=11)
-        segunda = dialogo.processar_resposta(7, "Eu procuraria a prefeitura", chat_id=11)
-        terceira = dialogo.processar_resposta(7, "A data não está clara", chat_id=11)
-        sintese = dialogo.processar_resposta(7, "Eu aguardaria", chat_id=11)
+        segunda = dialogo.processar_resposta(7, "Isso parece uma ação política", chat_id=11)
+        terceira = dialogo.processar_resposta(7, "As pessoas eram de um partido", chat_id=11)
+        sintese = dialogo.processar_resposta(7, "Então o resultado foi manipulado", chat_id=11)
         self.assertIn("Pergunta 1/3", inicio)
-        self.assertIn('Você mencionou "Eu procuraria a prefeitura"', segunda)
+        self.assertIn("não confirma que houve intenção política", segunda)
+        self.assertIn("relacionar essa notícia", segunda)
+        self.assertNotIn("próxima afirmação", segunda)
         self.assertIn("Pergunta 3/3", terceira)
-        self.assertIn("evidência insuficiente", sintese)
-        self.assertIn("reflexões (não tratadas como fatos)", sintese)
+        self.assertIn("manipulação mencionada não foi confirmada", sintese)
+        self.assertIn("permanecem como hipóteses", sintese)
         self.assertFalse(dialogo.tem_sessao_ativa(7, 11))
         self.assertEqual(len(llm.chamadas), 3)
 
@@ -103,13 +120,95 @@ class TestDialogoSocratico(unittest.TestCase):
     def test_llm_failure_keeps_dialogue_available(self):
         dialogo = GerenciadorSocratico(llm=FakeLLM([RuntimeError("offline")]))
         inicio = dialogo.iniciar_sessao(7, "Notícia", self.vereditos, chat_id=11)
-        self.assertIn("fonte ou evidência", inicio)
+        turno = dialogo.processar_resposta(7, "Isso foi manipulado", chat_id=11)
+        self.assertIn("o que mais chamou sua atenção", inicio)
+        self.assertIn("não aparece confirmada", turno)
+        self.assertIn("O que levou você", turno)
 
-    def test_question_that_denies_existing_sources_uses_safe_fallback(self):
+    def test_invalid_or_technical_turn_uses_safe_fallback(self):
         llm = FakeLLM([{
-            "pergunta": "Como a ausência de fontes afeta a análise desta alegação?"
+            "relacao": "apoiada_pela_investigacao",
+            "ids_alegacoes_usadas": [999],
+            "resposta": "O usuário está certo.",
+            "pergunta": "Qual score e metodologia confirmam sua hipótese?",
         }])
         dialogo = GerenciadorSocratico(llm=llm)
-        inicio = dialogo.iniciar_sessao(7, "Notícia", self.vereditos, chat_id=11)
-        self.assertIn("Que fonte ou evidência", inicio)
-        self.assertNotIn("ausência de fontes", inicio)
+        dialogo.iniciar_sessao(7, "Notícia", self.vereditos, chat_id=11)
+        turno = dialogo.processar_resposta(7, "Isso foi manipulado", chat_id=11)
+        self.assertIn("não aparece confirmada", turno)
+        self.assertNotIn("score", turno)
+
+    def test_user_question_is_answered_before_next_reflection(self):
+        llm = FakeLLM([
+            {
+                "relacao": "nao_comprovada_pela_investigacao",
+                "ids_alegacoes_usadas": [1],
+                "resposta": "A fonte consultada não informa a data da abertura.",
+                "pergunta": "Essa ausência de data muda sua avaliação da notícia?",
+            },
+        ])
+        dialogo = GerenciadorSocratico(llm=llm)
+        dialogo.iniciar_sessao(7, "Notícia", self.vereditos, chat_id=11)
+        turno = dialogo.processar_resposta(
+            7, "Mas por que isso ainda não foi confirmado?", chat_id=11,
+        )
+        self.assertIn("não informa a data", turno)
+        self.assertIn("Pergunta 2/3", turno)
+        self.assertIn("muda sua avaliação", turno)
+
+    def test_unconfirmed_new_claim_may_have_no_supporting_claim_id(self):
+        llm = FakeLLM([{
+            "relacao": "nao_comprovada_pela_investigacao",
+            "ids_alegacoes_usadas": [],
+            "resposta": "A investigação não menciona participação partidária na fiscalização.",
+            "pergunta": "O que levou você a atribuir uma filiação partidária aos fiscais?",
+        }])
+        dialogo = GerenciadorSocratico(llm=llm)
+        dialogo.iniciar_sessao(7, "Notícia", self.vereditos, chat_id=11)
+        turno = dialogo.processar_resposta(
+            7, "Os fiscais eram de um partido", chat_id=11,
+        )
+        self.assertIn("não menciona participação partidária", turno)
+        self.assertIn("atribuir uma filiação", turno)
+
+    def test_out_of_scope_is_redirected_but_disagreement_is_not(self):
+        llm = FakeLLM([
+            {
+                "relacao": "fora_do_escopo",
+                "ids_alegacoes_usadas": [],
+                "resposta": "Resposta qualquer.",
+                "pergunta": "Qual ponto da notícia você gostaria de retomar?",
+            },
+            {
+                "relacao": "nao_comprovada_pela_investigacao",
+                "ids_alegacoes_usadas": [1],
+                "resposta": "A investigação não confirma que houve fraude.",
+                "pergunta": "O que na notícia levou você a suspeitar de fraude?",
+            },
+        ])
+        dialogo = GerenciadorSocratico(llm=llm)
+        dialogo.iniciar_sessao(7, "Notícia", self.vereditos, chat_id=11)
+        fora = dialogo.processar_resposta(7, "Qual seu filme favorito?", chat_id=11)
+        relacionado = dialogo.processar_resposta(7, "Ainda acho que houve fraude", chat_id=11)
+        self.assertIn("fugir do assunto", fora)
+        self.assertIn("não confirma que houve fraude", relacionado)
+        contexto = llm.chamadas[1][1]
+        self.assertIn("Ainda acho que houve fraude", contexto)
+        self.assertIn("A prefeitura abrirá 20 escolas", contexto)
+
+    def test_political_suspicion_is_not_discarded_when_model_marks_out_of_scope(self):
+        llm = FakeLLM([{
+            "relacao": "fora_do_escopo",
+            "ids_alegacoes_usadas": [],
+            "resposta": "Isso não tem relação.",
+            "pergunta": "Como você sabe que houve manipulação partidária?",
+        }])
+        dialogo = GerenciadorSocratico(llm=llm)
+        dialogo.iniciar_sessao(7, "Notícia sobre eleições", self.vereditos, chat_id=11)
+        turno = dialogo.processar_resposta(
+            7, "Acho que a votação foi manipulada por petistas", chat_id=11,
+        )
+        self.assertIn("não confirma essa conclusão", turno)
+        self.assertNotIn("fugir do assunto", turno)
+        self.assertIn("não oferecem uma base segura", turno)
+        self.assertIn("fazê-lo reconsiderá-la", turno)

@@ -1,5 +1,6 @@
 """Interface do Contraponto com o Telegram (python-telegram-bot ≥ 20)."""
 
+import asyncio
 import logging
 import os
 import re
@@ -9,6 +10,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Optional
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.error import BadRequest
 from telegram.ext import (
     ApplicationBuilder,
     CallbackQueryHandler,
@@ -97,6 +99,7 @@ class BotTelegram:
 
         # Armazena UUID → {resultado, expires}
         self._investigacoes: Dict[str, dict] = {}
+        self._dialogos_iniciando: set[tuple[int, int, str]] = set()
 
         if not token:
             raise ValueError("Token do Telegram não fornecido ou inválido.")
@@ -108,7 +111,7 @@ class BotTelegram:
         self.app.add_handler(CommandHandler("chatid", self._cmd_chatid))
         self.app.add_handler(CommandHandler("cancelar", self._cmd_cancelar))
         self.app.add_handler(CallbackQueryHandler(
-            self._iniciar_dialogo_socratico, pattern=r"^socratico:"
+            self._iniciar_dialogo_socratico, pattern=r"^socratico:", block=False,
         ))
 
         # Mensagens de texto em grupos autorizados
@@ -290,7 +293,13 @@ class BotTelegram:
         query = getattr(update, "callback_query", None)
         if query is None:
             return
-        await query.answer()
+        try:
+            await query.answer("Preparando o diálogo…")
+        except BadRequest as exc:
+            # Um callback expira rapidamente no Telegram. Isso pode ocorrer quando
+            # vários cliques antigos chegam depois de uma tarefa demorada.
+            logger.warning("Callback do diálogo recusado pelo Telegram: %s", str(exc)[:160])
+            return
         data = getattr(query, "data", "") or ""
         analise_id = data.removeprefix("socratico:")
         resultado = self._fetch(analise_id)
@@ -305,10 +314,35 @@ class BotTelegram:
         if user_id is None or chat_id is None or getattr(chat, "type", None) != "private":
             await query.message.reply_text("O diálogo socrático está disponível no chat privado.")
             return
-        abertura = self.socratico.iniciar_sessao(
-            user_id, resultado.texto_original, resultado.vereditos, chat_id=chat_id,
-        )
-        await query.message.reply_text(abertura)
+        if not hasattr(self, "_dialogos_iniciando"):
+            self._dialogos_iniciando = set()
+        chave = (chat_id, user_id, analise_id)
+        if chave in self._dialogos_iniciando:
+            await query.message.reply_text(
+                "Já estou preparando a primeira pergunta deste diálogo."
+            )
+            return
+        if self.socratico.tem_sessao_ativa(user_id, chat_id):
+            await query.message.reply_text(
+                "Este diálogo já está em andamento. Responda à pergunta anterior "
+                "ou use /cancelar para encerrá-lo."
+            )
+            return
+
+        self._dialogos_iniciando.add(chave)
+        try:
+            # O Ollama é síncrono. Executá-lo em uma thread evita congelar o loop
+            # do Telegram enquanto a pergunta é preparada.
+            abertura = await asyncio.to_thread(
+                self.socratico.iniciar_sessao,
+                user_id,
+                resultado.texto_original,
+                resultado.vereditos,
+                chat_id=chat_id,
+            )
+            await query.message.reply_text(abertura)
+        finally:
+            self._dialogos_iniciando.discard(chave)
 
     async def _handle_incompatible_content(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -338,7 +372,12 @@ class BotTelegram:
             user_id is not None and chat_id is not None
             and self.socratico.tem_sessao_ativa(user_id, chat_id)
         ):
-            resposta = self.socratico.processar_resposta(user_id, texto, chat_id)
+            await update.message.reply_text(
+                "Estou relacionando sua resposta com o que foi encontrado…"
+            )
+            resposta = await asyncio.to_thread(
+                self.socratico.processar_resposta, user_id, texto, chat_id,
+            )
             await update.message.reply_text(resposta)
             return
 
@@ -364,7 +403,14 @@ class BotTelegram:
     async def _handle_error(
         self, update: object, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
-        logger.error("Erro ao processar atualização do Telegram (%s).", type(context.error).__name__)
+        erro = context.error
+        if isinstance(erro, BadRequest):
+            logger.error(
+                "Erro ao processar atualização do Telegram (BadRequest): %s",
+                str(erro)[:200],
+            )
+            return
+        logger.error("Erro ao processar atualização do Telegram (%s).", type(erro).__name__)
 
     # ------------------------------------------------------------------ #
     #  Formatação                                                         #
