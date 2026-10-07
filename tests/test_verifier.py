@@ -27,10 +27,10 @@ def evidence(text=CLAIM, rating=None, url="https://fonte.example/checagem", chec
 
 
 def payload(evs, relations, category="apoiada"):
+    del category  # A categoria final é agregada em Python.
     return {
-        "categoria": category, "justificativa": "Comparação com os registros fornecidos.",
         "referencias": [
-            {"id": _id_evidencia(ev), "trecho": ev.snippet, "relacao": rel}
+            {"id": _id_evidencia(ev), "relacao": rel}
             for ev, rel in zip(evs, relations)
         ],
     }
@@ -116,7 +116,7 @@ class TestVerifier(unittest.TestCase):
         result, _ = self.verify_model(evs, payload(evs, ["apoia", "refuta"], "conflitante"))
         self.assertEqual(result.categoria, "conflitante")
         invalid, _ = self.verify_model(evs, payload(evs, ["apoia", "refuta"], "apoiada"))
-        self.assertEqual(invalid.categoria, "nao_verificada")
+        self.assertEqual(invalid.categoria, "conflitante")
         result, _ = self.verify_model([evs[1]], payload([evs[1]], ["refuta"], "refutada"))
         self.assertEqual(result.categoria, "refutada")
 
@@ -124,25 +124,17 @@ class TestVerifier(unittest.TestCase):
         evs = [evidence()]
         valid = payload(evs, ["apoia"])
         invalids = [None, [], "{", "```json\n{}\n```", {"categoria": "apoiada"}]
-        for field, value in [
-            ("categoria", "verdadeira"), ("categoria", []),
-            ("justificativa", ""), ("justificativa", "  "), ("justificativa", 42),
-            ("referencias", "url"), ("referencias", []),
-        ]:
+        for field, value in [("referencias", "url"), ("referencias", [])]:
             item = deepcopy(valid)
             item[field] = value
             invalids.append(item)
         for field, value in [
             ("id", "https://inventada.example/"), ("id", []),
-            ("trecho", "Uma afirmação inventada"), ("trecho", 1),
             ("relacao", "falso"), ("relacao", []),
         ]:
             item = deepcopy(valid)
             item["referencias"][0][field] = value
             invalids.append(item)
-        invented_url = deepcopy(valid)
-        invented_url["fontes_citadas"] = ["https://inventada.example/"]
-        invalids.append(invented_url)
         extra_url = deepcopy(valid)
         extra_url["referencias"][0]["url"] = "https://inventada.example/"
         invalids.append(extra_url)
@@ -153,7 +145,8 @@ class TestVerifier(unittest.TestCase):
             with self.subTest(data=data):
                 result, _ = self.verify_model(evs, data)
                 self.assertEqual(result.categoria, "nao_verificada")
-                self.assertEqual(result.fontes_citadas, [])
+                self.assertEqual(result.fontes_citadas, [evs[0].url])
+                self.assertEqual(result.evidencias_citadas, [_id_evidencia(evs[0])])
                 self.assertNotIn("apoiada", result.justificativa)
 
     def test_truncated_response_and_provider_failure(self):
@@ -193,14 +186,89 @@ class TestVerifier(unittest.TestCase):
         result.fontes_citadas.clear()
         self.assertTrue(verifier.verificar_alegacao(self.claim, evs).fontes_citadas)
 
+    def test_cache_expires_and_respects_size_limit(self):
+        verifier = VerificadorAlegacoes()
+        result = verifier.verificar_alegacao(
+            self.claim, [evidence(rating="Correto")],
+        )
+        verifier._cache["expirada"] = (-1.0, result)
+        verifier._limpar_cache()
+        self.assertNotIn("expirada", verifier._cache)
+
+        second_claim = Alegacao(2, "A medida Y entrou em vigor")
+        second_evidence = evidence(
+            rating="Verdadeiro",
+            checked=second_claim.texto,
+            url="https://outra.example/checagem",
+        )
+        with patch("verifier._CACHE_MAX_ENTRADAS", 1):
+            verifier.verificar_alegacao(second_claim, [second_evidence])
+        self.assertEqual(len(verifier._cache), 1)
+
     def test_only_validated_data_in_rationale(self):
         evs = [evidence()]
         data = payload(evs, ["apoia"])
-        data["justificativa"] = "Segundo https://inventada.example/ houve uma descoberta inventada."
         result, _ = self.verify_model(evs, data)
-        self.assertNotIn("inventada", result.justificativa)
         self.assertIn(evs[0].snippet, result.justificativa)
         self.assertEqual(result.fontes_citadas, [evs[0].url])
+
+    def test_social_platforms_are_excluded_and_report_excerpt_is_compact(self):
+        social = Evidencia(
+            title="Post", url="https://www.instagram.com/p/teste", publisher="Instagram",
+            snippet="Uma publicação sem contexto", relevance_score=0.99,
+            source_type="secondary",
+        )
+        oficial = Evidencia(
+            title="Nota oficial", url="https://tse.jus.br/nota", publisher="TSE",
+            snippet="Informação oficial confirmada. " * 40, relevance_score=0.8,
+            source_type="official",
+        )
+        client = MagicMock()
+        client.chat.completions.create.return_value = response(payload([oficial], ["apoia"]))
+        resultado = VerificadorAlegacoes(client=client).verificar_alegacao(
+            self.claim, [social, oficial],
+        )
+        self.assertEqual(resultado.categoria, "apoiada")
+        self.assertEqual(resultado.fontes_citadas, [oficial.url])
+        self.assertNotIn("instagram", resultado.justificativa.casefold())
+        self.assertNotIn(oficial.url, resultado.justificativa)
+        texto_publicado = resultado.justificativa.split("] ", 1)[1]
+        self.assertLessEqual(len(texto_publicado), 280)
+        contexto = client.chat.completions.create.call_args.kwargs["messages"][1]["content"]
+        self.assertNotIn("instagram.com", contexto)
+
+    def test_timeout_preserves_ranked_sources_and_logs_no_claim_text(self):
+        evs = [
+            evidence("Trecho secundário", url="https://secundaria.example/a"),
+            Evidencia(
+                title="Fonte oficial", url="https://governo.gov.br/b", publisher="Governo",
+                snippet="Trecho oficial " * 100, relevance_score=0.4, source_type="official",
+            ),
+            Evidencia(
+                title="Notícia", url="https://bbc.com/c", publisher="BBC",
+                snippet="Trecho jornalístico", relevance_score=0.9, source_type="news",
+            ),
+        ]
+        client = MagicMock()
+        client.chat.completions.create.side_effect = TimeoutError("conteúdo privado")
+        verifier = VerificadorAlegacoes(
+            client=client, max_evidencias=2, max_chars_trecho=120,
+        )
+        with self.assertLogs("verifier", level="WARNING") as captured:
+            result = verifier.verificar_alegacao(self.claim, evs)
+        self.assertEqual(result.categoria, "nao_verificada")
+        self.assertIn("excedeu o tempo limite", result.justificativa)
+        self.assertEqual(
+            set(result.fontes_citadas),
+            {"https://governo.gov.br/b", "https://bbc.com/c"},
+        )
+        logs = " ".join(captured.output)
+        self.assertIn("TimeoutError", logs)
+        self.assertNotIn(CLAIM, logs)
+        self.assertNotIn("conteúdo privado", logs)
+        contexto = client.chat.completions.create.call_args.kwargs["messages"][1]["content"]
+        self.assertNotIn("secundaria.example", contexto)
+        self.assertLessEqual(max(len(e["snippet"]) for e in json.loads(contexto)["evidencias"]), 120)
 
 
 class TestGoogleMetadata(unittest.TestCase):

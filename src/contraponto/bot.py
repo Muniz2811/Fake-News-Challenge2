@@ -1,5 +1,6 @@
 """Interface do Contraponto com o Telegram (python-telegram-bot ≥ 20)."""
 
+import asyncio
 import logging
 import os
 import re
@@ -9,8 +10,10 @@ from datetime import datetime, timedelta
 from typing import Dict, Optional
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.error import BadRequest
 from telegram.ext import (
     ApplicationBuilder,
+    CallbackQueryHandler,
     CommandHandler,
     ContextTypes,
     MessageHandler,
@@ -21,16 +24,18 @@ from telegram.ext import (
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from config import (
-    TELEGRAM_BOT_TOKEN, AUTHORIZED_GROUPS, OPENAI_API_KEY,
+    TELEGRAM_BOT_TOKEN, AUTHORIZED_GROUPS, LLM_API_KEY, OPENAI_API_KEY,
     GOOGLE_FACT_CHECK_KEY, TAVILY_API_KEY, validate_env,
 )
 from motor_ia import MotorIA, ResultadoAnalise
 from verifier import ROTULOS_CATEGORIAS, VereditoAlegacao
+from socratic import GerenciadorSocratico
 
 logger = logging.getLogger(__name__)
 
 # Tempo de vida (em horas) das investigações armazenadas em memória.
 _TTL_HORAS: int = 24
+_MAX_INVESTIGACOES: int = 1000
 
 # Limite do Telegram por mensagem. Contado em unidades UTF-16 (emojis fora do
 # BMP valem 2), o que nunca subestima o tamanho real.
@@ -88,11 +93,14 @@ class BotTelegram:
         authorized_groups: list[int] | None = None,
     ) -> None:
         self.motor = motor if motor is not None else MotorIA()
+        gerenciador = getattr(self.motor, "socratico", None)
+        self.socratico = gerenciador if gerenciador is not None else GerenciadorSocratico()
         self.authorized_groups = list(AUTHORIZED_GROUPS if authorized_groups is None else authorized_groups)
         token = TELEGRAM_BOT_TOKEN if token is None else token
 
         # Armazena UUID → {resultado, expires}
         self._investigacoes: Dict[str, dict] = {}
+        self._dialogos_iniciando: set[tuple[int, int, str]] = set()
 
         if not token:
             raise ValueError("Token do Telegram não fornecido ou inválido.")
@@ -102,6 +110,10 @@ class BotTelegram:
         self.app.add_handler(CommandHandler("start", self._cmd_start))
         self.app.add_handler(CommandHandler("ajuda", self._cmd_ajuda))
         self.app.add_handler(CommandHandler("chatid", self._cmd_chatid))
+        self.app.add_handler(CommandHandler("cancelar", self._cmd_cancelar))
+        self.app.add_handler(CallbackQueryHandler(
+            self._iniciar_dialogo_socratico, pattern=r"^socratico:", block=False,
+        ))
 
         # Mensagens de texto em grupos autorizados
         self.app.add_handler(
@@ -132,12 +144,16 @@ class BotTelegram:
 
     def _store(self, resultado: ResultadoAnalise) -> str:
         """Gera UUID, armazena resultado com TTL e faz limpeza oportuna."""
+        if not hasattr(self, "_investigacoes"):
+            self._investigacoes = {}
         self._purge_expired()
         analise_id = str(uuid.uuid4())
         self._investigacoes[analise_id] = {
             "resultado": resultado,
             "expires": datetime.now() + timedelta(hours=_TTL_HORAS),
         }
+        while len(self._investigacoes) > _MAX_INVESTIGACOES:
+            self._investigacoes.pop(next(iter(self._investigacoes)))
         return analise_id
 
     def _fetch(self, analise_id: str) -> Optional[ResultadoAnalise]:
@@ -176,7 +192,6 @@ class BotTelegram:
         if chat_id not in self.authorized_groups:
             return
 
-        logger.info("Mensagem recebida no chat autorizado %s.", chat_id)
         texto = update.message.text
         try:
             resultado = await self.motor.analisar_texto(texto)
@@ -239,7 +254,7 @@ class BotTelegram:
             )
             return
 
-        await self._enviar_relatorio(update.message, resultado)
+        await self._enviar_relatorio(update.message, resultado, analise_id)
 
     async def _cmd_ajuda(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -251,6 +266,86 @@ class BotTelegram:
             "Áudios, figurinhas e arquivos ainda não são aceitos. "
             "No grupo, use /chatid para consultar o ID e cadastre-o em AUTHORIZED_GROUPS."
         )
+
+    @staticmethod
+    def _ids_privados(update: Update) -> tuple[int | None, int | None]:
+        usuario = getattr(update, "effective_user", None)
+        chat = getattr(update, "effective_chat", None)
+        message = getattr(update, "message", None)
+        if usuario is None and message is not None:
+            usuario = getattr(message, "from_user", None)
+        if chat is None and message is not None:
+            chat = getattr(message, "chat", None)
+        return getattr(usuario, "id", None), getattr(chat, "id", None)
+
+    async def _cmd_cancelar(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        del context
+        if not update.message or update.message.chat.type != "private":
+            return
+        user_id, chat_id = self._ids_privados(update)
+        if user_id is None or chat_id is None:
+            return
+        await update.message.reply_text(self.socratico.cancelar_sessao(user_id, chat_id))
+
+    async def _iniciar_dialogo_socratico(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        del context
+        query = getattr(update, "callback_query", None)
+        if query is None:
+            return
+        try:
+            await query.answer("Preparando o diálogo…")
+        except BadRequest as exc:
+            # Um callback expira rapidamente no Telegram. Isso pode ocorrer quando
+            # vários cliques antigos chegam depois de uma tarefa demorada.
+            logger.warning("Callback do diálogo recusado pelo Telegram: %s", str(exc)[:160])
+            return
+        data = getattr(query, "data", "") or ""
+        analise_id = data.removeprefix("socratico:")
+        resultado = self._fetch(analise_id)
+        if resultado is None:
+            await query.message.reply_text(
+                "Esta investigação expirou. Envie o texto novamente para gerar outro relatório."
+            )
+            return
+        usuario = getattr(query, "from_user", None)
+        chat = getattr(query.message, "chat", None)
+        user_id, chat_id = getattr(usuario, "id", None), getattr(chat, "id", None)
+        if user_id is None or chat_id is None or getattr(chat, "type", None) != "private":
+            await query.message.reply_text("O diálogo socrático está disponível no chat privado.")
+            return
+        if not hasattr(self, "_dialogos_iniciando"):
+            self._dialogos_iniciando = set()
+        chave = (chat_id, user_id, analise_id)
+        if chave in self._dialogos_iniciando:
+            await query.message.reply_text(
+                "Já estou preparando a primeira pergunta deste diálogo."
+            )
+            return
+        if self.socratico.tem_sessao_ativa(user_id, chat_id):
+            await query.message.reply_text(
+                "Este diálogo já está em andamento. Responda à pergunta anterior "
+                "ou use /cancelar para encerrá-lo."
+            )
+            return
+
+        self._dialogos_iniciando.add(chave)
+        try:
+            # O Ollama é síncrono. Executá-lo em uma thread evita congelar o loop
+            # do Telegram enquanto a pergunta é preparada.
+            abertura = await asyncio.to_thread(
+                self.socratico.iniciar_sessao,
+                user_id,
+                resultado.texto_original,
+                resultado.vereditos,
+                chat_id=chat_id,
+            )
+            await query.message.reply_text(abertura)
+        finally:
+            self._dialogos_iniciando.discard(chave)
 
     async def _handle_incompatible_content(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -275,6 +370,20 @@ class BotTelegram:
             )
             return
 
+        user_id, chat_id = self._ids_privados(update)
+        if (
+            user_id is not None and chat_id is not None
+            and self.socratico.tem_sessao_ativa(user_id, chat_id)
+        ):
+            await update.message.reply_text(
+                "Estou relacionando sua resposta com o que foi encontrado…"
+            )
+            resposta = await asyncio.to_thread(
+                self.socratico.processar_resposta, user_id, texto, chat_id,
+            )
+            await update.message.reply_text(resposta)
+            return
+
         try:
             # A confirmação é enviada antes de chamar o motor, que pode demorar.
             await update.message.reply_text("📩 Texto recebido. A investigação começou.")
@@ -291,21 +400,40 @@ class BotTelegram:
             )
             return
 
-        await self._enviar_relatorio(update.message, resultado)
+        analise_id = self._store(resultado)
+        await self._enviar_relatorio(update.message, resultado, analise_id)
 
     async def _handle_error(
         self, update: object, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
-        logger.error("Erro ao processar atualização do Telegram (%s).", type(context.error).__name__)
+        erro = context.error
+        if isinstance(erro, BadRequest):
+            logger.error(
+                "Erro ao processar atualização do Telegram (BadRequest): %s",
+                str(erro)[:200],
+            )
+            return
+        logger.error("Erro ao processar atualização do Telegram (%s).", type(erro).__name__)
 
     # ------------------------------------------------------------------ #
     #  Formatação                                                         #
     # ------------------------------------------------------------------ #
 
-    async def _enviar_relatorio(self, message, resultado: ResultadoAnalise) -> None:
+    async def _enviar_relatorio(
+        self, message, resultado: ResultadoAnalise, analise_id: str | None = None,
+    ) -> None:
         """Envia o relatório em uma ou mais mensagens, na ordem das seções."""
-        for parte in self._dividir_mensagem(self._formatar_relatorio(resultado)):
-            await message.reply_text(parte)
+        partes = self._dividir_mensagem(self._formatar_relatorio(resultado))
+        for indice, parte in enumerate(partes):
+            kwargs = {}
+            if analise_id and indice == len(partes) - 1:
+                kwargs["reply_markup"] = InlineKeyboardMarkup([[
+                    InlineKeyboardButton(
+                        "💬 Iniciar diálogo socrático",
+                        callback_data=f"socratico:{analise_id}",
+                    )
+                ]])
+            await message.reply_text(parte, **kwargs)
 
     @staticmethod
     def _formatar_relatorio(resultado: ResultadoAnalise) -> str:
@@ -419,7 +547,10 @@ class _RedactingFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         texto = super().format(record)
         texto = re.sub(r"bot\d+:[A-Za-z0-9_-]+", "bot[CREDENCIAL OCULTA]", texto)
-        for chave in (TELEGRAM_BOT_TOKEN, OPENAI_API_KEY, GOOGLE_FACT_CHECK_KEY, TAVILY_API_KEY):
+        for chave in (
+            TELEGRAM_BOT_TOKEN, LLM_API_KEY, OPENAI_API_KEY,
+            GOOGLE_FACT_CHECK_KEY, TAVILY_API_KEY,
+        ):
             if chave:
                 texto = texto.replace(chave, "[CREDENCIAL OCULTA]")
         return texto

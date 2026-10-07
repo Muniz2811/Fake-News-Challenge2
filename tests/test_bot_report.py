@@ -2,9 +2,9 @@
 import logging
 from types import SimpleNamespace
 import unittest
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
-import test_search  # Impede leitura de .env e chamadas externas.
+import test_search  # noqa: F401  # Impede leitura de .env e chamadas externas.
 from bot import BotTelegram, _configurar_logging
 from claims import Alegacao
 from motor_ia import ResultadoAnalise
@@ -14,6 +14,7 @@ from verifier import VereditoAlegacao
 
 def resultado():
     return ResultadoAnalise(
+        texto_original="O estudo de 2026 apresentou um resultado.",
         analise_linguistica="Score experimental: 0,428.",
         alegacoes=[Alegacao(1, "O estudo_2026 diz *algo* [pendente]", "trecho_original")],
         resultado_factual="Conclusão: não verificada\nResposta inválida ou indisponível.",
@@ -46,10 +47,20 @@ class TestBotReport(unittest.IsolatedAsyncioTestCase):
         self.assertIn(self.result.evidencias[0].url, calls[1].args[0])
         self.assertNotIn("Alegacao(", calls[1].args[0])
 
+    def test_temporary_investigations_respect_size_limit(self):
+        self.bot._investigacoes = {}
+        with patch("bot._MAX_INVESTIGACOES", 2):
+            identifiers = [self.bot._store(self.result) for _ in range(3)]
+        self.assertNotIn(identifiers[0], self.bot._investigacoes)
+        self.assertEqual(set(self.bot._investigacoes), set(identifiers[1:]))
+
     async def test_deep_link_uses_the_same_safe_format(self):
         self.bot._fetch = lambda _id: self.result
         await self.bot._cmd_start(self.update, SimpleNamespace(args=["test-id"]))
-        self.message.reply_text.assert_awaited_once_with(self.bot._formatar_relatorio(self.result))
+        chamada = self.message.reply_text.await_args
+        self.assertEqual(chamada.args[0], self.bot._formatar_relatorio(self.result))
+        botao = chamada.kwargs["reply_markup"].inline_keyboard[0][0]
+        self.assertEqual(botao.callback_data, "socratico:test-id")
 
     async def test_long_report_is_split_in_order_within_limit(self):
         self.result.vereditos = [
@@ -60,9 +71,11 @@ class TestBotReport(unittest.IsolatedAsyncioTestCase):
         await self.bot._cmd_start(self.update, SimpleNamespace(args=["test-id"]))
         partes = [c.args[0] for c in self.message.reply_text.await_args_list]
         self.assertGreater(len(partes), 1)
-        for parte, chamada in zip(partes, self.message.reply_text.await_args_list):
+        chamadas = self.message.reply_text.await_args_list
+        for parte, chamada in zip(partes, chamadas):
             self.assertLessEqual(utf16(parte), 4096)
-            self.assertEqual(chamada.kwargs, {})
+        self.assertTrue(all(not c.kwargs for c in chamadas[:-1]))
+        self.assertIn("reply_markup", chamadas[-1].kwargs)
         self.assertIn("Análise da linguagem", partes[0])
         self.assertIn("📌 Alegação 40", partes[-1])
         texto = "\n".join(partes)
@@ -71,6 +84,45 @@ class TestBotReport(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(
             "".join(texto.split()), "".join(self.bot._formatar_relatorio(self.result).split()),
         )
+
+    async def test_button_starts_dialogue_from_stored_investigation(self):
+        self.bot.socratico = MagicMock()
+        self.bot.socratico.tem_sessao_ativa.return_value = False
+        self.bot.socratico.iniciar_sessao.return_value = "Pergunta 1/3: Qual é a fonte?"
+        self.bot._fetch = lambda _id: self.result
+        query = SimpleNamespace(
+            data="socratico:test-id",
+            answer=AsyncMock(),
+            from_user=SimpleNamespace(id=7),
+            message=SimpleNamespace(
+                chat=SimpleNamespace(id=11, type="private"), reply_text=AsyncMock(),
+            ),
+        )
+        await self.bot._iniciar_dialogo_socratico(
+            SimpleNamespace(callback_query=query), SimpleNamespace(),
+        )
+        query.answer.assert_awaited_once_with("Preparando o diálogo…")
+        self.bot.socratico.iniciar_sessao.assert_called_once_with(
+            7, self.result.texto_original, self.result.vereditos, chat_id=11,
+        )
+        query.message.reply_text.assert_awaited_once_with(
+            "Pergunta 1/3: Qual é a fonte?"
+        )
+
+    async def test_private_answer_advances_active_dialogue_without_new_analysis(self):
+        self.bot.socratico = MagicMock()
+        self.bot.socratico.tem_sessao_ativa.return_value = True
+        self.bot.socratico.processar_resposta.return_value = "Pergunta 2/3: Por quê?"
+        self.message.from_user = SimpleNamespace(id=7)
+        self.message.chat.id = 11
+        await self.bot._handle_private_message(self.update, SimpleNamespace())
+        self.bot.motor.analisar_texto.assert_not_awaited()
+        self.bot.socratico.processar_resposta.assert_called_once_with(
+            7, "Texto de teste", 11,
+        )
+        self.assertEqual(self.message.reply_text.await_count, 2)
+        self.assertIn("relacionando sua resposta", self.message.reply_text.await_args_list[0].args[0])
+        self.assertEqual(self.message.reply_text.await_args_list[1].args[0], "Pergunta 2/3: Por quê?")
 
 
 EV_ID = "ev_" + "a" * 64
