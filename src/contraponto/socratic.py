@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
+from datetime import datetime, timedelta
 import os
 import sys
 
@@ -20,6 +21,7 @@ class EstadoSocratico:
     respostas_usuario: List[str] = field(default_factory=list)
     perguntas_geradas: List[str] = field(default_factory=list)
     finalizado: bool = False
+    expira_em: datetime = field(default_factory=lambda: datetime.now() + timedelta(hours=24))
 
 
 class GerenciadorSocratico:
@@ -30,10 +32,17 @@ class GerenciadorSocratico:
     def __init__(self):
         self._sessoes: Dict[int, EstadoSocratico] = {}
 
+    def _limpar_expiradas(self) -> None:
+        agora = datetime.now()
+        expirados = [uid for uid, estado in self._sessoes.items() if estado.expira_em <= agora]
+        for uid in expirados:
+            del self._sessoes[uid]
+
     def iniciar_sessao(
         self, user_id: int, noticia_original: str, vereditos: List[VereditoAlegacao], persona_modo: str = "Acolhedor"
     ) -> str:
         """Inicia uma nova jornada socrática para o usuário adaptada por persona."""
+        self._limpar_expiradas()
         perguntas = self._gerar_perguntas_iniciais(noticia_original, vereditos, persona_modo)
 
         estado = EstadoSocratico(
@@ -63,6 +72,7 @@ class GerenciadorSocratico:
 
     def processar_resposta(self, user_id: int, resposta_texto: str) -> str:
         """Processa a resposta do usuário considerando a entrada anterior e avança o diálogo."""
+        self._limpar_expiradas()
         if user_id not in self._sessoes or self._sessoes[user_id].finalizado:
             return "Não há nenhuma sessão ativa do Diálogo Socrático. Envie uma mensagem para iniciar!"
 
@@ -86,12 +96,14 @@ class GerenciadorSocratico:
 
     def cancelar_sessao(self, user_id: int) -> str:
         """Permite cancelar o diálogo socrático voluntariamente."""
+        self._limpar_expiradas()
         if user_id in self._sessoes:
             del self._sessoes[user_id]
             return "🚪 Diálogo Socrático encerrado. Fique à vontade para consultar novas notícias sempre que precisar!"
         return "Nenhuma sessão ativa para encerrar."
 
     def tem_sessao_ativa(self, user_id: int) -> bool:
+        self._limpar_expiradas()
         return user_id in self._sessoes and not self._sessoes[user_id].finalizado
 
     def _gerar_perguntas_iniciais(

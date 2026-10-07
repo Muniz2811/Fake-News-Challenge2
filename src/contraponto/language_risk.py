@@ -19,7 +19,7 @@ class AnalisadorLinguistico:
         self._fake_column = None
         self.indisponibilidade = "modelo treinado não encontrado"
         if not self.model_path.is_file():
-            logger.warning("Modelo linguístico não encontrado: %s", self.model_path)
+            logger.warning("Modelo linguístico não encontrado.")
             return
         try:
             import joblib
@@ -40,7 +40,7 @@ class AnalisadorLinguistico:
             self._fake_column = classes.index(1)
             self._pipeline = pipeline
             self.indisponibilidade = None
-            logger.info("Modelo linguístico carregado: %s", self.model_path)
+            logger.info("Modelo linguístico carregado.")
         except ImportError:
             self.indisponibilidade = "dependências de inferência não instaladas"
             logger.warning("Dependências do modelo linguístico indisponíveis.")

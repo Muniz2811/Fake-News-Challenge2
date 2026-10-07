@@ -5,6 +5,8 @@ import hashlib
 import json
 import unicodedata
 from urllib.parse import urlparse
+from collections import OrderedDict
+from time import monotonic
 
 from claims import Alegacao
 from config import OPENAI_API_KEY
@@ -21,6 +23,11 @@ ROTULOS_CATEGORIAS = {
     "conflitante": "conflitante",
     "nao_verificada": "não verificada",
 }
+
+# Cacheia apenas por tempo limitado e com limite de tamanho, pois as chaves
+# contêm alegações e identificadores derivados das evidências.
+_CACHE_TTL_SEGUNDOS = 24 * 60 * 60
+_CACHE_MAX_ENTRADAS = 1000
 
 
 @dataclass
@@ -69,9 +76,16 @@ class VerificadorAlegacoes:
     """
     def __init__(self, client: OpenAI | None = None):
         self.client = client if client is not None else (
-            OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+            OpenAI(api_key=OPENAI_API_KEY, base_url="https://api.openai.com/v1")
+            if OPENAI_API_KEY else None
         )
-        self._cache: dict[str, VereditoAlegacao] = {}
+        self._cache: OrderedDict[str, tuple[float, VereditoAlegacao]] = OrderedDict()
+
+    def _limpar_cache(self) -> None:
+        agora = monotonic()
+        expiradas = [chave for chave, (expira, _) in self._cache.items() if expira <= agora]
+        for chave in expiradas:
+            del self._cache[chave]
 
     @staticmethod
     def _abster(
@@ -115,8 +129,11 @@ class VerificadorAlegacoes:
         if not registros:
             return self._abster(alegacao, "Sem evidências comparáveis à alegação. Abstenção aplicada.")
         chave = json.dumps([alegacao.id, alegacao.texto, list(registros)], ensure_ascii=False)
+        self._limpar_cache()
         if chave in self._cache:
-            return deepcopy(self._cache[chave])
+            _, resultado = self._cache.pop(chave)
+            self._cache[chave] = (monotonic() + _CACHE_TTL_SEGUNDOS, resultado)
+            return deepcopy(resultado)
         conhecidas = {
             eid: _relacao_factcheck(ev) for eid, ev in registros.items()
             if ev.source_type == "fact_check"
@@ -130,7 +147,9 @@ class VerificadorAlegacoes:
             resultado = self._abster(alegacao, "Comparação segura indisponível. Abstenção aplicada.")
         else:
             resultado = self._consultar_modelo(alegacao, registros, conhecidas)
-        self._cache[chave] = deepcopy(resultado)
+        self._cache[chave] = (monotonic() + _CACHE_TTL_SEGUNDOS, deepcopy(resultado))
+        while len(self._cache) > _CACHE_MAX_ENTRADAS:
+            self._cache.popitem(last=False)
         return resultado
 
     def _consultar_modelo(

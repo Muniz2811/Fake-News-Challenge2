@@ -7,11 +7,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Variáveis de ambiente para conexões externas
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip() or None
 # Opcional: sem chave, a extração usa regras e o verificador conserva a abstenção.
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip() or None
-GOOGLE_FACT_CHECK_KEY = os.getenv("GOOGLE_FACT_CHECK_KEY")
-TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+GOOGLE_FACT_CHECK_KEY = os.getenv("GOOGLE_FACT_CHECK_KEY", "").strip() or None
+TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "").strip() or None
 LANGUAGE_RISK_MODEL_PATH = os.getenv(
     "LANGUAGE_RISK_MODEL_PATH", "models/language_risk/baseline_tfidf_logreg.joblib"
 )

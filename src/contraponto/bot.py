@@ -176,6 +176,7 @@ class BotTelegram:
         if chat_id not in self.authorized_groups:
             return
 
+        logger.info("Mensagem recebida no chat autorizado %s.", chat_id)
         texto = update.message.text
         try:
             resultado = await self.motor.analisar_texto(texto)
@@ -449,7 +450,7 @@ def main() -> None:
     bot = BotTelegram(
         motor=motor,
         token=TELEGRAM_BOT_TOKEN,
-        authorized_groups=AUTHORIZED_GROUPS if AUTHORIZED_GROUPS else None,
+        authorized_groups=AUTHORIZED_GROUPS,
     )
 
     print("🤖 Contraponto iniciado — aguardando mensagens...")

@@ -38,7 +38,9 @@ class ExtratorAlegações:
 
     def __init__(self, limit: int = MAX_CLAIMS_PER_MESSAGE):
         self.limit = limit
-        self.client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+        self.client = OpenAI(
+            api_key=OPENAI_API_KEY, base_url="https://api.openai.com/v1"
+        ) if OPENAI_API_KEY else None
 
     def _extrair_por_regras_fallback(self, texto: str) -> list[Alegacao]:
         """Extração baseada em heurísticas e regras para fallback sem API key."""
