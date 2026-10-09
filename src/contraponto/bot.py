@@ -30,6 +30,7 @@ from config import (
 from motor_ia import MotorIA, ResultadoAnalise
 from verifier import ROTULOS_CATEGORIAS, VereditoAlegacao
 from socratic import GerenciadorSocratico
+from diagnostics import investigation_context, log_stage
 
 logger = logging.getLogger(__name__)
 
@@ -194,12 +195,14 @@ class BotTelegram:
 
         texto = update.message.text
         try:
-            resultado = await self.motor.analisar_texto(texto)
+            with investigation_context():
+                with log_stage(logger, "analysis_pipeline"):
+                    resultado = await self.motor.analisar_texto(texto)
         except NotImplementedError:
             logger.debug("Motor de análise ainda não implementado — ignorando.")
             return
         except Exception as exc:
-            logger.error("Erro ao analisar texto no grupo (%s).", type(exc).__name__)
+            logger.error("error_category=INTERNAL_ERROR stage=analysis_pipeline error_type=%s", type(exc).__name__)
             return
 
         if not resultado.requer_revisao:
@@ -301,7 +304,7 @@ class BotTelegram:
         except BadRequest as exc:
             # Um callback expira rapidamente no Telegram. Isso pode ocorrer quando
             # vários cliques antigos chegam depois de uma tarefa demorada.
-            logger.warning("Callback do diálogo recusado pelo Telegram: %s", str(exc)[:160])
+            logger.warning("error_category=EXTERNAL_SERVICE_UNAVAILABLE stage=telegram_callback error_type=%s", type(exc).__name__)
             return
         data = getattr(query, "data", "") or ""
         analise_id = data.removeprefix("socratico:")
@@ -387,14 +390,16 @@ class BotTelegram:
         try:
             # A confirmação é enviada antes de chamar o motor, que pode demorar.
             await update.message.reply_text("📩 Texto recebido. A investigação começou.")
-            resultado = await self.motor.analisar_texto(texto)
+            with investigation_context():
+                with log_stage(logger, "analysis_pipeline"):
+                    resultado = await self.motor.analisar_texto(texto)
         except NotImplementedError:
             await update.message.reply_text(
                 "O fluxo de análise ainda não está totalmente implementado."
             )
             return
         except Exception as exc:
-            logger.error("Erro ao analisar texto no privado (%s).", type(exc).__name__)
+            logger.error("error_category=INTERNAL_ERROR stage=analysis_pipeline error_type=%s", type(exc).__name__)
             await update.message.reply_text(
                 "Ocorreu um erro durante a análise. Tente novamente mais tarde."
             )
@@ -408,12 +413,9 @@ class BotTelegram:
     ) -> None:
         erro = context.error
         if isinstance(erro, BadRequest):
-            logger.error(
-                "Erro ao processar atualização do Telegram (BadRequest): %s",
-                str(erro)[:200],
-            )
+            logger.error("error_category=EXTERNAL_SERVICE_UNAVAILABLE stage=telegram_update error_type=BadRequest")
             return
-        logger.error("Erro ao processar atualização do Telegram (%s).", type(erro).__name__)
+        logger.error("error_category=INTERNAL_ERROR stage=telegram_update error_type=%s", type(erro).__name__)
 
     # ------------------------------------------------------------------ #
     #  Formatação                                                         #
@@ -560,9 +562,13 @@ def _configurar_logging() -> None:
     """Mantém logs da aplicação sem os URLs autenticados das requisições HTTP."""
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        format="%(asctime)s [%(levelname)s] [correlation_id=%(correlation_id)s] %(name)s: %(message)s",
     )
-    formatter = _RedactingFormatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+    from diagnostics import install_correlation_record_factory
+    install_correlation_record_factory()
+    formatter = _RedactingFormatter(
+        "%(asctime)s [%(levelname)s] [correlation_id=%(correlation_id)s] %(name)s: %(message)s"
+    )
     for handler in logging.getLogger().handlers:
         handler.setFormatter(formatter)
     for name in ("httpx", "httpx2", "httpcore"):

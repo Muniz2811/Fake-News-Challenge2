@@ -133,9 +133,11 @@ class GoogleFactCheckAdapter(WebSearchProvider):
             return []
 
         evidencias: list[Evidencia] = []
-
         if not self.api_key:
-            logger.warning("GOOGLE_FACT_CHECK_KEY ausente — provedor Google desabilitado.")
+            logger.warning(
+                "error_category=CONFIGURATION_FAILURE "
+                "stage=google_fact_check detail=missing_api_key"
+            )
             return evidencias
 
         try:
@@ -146,45 +148,51 @@ class GoogleFactCheckAdapter(WebSearchProvider):
             }
             response = requests.get(self.base_url, params=params, timeout=5)
 
-            if response.status_code == 200:
-                data = response.json()
-                claims = data.get("claims", [])
-
-                for item in claims[:max_results]:
-                    text_claim = item.get("text") or None
-                    reviews = item.get("claimReview", [])
-
-                    for review in reviews:
-                        publisher_info = review.get("publisher", {})
-                        pub_name = publisher_info.get("name", "Fonte Desconhecida")
-                        title = review.get("title") or "Checagem factual"
-                        url = review.get("url", "")
-                        review_date = review.get("reviewDate") or item.get("claimDate") or None
-                        rating = review.get("textualRating") or None
-
-                        evidencias.append(
-                            Evidencia(
-                                title=title,
-                                url=url,
-                                publisher=pub_name,
-                                snippet=f"Veredito do Checador: {rating}" if rating else "",
-                                published_at=review_date,
-                                relevance_score=0.0,
-                                source_type="fact_check",
-                                checked_claim=text_claim,
-                                textual_rating=rating,
-                            )
-                        )
-            else:
+            if response.status_code != 200:
                 self.ultimo_erro = f"http_{response.status_code}"
                 logger.warning(
-                    "Google Fact Check retornou status %s.",
+                    "error_category=EXTERNAL_SERVICE_UNAVAILABLE "
+                    "stage=google_fact_check http_status=%s",
                     response.status_code,
                 )
+                return evidencias
+
+            data = response.json()
+            claims = data.get("claims", [])
+            for item in claims[:max_results]:
+                text_claim = item.get("text") or None
+                reviews = item.get("claimReview", [])
+                for review in reviews:
+                    publisher_info = review.get("publisher", {})
+                    pub_name = publisher_info.get("name", "Fonte Desconhecida")
+                    title = review.get("title") or "Checagem factual"
+                    url = review.get("url", "")
+                    review_date = review.get("reviewDate") or item.get("claimDate") or None
+                    rating = review.get("textualRating") or None
+
+                    evidencias.append(
+                        Evidencia(
+                            title=title,
+                            url=url,
+                            publisher=pub_name,
+                            snippet=(
+                                f"Veredito do Checador: {rating}" if rating else ""
+                            ),
+                            published_at=review_date,
+                            relevance_score=0.0,
+                            source_type="fact_check",
+                            checked_claim=text_claim,
+                            textual_rating=rating,
+                        )
+                    )
         except Exception as exc:
-            # Indisponibilidade do provedor não interrompe o fluxo principal
+            # A falha do provedor não interrompe o fluxo e o log não inclui payload.
             self.ultimo_erro = type(exc).__name__
-            logger.warning("Erro ao consultar Google Fact Check API (%s).", type(exc).__name__)
+            logger.warning(
+                "error_category=EXTERNAL_SERVICE_UNAVAILABLE "
+                "stage=google_fact_check error_type=%s",
+                type(exc).__name__,
+            )
 
         return evidencias
 
@@ -217,7 +225,7 @@ class TavilySearchAdapter(WebSearchProvider):
             return []
 
         if not self.api_key:
-            logger.warning("TAVILY_API_KEY ausente — provedor Tavily desabilitado.")
+            logger.warning("error_category=CONFIGURATION_FAILURE stage=tavily detail=missing_api_key")
             return []
 
         try:
@@ -234,7 +242,7 @@ class TavilySearchAdapter(WebSearchProvider):
             if response.status_code != 200:
                 self.ultimo_erro = f"http_{response.status_code}"
                 logger.warning(
-                    "Tavily retornou status %s.",
+                    "error_category=EXTERNAL_SERVICE_UNAVAILABLE stage=tavily http_status=%s",
                     response.status_code,
                 )
                 return []
@@ -264,13 +272,13 @@ class TavilySearchAdapter(WebSearchProvider):
 
         except requests.exceptions.Timeout:
             self.ultimo_erro = "Timeout"
-            logger.warning("Timeout ao consultar Tavily.")
+            logger.warning("error_category=EXTERNAL_SERVICE_UNAVAILABLE stage=tavily error_type=Timeout")
         except requests.exceptions.ConnectionError:
             self.ultimo_erro = "ConnectionError"
-            logger.warning("Erro de conexão ao consultar Tavily.")
+            logger.warning("error_category=EXTERNAL_SERVICE_UNAVAILABLE stage=tavily error_type=ConnectionError")
         except Exception as exc:
             self.ultimo_erro = type(exc).__name__
-            logger.warning("Erro inesperado ao consultar Tavily API (%s).", type(exc).__name__)
+            logger.warning("error_category=EXTERNAL_SERVICE_UNAVAILABLE stage=tavily error_type=%s", type(exc).__name__)
 
         return []
 
