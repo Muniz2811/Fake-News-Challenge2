@@ -30,7 +30,7 @@ from config import (
 from motor_ia import MotorIA, ResultadoAnalise
 from verifier import ROTULOS_CATEGORIAS, VereditoAlegacao
 from socratic import GerenciadorSocratico
-from diagnostics import investigation_context, log_stage
+from diagnostics import investigation_context, install_correlation_record_factory
 
 logger = logging.getLogger(__name__)
 
@@ -194,16 +194,15 @@ class BotTelegram:
             return
 
         texto = update.message.text
-        try:
-            with investigation_context():
-                with log_stage(logger, "analysis_pipeline"):
-                    resultado = await self.motor.analisar_texto(texto)
-        except NotImplementedError:
-            logger.debug("Motor de análise ainda não implementado — ignorando.")
-            return
-        except Exception as exc:
-            logger.error("error_category=INTERNAL_ERROR stage=analysis_pipeline error_type=%s", type(exc).__name__)
-            return
+        with investigation_context():
+            try:
+                resultado = await self.motor.analisar_texto(texto)
+            except NotImplementedError:
+                logger.debug("Motor de análise ainda não implementado — ignorando.")
+                return
+            except Exception as exc:
+                logger.error("error_category=INTERNAL_ERROR stage=analysis_pipeline error_type=%s", type(exc).__name__)
+                return
 
         if not resultado.requer_revisao:
             return
@@ -387,23 +386,22 @@ class BotTelegram:
             await update.message.reply_text(resposta)
             return
 
-        try:
-            # A confirmação é enviada antes de chamar o motor, que pode demorar.
-            await update.message.reply_text("📩 Texto recebido. A investigação começou.")
-            with investigation_context():
-                with log_stage(logger, "analysis_pipeline"):
-                    resultado = await self.motor.analisar_texto(texto)
-        except NotImplementedError:
-            await update.message.reply_text(
-                "O fluxo de análise ainda não está totalmente implementado."
-            )
-            return
-        except Exception as exc:
-            logger.error("error_category=INTERNAL_ERROR stage=analysis_pipeline error_type=%s", type(exc).__name__)
-            await update.message.reply_text(
-                "Ocorreu um erro durante a análise. Tente novamente mais tarde."
-            )
-            return
+        with investigation_context():
+            try:
+                # A confirmação é enviada antes de chamar o motor, que pode demorar.
+                await update.message.reply_text("📩 Texto recebido. A investigação começou.")
+                resultado = await self.motor.analisar_texto(texto)
+            except NotImplementedError:
+                await update.message.reply_text(
+                    "O fluxo de análise ainda não está totalmente implementado."
+                )
+                return
+            except Exception as exc:
+                logger.error("error_category=INTERNAL_ERROR stage=analysis_pipeline error_type=%s", type(exc).__name__)
+                await update.message.reply_text(
+                    "Ocorreu um erro durante a análise. Tente novamente mais tarde."
+                )
+                return
 
         analise_id = self._store(resultado)
         await self._enviar_relatorio(update.message, resultado, analise_id)
@@ -560,12 +558,11 @@ class _RedactingFormatter(logging.Formatter):
 
 def _configurar_logging() -> None:
     """Mantém logs da aplicação sem os URLs autenticados das requisições HTTP."""
+    install_correlation_record_factory()
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] [correlation_id=%(correlation_id)s] %(name)s: %(message)s",
     )
-    from diagnostics import install_correlation_record_factory
-    install_correlation_record_factory()
     formatter = _RedactingFormatter(
         "%(asctime)s [%(levelname)s] [correlation_id=%(correlation_id)s] %(name)s: %(message)s"
     )

@@ -116,7 +116,7 @@ class MotorIA:
             evs_alegacao: list[Evidencia] = []
             for provedor in self.provedores_busca:
                 try:
-                    with log_stage(logger, "evidence_search"):
+                    with log_stage(logger, "evidence_search", error_category="EXTERNAL_SERVICE_UNAVAILABLE"):
                         evs_alegacao.extend(await asyncio.to_thread(
                             provedor.buscar_evidencias_por_alegacao, alegacao.texto,
                         ))
@@ -127,8 +127,7 @@ class MotorIA:
                         aviso = f"Fonte indisponível: a busca no {nome} não respondeu."
                         if aviso not in indisponiveis:
                             indisponiveis.append(aviso)
-                except Exception as ex:
-                    logger.warning("error_category=EXTERNAL_SERVICE_UNAVAILABLE stage=evidence_search provider=%s error_type=%s", type(provedor).__name__, type(ex).__name__)
+                except Exception:
                     nome = _NOMES_PROVEDORES.get(type(provedor).__name__, type(provedor).__name__)
                     aviso = f"Fonte indisponível: a busca no {nome} não respondeu."
                     if aviso not in indisponiveis:

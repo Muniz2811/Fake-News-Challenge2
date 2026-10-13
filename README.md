@@ -206,6 +206,7 @@ amostras. Essa pasta não é versionada e pode ser recriada localmente. `data/`,
 | `search.py` | Adaptadores Google Fact Check/Tavily e evidências padronizadas: título, URL, publicador, trecho, data e metadados de checagem. |
 | `verifier.py` | Compara cada alegação com suas evidências, valida referências da LLM e mantém abstenção quando não há sustentação segura. |
 | `socratic.py` | Mantém sessões por usuário/chat, expiração, até três perguntas e síntese sem tratar respostas como fatos. |
+| `diagnostics.py` | Correlaciona investigações com UUID técnico e registra duração e categoria de falha das etapas, sem conteúdo pessoal. |
 
 | Arquivo de suporte | Responsabilidade |
 |---|---|
@@ -216,6 +217,7 @@ amostras. Essa pasta não é versionada e pode ser recriada localmente. `data/`,
 | `requirements.txt` | Dependências do bot, APIs e configuração. |
 | `requirements-inference.txt` | Versões de joblib, NumPy, scikit-learn e SciPy para carregar o modelo. |
 | `requirements-ci.txt` | Ruff para lint; não é instalado na imagem do bot. |
+| `scripts/deploy_demo.sh` | Atalho para iniciar, parar, reiniciar e acompanhar logs da demonstração com Docker Compose. |
 | `scripts/acquire.py` | Obtém Fake.br, FakeRecogna, AVeriTeC e anotações FEVEROUS, registrando um manifesto. |
 | `scripts/eda.py` / `scripts/eda_visuals.py` | Analisam formatos, distribuição e características textuais; geram artefatos em `reports/`. |
 | `scripts/ml/prepare_language_data.py` | Padroniza Fake.br e FakeRecogna em texto/rótulo e prepara os dados linguísticos. |
@@ -305,6 +307,7 @@ críticos de sintaxe e nomes indefinidos; não impõe toda a formatação do pro
 | `test_language_risk.py` | Carregamento/inferência, equivalência com o pipeline, incompatibilidade e continuidade sem score. |
 | `test_motor_resilience.py` | Score preservado, falhas reais simuladas dos adaptadores, continuidade por alegação e marca de revisão sem perder resultados anteriores. |
 | `test_logging_security.py` | Ocultação de credenciais fictícias nos logs e tracebacks. |
+| `test_diagnostics_logging.py` | Duração, categorias de falha, isolamento de investigações simultâneas, propagação para threads e preservação dos resultados. |
 | `docker/check_image.py` | Testa imagem limpa, inferência com montagem somente leitura, polling e encerramento por SIGTERM. |
 | `docker/model_probe.py` | Gera um modelo sintético e confere seu score e proteção contra escrita na montagem. |
 | `docker/polling_probe.py` | Simula o transporte Telegram para exercitar `/start` e uma mensagem pelo fluxo real sem OpenAI. |
@@ -319,6 +322,15 @@ python tests/docker/check_image.py
 Esse teste usa um artefato sintético, não altera seu modelo e roda os contêineres
 com rede desabilitada. O build precisa de internet para baixar dependências.
 Ele não substitui o teste manual com seu bot e os provedores reais.
+
+Os logs técnicos usam `correlation_id` (UUIDv4, sem vínculo com o usuário),
+`stage` e `event`. `INFO` indica início e conclusão com duração; `WARNING`
+indica indisponibilidade tratada por um adaptador; `ERROR` indica uma etapa
+que lançou exceção. As categorias são `CONFIGURATION_FAILURE`,
+`EXTERNAL_SERVICE_UNAVAILABLE` e `INTERNAL_ERROR`. Uma investigação pode
+concluir com resultados parciais após uma falha; os avisos continuam no
+relatório. Texto da notícia, IDs pessoais e mensagens das exceções não entram
+nesses registros. Todos os testes, inclusive os de diagnóstico, usam `unittest`.
 
 O workflow [`.github/workflows/ci.yaml`](.github/workflows/ci.yaml) roda em PRs
 para `main`, pushes na `main` e execução manual. Primeiro executa lint e testes;
