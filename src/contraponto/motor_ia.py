@@ -15,6 +15,7 @@ from language_risk import AnalisadorLinguistico, formatar_analise_linguistica
 from verifier import VerificadorAlegacoes, VereditoAlegacao, ROTULOS_CATEGORIAS as ROTULOS_FACTUAIS
 from socratic import GerenciadorSocratico
 from llm import ProvedorLLM, criar_provedor_llm
+from diagnostics import log_stage, logged_async_stage
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +81,7 @@ class MotorIA:
             else GerenciadorSocratico(llm=provedor_llm)
         )
 
+    @logged_async_stage("analysis_pipeline")
     async def analisar_texto(self, texto: str) -> ResultadoAnalise:
         if not texto or not texto.strip():
             raise ValueError("O texto da notícia não pode estar vazio.")
@@ -88,19 +90,21 @@ class MotorIA:
         score = None
         motivo_linguistico = self.analisador_linguistico.indisponibilidade
         try:
-            score = await asyncio.to_thread(self.analisador_linguistico.analisar, texto)
+            with log_stage(logger, "language_analysis"):
+                score = await asyncio.to_thread(self.analisador_linguistico.analisar, texto)
             motivo_linguistico = self.analisador_linguistico.indisponibilidade
         except Exception as err:
-            logger.error("Falha na análise linguística (%s).", type(err).__name__)
+            logger.error("error_category=INTERNAL_ERROR stage=language_analysis error_type=%s", type(err).__name__)
             motivo_linguistico = "falha na inferência"
             indisponiveis.append("Análise linguística indisponível nesta investigação.")
 
         # 1. Extração de alegações (MVP-06) com resiliência
         try:
-            resultado_claims = await asyncio.to_thread(self.extrator_claims.extrair, texto)
+            with log_stage(logger, "claim_extraction"):
+                resultado_claims = await asyncio.to_thread(self.extrator_claims.extrair, texto)
             alegacoes_extraidas = resultado_claims.alegacoes
         except Exception as err:
-            logger.error("Falha ao extrair alegações (%s).", type(err).__name__)
+            logger.error("error_category=INTERNAL_ERROR stage=claim_extraction error_type=%s", type(err).__name__)
             alegacoes_extraidas = []
             indisponiveis.append("Extração de alegações indisponível nesta investigação.")
 
@@ -112,9 +116,10 @@ class MotorIA:
             evs_alegacao: list[Evidencia] = []
             for provedor in self.provedores_busca:
                 try:
-                    evs_alegacao.extend(await asyncio.to_thread(
-                        provedor.buscar_evidencias_por_alegacao, alegacao.texto,
-                    ))
+                    with log_stage(logger, "evidence_search", error_category="EXTERNAL_SERVICE_UNAVAILABLE"):
+                        evs_alegacao.extend(await asyncio.to_thread(
+                            provedor.buscar_evidencias_por_alegacao, alegacao.texto,
+                        ))
                     # Adaptadores preservam lista vazia em falhas, mas sinalizam a causa.
                     erro = getattr(provedor, "ultimo_erro", None)
                     if isinstance(erro, str) and erro:
@@ -122,8 +127,7 @@ class MotorIA:
                         aviso = f"Fonte indisponível: a busca no {nome} não respondeu."
                         if aviso not in indisponiveis:
                             indisponiveis.append(aviso)
-                except Exception as ex:
-                    logger.warning("Provedor %s indisponível (%s).", type(provedor).__name__, type(ex).__name__)
+                except Exception:
                     nome = _NOMES_PROVEDORES.get(type(provedor).__name__, type(provedor).__name__)
                     aviso = f"Fonte indisponível: a busca no {nome} não respondeu."
                     if aviso not in indisponiveis:
@@ -133,11 +137,12 @@ class MotorIA:
 
             # 3. Verificação Conservadora por Alegação (MVP-10)
             try:
-                veredito = await asyncio.to_thread(
-                    self.verificador.verificar_alegacao, alegacao, evs_alegacao,
-                )
+                with log_stage(logger, "claim_verification"):
+                    veredito = await asyncio.to_thread(
+                        self.verificador.verificar_alegacao, alegacao, evs_alegacao,
+                    )
             except Exception as err:
-                logger.error("Falha na verificação (%s).", type(err).__name__)
+                logger.error("error_category=INTERNAL_ERROR stage=claim_verification error_type=%s", type(err).__name__)
                 veredito = VerificadorAlegacoes._abster(
                     alegacao, "Verificação indisponível. Abstenção aplicada.",
                 )
