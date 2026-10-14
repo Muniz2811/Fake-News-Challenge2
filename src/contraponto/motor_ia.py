@@ -28,6 +28,7 @@ from verifier import VerificadorAlegacoes, VereditoAlegacao, ROTULOS_CATEGORIAS 
 from socratic import GerenciadorSocratico
 from llm import ProvedorLLM, criar_provedor_llm
 from diagnostics import log_stage, logged_async_stage
+from model_catalog import MODEL_NAMES, ModelCatalog
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +60,8 @@ class ResultadoAnalise:
     requer_revisao: bool = False
     score_linguistico: float | None = None
     etapas_indisponiveis: list[str] = field(default_factory=list)
+    modelo_linguistico: str = ""
+    nome_modelo_linguistico: str = ""
 
 
 class MotorIA:
@@ -84,41 +87,52 @@ class MotorIA:
             verificador if verificador is not None
             else VerificadorAlegacoes(llm=provedor_llm)
         )
-        if analisador_linguistico is not None:
-            self.analisador_linguistico = analisador_linguistico
-        elif LANGUAGE_RISK_BACKEND == "bertimbau_mlp":
-            self.analisador_linguistico = AnalisadorBertimbauMLP(
-                BERTIMBAU_MLP_METRICS_PATH,
-                BERTIMBAU_MODEL_DIR,
-                BERTIMBAU_DEVICE,
-            )
-        elif LANGUAGE_RISK_BACKEND == "bertimbau_logreg":
-            self.analisador_linguistico = AnalisadorBertimbauLogReg(
-                BERTIMBAU_LOGREG_METRICS_PATH,
-                BERTIMBAU_MODEL_DIR,
-                BERTIMBAU_DEVICE,
-            )
-        else:
-            self.analisador_linguistico = AnalisadorLinguistico(
-                LANGUAGE_RISK_MODEL_PATH
-            )
+        self.modelo_padrao = LANGUAGE_RISK_BACKEND
+        self.modelos = ModelCatalog({
+            "tfidf": lambda: AnalisadorLinguistico(LANGUAGE_RISK_MODEL_PATH),
+            "bertimbau_logreg": lambda: AnalisadorBertimbauLogReg(
+                BERTIMBAU_LOGREG_METRICS_PATH, BERTIMBAU_MODEL_DIR, BERTIMBAU_DEVICE,
+                encoder_loader=self.modelos.encoder,
+            ),
+            "bertimbau_mlp": lambda: AnalisadorBertimbauMLP(
+                BERTIMBAU_MLP_METRICS_PATH, BERTIMBAU_MODEL_DIR, BERTIMBAU_DEVICE,
+                encoder_loader=self.modelos.encoder,
+            ),
+        }, initial={self.modelo_padrao: analisador_linguistico} if analisador_linguistico is not None else None)
+        self.analisador_linguistico = self.modelos.get(self.modelo_padrao)
         self.socratico = (
             gerenciador_socratico if gerenciador_socratico is not None
             else GerenciadorSocratico(llm=provedor_llm)
         )
 
+    def preparar_modelo(self, modelo_id: str) -> str | None:
+        """Carrega um modelo local; devolve o motivo seguro se estiver indisponível."""
+        return self.modelos.get(modelo_id).indisponibilidade
+
     @logged_async_stage("analysis_pipeline")
-    async def analisar_texto(self, texto: str) -> ResultadoAnalise:
+    async def analisar_texto(self, texto: str, *, modelo_id: str | None = None) -> ResultadoAnalise:
         if not texto or not texto.strip():
             raise ValueError("O texto da notícia não pode estar vazio.")
 
         indisponiveis: list[str] = []
         score = None
-        motivo_linguistico = self.analisador_linguistico.indisponibilidade
+        modelo_usado = self.modelo_padrao if modelo_id is None else modelo_id
+        if modelo_usado not in MODEL_NAMES:
+            raise ValueError("Modelo linguístico desconhecido.")
+        descricao_modelo = MODEL_NAMES[modelo_usado]
+        motivo_linguistico = None
         try:
             with log_stage(logger, "language_analysis"):
-                score = await asyncio.to_thread(self.analisador_linguistico.analisar, texto)
-            motivo_linguistico = self.analisador_linguistico.indisponibilidade
+                analisador = (
+                    self.analisador_linguistico if modelo_id is None
+                    else await asyncio.to_thread(self.modelos.get, modelo_id)
+                )
+                descricao = getattr(analisador, "descricao_modelo", None)
+                if isinstance(descricao, str):
+                    descricao_modelo = descricao
+                motivo_linguistico = analisador.indisponibilidade
+                score = await asyncio.to_thread(analisador.analisar, texto)
+                motivo_linguistico = analisador.indisponibilidade
         except Exception as err:
             logger.error("error_category=INTERNAL_ERROR stage=language_analysis error_type=%s", type(err).__name__)
             motivo_linguistico = "falha na inferência"
@@ -215,11 +229,7 @@ class MotorIA:
             analise_linguistica=formatar_analise_linguistica(
                 score,
                 motivo_linguistico,
-                getattr(
-                    self.analisador_linguistico,
-                    "descricao_modelo",
-                    "TF-IDF + regressão logística",
-                ),
+                descricao_modelo,
             ),
             alegacoes=alegacoes_extraidas,
             evidencias=todas_evidencias,
@@ -228,4 +238,6 @@ class MotorIA:
             requer_revisao=tem_inconclusivo,
             score_linguistico=score,
             etapas_indisponiveis=indisponiveis,
+            modelo_linguistico=modelo_usado,
+            nome_modelo_linguistico=descricao_modelo,
         )

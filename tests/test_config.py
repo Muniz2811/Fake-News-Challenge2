@@ -8,6 +8,13 @@ from claims import ExtratorAlegações
 
 
 class TestOptionalOpenAI(unittest.TestCase):
+    def test_unknown_group_mode_is_rejected(self):
+        with patch.object(config, "TELEGRAM_BOT_TOKEN", "test-token"), patch.object(
+            config, "GROUP_ANALYSIS_MODE", "unknown"
+        ):
+            with self.assertRaisesRegex(ValueError, "GROUP_ANALYSIS_MODE"):
+                config.validate_env()
+
     def test_unknown_language_backend_is_rejected(self):
         with patch.object(config, "TELEGRAM_BOT_TOKEN", "test-token"), patch.object(
             config, "LANGUAGE_RISK_BACKEND", "unknown"
