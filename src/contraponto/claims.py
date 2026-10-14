@@ -3,6 +3,7 @@
 import os
 import re
 import sys
+import logging
 from typing import Any
 from dataclasses import dataclass, field
 
@@ -12,6 +13,19 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from config import LLM_MODEL, MAX_CLAIMS_PER_MESSAGE, OPENAI_API_KEY
 from llm import LLMCompativelOpenAI, ProvedorLLM, criar_provedor_llm
 from openai import OpenAI
+
+
+logger = logging.getLogger(__name__)
+
+
+def _separar_frases(texto: str) -> list[str]:
+    """Separa frases sem partir números como 203.080.756 ou 23,86."""
+    return [frase.strip() for frase in re.split(r"(?<=[.!?])\s+", texto.strip()) if frase.strip()]
+
+
+def _numeros(texto: str) -> set[str]:
+    """Preserva milhares, decimais e ordinais na validação da alegação."""
+    return set(re.findall(r"\b\d+(?:[.,]\d+)*(?:[ºª])?\b", texto))
 
 
 @dataclass
@@ -88,7 +102,7 @@ class ExtratorAlegações:
             raise ValueError("Trecho de origem inexistente")
         # Um trecho deve apontar para a unidade textual da alegação. Isso evita
         # aceitar o caso em que a LLM anexa uma opinião ou outra frase ao campo.
-        unidades = [u.strip() for u in re.findall(r"[^.!?]+[.!?]?", origem) if u.strip()]
+        unidades = _separar_frases(origem)
         if len(unidades) != 1:
             raise ValueError("Trecho de origem contém mais de uma frase")
         proibidos = re.compile(
@@ -97,8 +111,8 @@ class ExtratorAlegações:
         )
         if "?" in origem or "?" in alegacao or proibidos.search(origem) or proibidos.search(alegacao):
             raise ValueError("Opinião, pergunta ou pedido de compartilhamento")
-        numeros_origem = set(re.findall(r"\b\d+(?:[.,]\d+)?\b", origem))
-        if not numeros_origem.issubset(set(re.findall(r"\b\d+(?:[.,]\d+)?\b", alegacao))):
+        numeros_origem = _numeros(origem)
+        if not numeros_origem.issubset(_numeros(alegacao)):
             raise ValueError("Número removido da alegação")
         negacoes = {p for p in ("não", "nunca", "nenhum", "sem") if re.search(rf"\b{p}\b", origem, re.I)}
         if any(not re.search(rf"\b{p}\b", alegacao, re.I) for p in negacoes):
@@ -108,7 +122,7 @@ class ExtratorAlegações:
     def _extrair_por_regras_fallback(self, texto: str) -> list[Alegacao]:
         """Extração baseada em heurísticas e regras para fallback sem API key."""
         # Captura frases mantendo a pontuação final para detetar '?'
-        frases = [f.strip() for f in re.findall(r'[^.!?]+[.!?]?', texto) if f.strip()]
+        frases = _separar_frases(texto)
         alegacoes = []
         contador = 1
 
@@ -191,7 +205,11 @@ class ExtratorAlegações:
                 texto_original=texto, alegacoes=alegacoes_processadas
             )
 
-        except Exception:
+        except Exception as erro:
+            logger.warning(
+                "Extração LLM indisponível ou inválida (%s); usando fallback.",
+                type(erro).__name__,
+            )
             return ResultadoExtracao(
                 texto_original=texto,
                 alegacoes=self._extrair_por_regras_fallback(texto),

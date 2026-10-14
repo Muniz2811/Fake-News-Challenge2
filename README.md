@@ -4,9 +4,11 @@ Bot do Telegram para investigar notícias em português. Recebe texto, calcula u
 score linguístico local, extrai alegações, busca evidências e apresenta uma
 conclusão por alegação com justificativa e fontes.
 
-**O score TF-IDF + regressão logística mede associação aos padrões das bases de
-treino; não confirma que uma notícia é falsa.** A verificação factual é separada
-e usa: apoiada, refutada, evidência insuficiente, conflitante e não verificada.
+**O score linguístico mede associação aos padrões das bases de treino; não
+confirma que uma notícia é falsa.** Por padrão, usa TF-IDF + regressão logística;
+BERTimbau + regressão logística ou MLP podem ser ativados localmente. A
+verificação factual é separada e usa: apoiada, refutada, evidência insuficiente,
+conflitante e não verificada.
 Sem evidências ou comparação segura, o verificador se abstém.
 
 ## Usar Qwen local com Ollama
@@ -138,6 +140,11 @@ Não é necessário instalar Python para executar o bot com Docker.
 | `TAVILY_API_KEY` | Opcional; habilita busca de evidências web. |
 | `MAX_CLAIMS_PER_MESSAGE` | Máximo de alegações por texto; padrão `5`. |
 | `AUTHORIZED_GROUPS` | IDs separados por vírgula; vazia não autoriza nenhum grupo. |
+| `LANGUAGE_RISK_BACKEND` | `tfidf` (padrão), `bertimbau_logreg` ou `bertimbau_mlp` para execução Python local. |
+| `BERTIMBAU_LOGREG_METRICS_PATH` | Relatório local com o classificador BERTimbau + regressão e hashes dos artefatos. |
+| `BERTIMBAU_MLP_METRICS_PATH` | Relatório local que identifica o checkpoint MLP escolhido pela validação. |
+| `BERTIMBAU_MODEL_DIR` | Diretório local do checkpoint do encoder BERTimbau. |
+| `BERTIMBAU_DEVICE` | `auto`, `cpu`, `mps` ou `cuda` para o encoder; padrão `auto`. |
 
 Apague os valores ilustrativos das chaves opcionais que não for utilizar.
 Sem uma LLM configurada, `claims.py` divide o texto em frases, evita perguntas, frases com
@@ -201,7 +208,7 @@ amostras. Essa pasta não é versionada e pode ser recriada localmente. `data/`,
 | `config.py` | Carrega variáveis, limites e grupos; valida o token obrigatório. |
 | `llm.py` | Expõe um contrato único de JSON estruturado para Ollama ou outro endpoint compatível. |
 | `motor_ia.py` | Coordena inferência, extração, busca e verificação; devolve `ResultadoAnalise` com score e vereditos individuais. |
-| `language_risk.py` | Carrega uma vez o `.joblib` e aplica TF-IDF + regressão logística ao texto original. |
+| `language_risk.py` | Carrega o backend escolhido e aplica TF-IDF + regressão, BERTimbau + regressão ou BERTimbau + MLP ao texto original. |
 | `claims.py` | Produz alegações numeradas com texto, trecho e posição; usa a LLM local quando configurada ou regras como fallback. |
 | `search.py` | Adaptadores Google Fact Check/Tavily e evidências padronizadas: título, URL, publicador, trecho, data e metadados de checagem. |
 | `verifier.py` | Compara cada alegação com suas evidências, valida referências da LLM e mantém abstenção quando não há sustentação segura. |
@@ -281,6 +288,100 @@ O treino linguístico usa Fake.br e FakeRecogna, rótulos `0=true` / `1=fake` e
 semente 42. Salva o `.joblib` em `models/language_risk/` e métricas em
 `data/processed/language_risk/baseline/`; AVeriTeC e FEVEROUS não entram nessa
 baseline. Para reproduzir resultados, mantenha dados, splits e versões iguais.
+
+### Baseline BERTimbau Base + regressão logística
+
+Esta experiência usa os mesmos splits de treino e validação da TF-IDF. O
+BERTimbau fica congelado e transforma cada notícia em um vetor de 768 números;
+uma regressão logística é treinada nesses vetores. Notícias longas são divididas
+em blocos de até 256 tokens, sem descartar o restante do texto. O pooling faz a
+média de todos os tokens de conteúdo, excluindo `[CLS]`, `[SEP]` e padding.
+O split de teste permanece reservado. Os pesos, vetores e classificador são
+artefatos locais ignorados pelo Git; o bot usa TF-IDF por padrão e esta baseline
+somente quando `LANGUAGE_RISK_BACKEND=bertimbau_logreg` for selecionado.
+
+No ambiente virtual, com os splits já preparados:
+
+```bash
+python -m pip install -r requirements-bertimbau.txt
+hf download neuralmind/bert-base-portuguese-cased \
+  --revision 94d69c95f98f7d5b2a8700c420230ae10def0baa \
+  --local-dir models/language_risk/bertimbau_base \
+  --include config.json pytorch_model.bin tokenizer_config.json \
+    special_tokens_map.json vocab.txt added_tokens.json
+python scripts/ml/extract_bertimbau_embeddings.py
+python scripts/ml/train_bertimbau_logreg.py
+```
+
+A extração pode levar bastante tempo sem GPU. Ela grava progresso a cada lote:
+reexecute o mesmo comando para continuar após uma interrupção. Em uma máquina
+com GPU NVIDIA compatível, use a opção `--device cuda`. A opção
+`--splits validation` permite testar a velocidade antes de processar todo o
+treino. Use `--restart` somente se quiser recalcular os splits selecionados
+desde o início.
+O treino produz `models/language_risk/bertimbau_logreg.joblib` e
+`data/processed/language_risk/bertimbau/metrics.json`, que inclui a comparação
+com a TF-IDF após conferir os hashes dos splits.
+Os [resultados desta avaliação](docs/bertimbau_baseline.md) estão documentados
+com métricas gerais e por recorte.
+
+### BERTimbau Base + rede neural MLP
+
+Para testar um classificador não linear sem repetir a vetorização, use os mesmos
+embeddings, splits e ambiente da experiência anterior:
+
+```bash
+python scripts/ml/train_bertimbau_mlp.py
+```
+
+A MLP tem arquitetura `768 → 128 (ReLU + dropout 0,2) → 1`. O BERTimbau
+permanece congelado; apenas a MLP é treinada. O script ajusta a normalização
+somente no treino e executa as sementes 42, 43 e 44, com parada antecipada pela
+validação. Grava um checkpoint por semente em `models/language_risk/` e o
+relatório `data/processed/language_risk/bertimbau/metrics_mlp.json`. Esse
+relatório compara média e desvio das três execuções à regressão sobre BERTimbau
+e à baseline TF-IDF, após conferir os hashes dos dados. O melhor checkpoint é
+apontado para inspeção, mas seus recortes usam a mesma validação empregada na
+seleção e não substituem uma avaliação independente. Depois de fixar esse
+checkpoint pela validação, o teste pode ser avaliado uma única vez:
+
+```bash
+python scripts/ml/extract_bertimbau_embeddings.py --splits test
+python scripts/ml/evaluate_bertimbau_mlp.py
+```
+
+O avaliador confere os hashes dos vetores e do checkpoint, não treina nem
+ajusta parâmetros com o teste e recusa sobrescrever um relatório de teste já
+existente. Consulte os
+[resultados da MLP](docs/bertimbau_mlp.md).
+
+### Testar o bot com BERTimbau + regressão ou MLP
+
+O classificador e o encoder são locais; o bot confere os hashes registrados
+em `metrics.json` ou `metrics_mlp.json` antes de usá-los. Para iniciar o bot
+**fora do Docker**, com Ollama aberto e `.env` já configurado:
+
+```bash
+source .venv/bin/activate
+python -m pip install -r requirements-bertimbau.txt
+LANGUAGE_RISK_BACKEND=bertimbau_logreg python src/contraponto/bot.py
+```
+
+O comando ativa a regressão só neste processo; não precisa editar `.env`.
+Confira no terminal `Modelo linguístico BERTimbau + regressão carregado.`.
+O relatório do Telegram deve identificar `BERTimbau Base + regressão logística`
+na seção linguística. Para comparar com a MLP, substitua `bertimbau_logreg` por
+`bertimbau_mlp`. Se os artefatos ou dependências faltarem, o score ficará
+indisponível e a investigação
+factual continuará. Encerre qualquer outra instância do bot com o mesmo token
+antes de iniciar, para evitar conflito no polling do Telegram. Para voltar ao
+padrão, inicie com `LANGUAGE_RISK_BACKEND=tfidf`.
+
+A imagem Docker atual instala apenas as dependências da TF-IDF, não PyTorch e
+Transformers, e não monta os relatórios locais do BERTimbau. Portanto, esse
+comando é para o ambiente Python do computador; não basta mudar o `.env` do Compose.
+Os scores continuam experimentais e **não são vereditos factuais**.
+
 Para EDA, execute `python scripts/eda.py` e `python scripts/eda_visuals.py`;
 eles podem recriar `reports/EDA.md` e os demais artefatos.
 
@@ -305,6 +406,7 @@ críticos de sintaxe e nomes indefinidos; não impõe toda a formatação do pro
 | `test_search.py` | Evidências, tipos de fonte, Tavily, ausência de chave e falhas de conexão. |
 | `test_verifier.py` | Abstenção, conflitos, negação, referências inventadas, respostas inválidas, estabilidade e fontes separadas por alegação. |
 | `test_language_risk.py` | Carregamento/inferência, equivalência com o pipeline, incompatibilidade e continuidade sem score. |
+| `test_bertimbau_baseline.py` | Retomada da extração, alinhamento dos splits e comparação das baselines sem baixar o checkpoint no CI; treino sintético da MLP quando PyTorch está instalado. |
 | `test_motor_resilience.py` | Score preservado, falhas reais simuladas dos adaptadores, continuidade por alegação e marca de revisão sem perder resultados anteriores. |
 | `test_logging_security.py` | Ocultação de credenciais fictícias nos logs e tracebacks. |
 | `test_diagnostics_logging.py` | Duração, categorias de falha, isolamento de investigações simultâneas, propagação para threads e preservação dos resultados. |

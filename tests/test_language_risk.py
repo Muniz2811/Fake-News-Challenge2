@@ -1,13 +1,22 @@
 """Inferência e integração sem Telegram, chaves ou chamadas externas."""
+import hashlib
+import importlib.util
+import json
 from pathlib import Path
 import sys
 import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
 
-import test_search  # Instala os stubs antes de importar config (não lê .env).
+import test_search  # noqa: F401  # Instala os stubs antes de importar config.
 from claims import Alegacao, ResultadoExtracao
-from language_risk import AnalisadorLinguistico, ROOT
+from language_risk import (
+    AnalisadorBertimbauLogReg,
+    AnalisadorBertimbauMLP,
+    AnalisadorLinguistico,
+    ROOT,
+    formatar_analise_linguistica,
+)
 from motor_ia import MotorIA
 from verifier import VerificadorAlegacoes
 
@@ -110,7 +119,174 @@ class TestLanguageRisk(unittest.TestCase):
         pipeline.predict_proba.assert_not_called()
 
 
+@unittest.skipUnless(
+    HAS_ML and importlib.util.find_spec("torch"),
+    "Instale requirements-bertimbau.txt para testar a MLP",
+)
+class TestBertimbauMLPRuntime(unittest.TestCase):
+    def setUp(self):
+        model_root = ROOT / "models/language_risk"
+        model_root.mkdir(parents=True, exist_ok=True)
+        self.folder = tempfile.TemporaryDirectory(
+            dir=model_root, prefix="test-bertimbau-runtime-"
+        )
+        self.addCleanup(self.folder.cleanup)
+        self.path = Path(self.folder.name)
+        self.encoder_dir = self.path / "encoder"
+        self.encoder_dir.mkdir()
+        weights = self.encoder_dir / "pytorch_model.bin"
+        weights.write_bytes(b"pesos sinteticos")
+        self.encoder_hash = hashlib.sha256(weights.read_bytes()).hexdigest()
+        import torch
+
+        from bertimbau_mlp import build_model
+
+        model = build_model(3, 4, 0.2)
+        self.checkpoint = self.path / "mlp.pt"
+        torch.save(
+            {
+                "state_dict": model.state_dict(),
+                "scaler_mean": torch.zeros(3),
+                "scaler_scale": torch.ones(3),
+                "dimension": 3,
+                "hidden_size": 4,
+                "dropout": 0.2,
+                "threshold": 0.5,
+                "seed": 43,
+            },
+            self.checkpoint,
+        )
+        self.report = self.path / "metrics_mlp.json"
+        self.report.write_text(
+            json.dumps(
+                {
+                    "experiment": "bertimbau_frozen_mlp",
+                    "best_validation_run": {"seed": 43},
+                    "runs": [
+                        {
+                            "seed": 43,
+                            "artifact": {
+                                "path": str(self.checkpoint.relative_to(ROOT)),
+                                "sha256": hashlib.sha256(
+                                    self.checkpoint.read_bytes()
+                                ).hexdigest(),
+                            },
+                        }
+                    ],
+                    "encoder": {
+                        "pooling": "mean of all content tokens across non-overlapping chunks",
+                        "checkpoint_sha256": self.encoder_hash,
+                        "dimension": 3,
+                        "max_tokens": 256,
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+
+    def test_loaded_mlp_scores_original_text_and_names_model(self):
+        encoder = MagicMock()
+        encoder.dimension = 3
+        encoder.encode.return_value = np.asarray([[1.0, 2.0, 3.0]], dtype=np.float32)
+        with patch("bertimbau_embeddings.BertimbauEncoder", return_value=encoder):
+            analyzer = AnalisadorBertimbauMLP(self.report, self.encoder_dir)
+        self.assertIsNone(analyzer.indisponibilidade)
+        score = analyzer.analisar("Notícia original")
+        self.assertGreaterEqual(score, 0)
+        self.assertLessEqual(score, 1)
+        encoder.encode.assert_called_once_with(["Notícia original"])
+        self.assertIn("BERTimbau Base + rede neural MLP", formatar_analise_linguistica(
+            score, modelo=analyzer.descricao_modelo
+        ))
+
+    def test_bad_artifact_abstains_without_loading_encoder(self):
+        self.checkpoint.write_bytes(b"artefato alterado")
+        with patch("bertimbau_embeddings.BertimbauEncoder") as encoder:
+            analyzer = AnalisadorBertimbauMLP(self.report, self.encoder_dir)
+        encoder.assert_not_called()
+        self.assertIsNone(analyzer.analisar("Notícia"))
+        self.assertIn("incompatível", analyzer.indisponibilidade)
+
+    def test_bertimbau_logreg_uses_validated_encoder_and_classifier(self):
+        from sklearn.preprocessing import StandardScaler
+
+        pipeline = Pipeline([
+            ("scale", StandardScaler()),
+            ("classifier", LogisticRegression(solver="liblinear")),
+        ]).fit(
+            np.asarray([[-2, 0, 0], [-1, 0, 0], [1, 0, 0], [2, 0, 0]]),
+            [0, 0, 1, 1],
+        )
+        model_path = self.path / "logreg.joblib"
+        joblib.dump(pipeline, model_path)
+        metrics_path = self.path / "metrics_logreg.json"
+        metrics_path.write_text(
+            json.dumps({
+                "experiment": "baseline_bertimbau_frozen_logistic_regression",
+                "artifacts": {"model": {
+                    "path": str(model_path.relative_to(ROOT)),
+                    "sha256": hashlib.sha256(model_path.read_bytes()).hexdigest(),
+                }},
+                "encoder": {
+                    "pooling": "mean of all content tokens across non-overlapping chunks",
+                    "checkpoint_sha256": self.encoder_hash,
+                    "dimension": 3,
+                    "max_tokens": 256,
+                },
+            }),
+            encoding="utf-8",
+        )
+        encoder = MagicMock()
+        encoder.dimension = 3
+        encoder.encode.return_value = np.asarray([[1.5, 0, 0]], dtype=np.float32)
+        with patch("bertimbau_embeddings.BertimbauEncoder", return_value=encoder):
+            analyzer = AnalisadorBertimbauLogReg(metrics_path, self.encoder_dir)
+        self.assertIsNone(analyzer.indisponibilidade)
+        self.assertAlmostEqual(
+            analyzer.analisar("Notícia original"),
+            pipeline.predict_proba([[1.5, 0, 0]])[0, 1],
+        )
+        encoder.encode.assert_called_once_with(["Notícia original"])
+        self.assertIn("BERTimbau Base + regressão logística", formatar_analise_linguistica(
+            analyzer.analisar("Notícia original"), modelo=analyzer.descricao_modelo
+        ))
+
+
 class TestMotorLanguageRisk(unittest.IsolatedAsyncioTestCase):
+    async def test_bertimbau_logreg_backend_is_selected(self):
+        analyzer = MagicMock()
+        analyzer.analisar.return_value = 0.4
+        analyzer.indisponibilidade = None
+        analyzer.descricao_modelo = "BERTimbau Base + regressão logística"
+        with patch("motor_ia.LANGUAGE_RISK_BACKEND", "bertimbau_logreg"), patch(
+            "motor_ia.AnalisadorBertimbauLogReg", return_value=analyzer
+        ) as constructor, patch("motor_ia.ExtratorAlegações") as extractor:
+            extractor.return_value.extrair.return_value = ResultadoExtracao(
+                "Notícia", []
+            )
+            motor = MotorIA([], VerificadorAlegacoes())
+        result = await motor.analisar_texto("Notícia")
+        constructor.assert_called_once()
+        self.assertIn("BERTimbau Base + regressão logística", result.analise_linguistica)
+        self.assertEqual(result.score_linguistico, 0.4)
+
+    async def test_mlp_backend_is_selected_and_named_in_report(self):
+        analyzer = MagicMock()
+        analyzer.analisar.return_value = 0.7
+        analyzer.indisponibilidade = None
+        analyzer.descricao_modelo = "BERTimbau Base + rede neural MLP"
+        with patch("motor_ia.LANGUAGE_RISK_BACKEND", "bertimbau_mlp"), patch(
+            "motor_ia.AnalisadorBertimbauMLP", return_value=analyzer
+        ) as constructor, patch("motor_ia.ExtratorAlegações") as extractor:
+            extractor.return_value.extrair.return_value = ResultadoExtracao(
+                "Notícia", []
+            )
+            motor = MotorIA([], VerificadorAlegacoes())
+        result = await motor.analisar_texto("Notícia")
+        constructor.assert_called_once()
+        self.assertIn("BERTimbau Base + rede neural MLP", result.analise_linguistica)
+        self.assertEqual(result.score_linguistico, 0.7)
+
     async def test_original_text_score_and_factual_abstention_are_separate(self):
         text = "Notícia completa: o relatório foi divulgado. Opinião do autor."
         analyzer = MagicMock()
