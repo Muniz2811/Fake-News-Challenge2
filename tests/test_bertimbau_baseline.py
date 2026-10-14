@@ -39,7 +39,7 @@ class FakeEncoder:
 class TestBertimbauBaseline(unittest.TestCase):
     def setUp(self):
         self.folder = tempfile.TemporaryDirectory(
-            prefix="test-bertimbau-", dir=ROOT / "data"
+            prefix=".test-bertimbau-", dir=ROOT
         )
         self.addCleanup(self.folder.cleanup)
         self.path = Path(self.folder.name)

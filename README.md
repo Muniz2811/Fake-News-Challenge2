@@ -140,6 +140,7 @@ Não é necessário instalar Python para executar o bot com Docker.
 | `TAVILY_API_KEY` | Opcional; habilita busca de evidências web. |
 | `MAX_CLAIMS_PER_MESSAGE` | Máximo de alegações por texto; padrão `5`. |
 | `AUTHORIZED_GROUPS` | IDs separados por vírgula; vazia não autoriza nenhum grupo. |
+| `GROUP_ANALYSIS_MODE` | `command` (padrão): responde a `/analisar`; `automatic`: também analisa textos comuns e envia alerta + deep link. |
 | `LANGUAGE_RISK_BACKEND` | `tfidf` (padrão), `bertimbau_logreg` ou `bertimbau_mlp` para execução Python local. |
 | `BERTIMBAU_LOGREG_METRICS_PATH` | Relatório local com o classificador BERTimbau + regressão e hashes dos artefatos. |
 | `BERTIMBAU_MLP_METRICS_PATH` | Relatório local que identifica o checkpoint MLP escolhido pela validação. |
@@ -209,6 +210,7 @@ amostras. Essa pasta não é versionada e pode ser recriada localmente. `data/`,
 | `llm.py` | Expõe um contrato único de JSON estruturado para Ollama ou outro endpoint compatível. |
 | `motor_ia.py` | Coordena inferência, extração, busca e verificação; devolve `ResultadoAnalise` com score e vereditos individuais. |
 | `language_risk.py` | Carrega o backend escolhido e aplica TF-IDF + regressão, BERTimbau + regressão ou BERTimbau + MLP ao texto original. |
+| `model_catalog.py` | Reutiliza os classificadores carregados e compartilha o encoder BERTimbau entre regressão e MLP. |
 | `claims.py` | Produz alegações numeradas com texto, trecho e posição; usa a LLM local quando configurada ou regras como fallback. |
 | `search.py` | Adaptadores Google Fact Check/Tavily e evidências padronizadas: título, URL, publicador, trecho, data e metadados de checagem. |
 | `verifier.py` | Compara cada alegação com suas evidências, valida referências da LLM e mantém abstenção quando não há sustentação segura. |
@@ -233,24 +235,46 @@ amostras. Essa pasta não é versionada e pode ser recriada localmente. `data/`,
 
 O fluxo atual aceita texto no Telegram e oferece o diálogo socrático pelo botão
 do relatório privado. WhatsApp, áudio/imagem e treinamento com Docker são etapas
-futuras. O motor marca
-`requer_revisao=True` em casos inconclusivos ou com falhas externas; em grupos
-autorizados, o bot envia apenas um alerta curto e um deep link para o relatório
-privado. O score linguístico não decide o veredito factual nem o alerta.
+futuras. Em grupos autorizados, `/analisar` publica o relatório completo quando
+usado como resposta a uma mensagem de texto. O modo automático opcional mantém
+o alerta curto com deep link ao privado quando `requer_revisao=True`, em casos
+inconclusivos ou com falhas externas. O score linguístico não decide o veredito
+factual nem o alerta.
 
-### Autorizar um grupo de teste (MVP-03)
+### Analisar uma mensagem no grupo
 
-1. Adicione seu bot ao grupo e envie `/chatid` (ou `/chatid@NomeDoBot`). O comando
+1. Adicione seu bot ao grupo, com permissão para enviar mensagens. Consulte o
+   **@usuário exato** no perfil dele. Envie `/chatid@` seguido desse usuário,
+   sem repetir o `@`. O comando
    mostra apenas o identificador do grupo atual, sem analisar suas mensagens.
 2. Cadastre esse ID em `AUTHORIZED_GROUPS` no `.env`. Para vários grupos, use
    vírgulas, por exemplo `AUTHORIZED_GROUPS=-1001234567890,-1009876543210`.
-   Grupos não cadastrados são ignorados; configuração vazia permite só o privado.
-3. Recrie o serviço com `docker compose up -d --force-recreate bot`.
-4. Para receber textos comuns, ajuste o **Privacy Mode**: bots administradores
-   recebem essas mensagens; para um bot não administrador, use `/setprivacy`
-   no `@BotFather` e desative a privacidade apenas se o grupo concordar. Pode
-   ser necessário remover e adicionar o bot novamente após a alteração.
-   Consulte a [documentação oficial do Telegram](https://core.telegram.org/bots/features#privacy-mode).
+   Configuração vazia não autoriza nenhum grupo. Mantenha `GROUP_ANALYSIS_MODE=command`
+   (também é o padrão quando a variável não existe).
+3. Reinicie o processo nativo ou, com Docker, reconstrua após atualizar o código:
+   `docker compose up -d --build bot`. Não execute duas instâncias com o mesmo token.
+4. Envie uma notícia no grupo. Use **Responder** nessa mensagem e mande
+   `/analisar@` seguido do usuário exato do bot. O Telegram costuma completar
+   o comando ao digitá-lo. Exemplo fictício: para um bot com usuário
+   `@contraponto_test_bot`, use `/analisar@contraponto_test_bot`.
+5. O bot confirma o recebimento e publica o relatório no grupo, dividido quando
+   necessário. Usa o modelo definido em `LANGUAGE_RISK_BACKEND`; `/modelo` vale
+   para o privado. O diálogo socrático permanece no chat privado.
+
+O aviso **“não tem acesso às mensagens”** é esperado com o **Privacy Mode** ativo.
+Comandos explicitamente dirigidos ao bot são recebidos mesmo nesse modo; não é
+necessário torná-lo administrador. O relatório usa o texto original recebido em
+`reply_to_message`; se o Telegram não o disponibilizar, o bot orienta a responder
+a uma mensagem textual. Veja a [FAQ oficial](https://core.telegram.org/bots/faq#what-messages-will-my-bot-get).
+
+Para manter o fluxo anterior de análise de textos comuns, configure
+`GROUP_ANALYSIS_MODE=automatic` e reinicie. Nesse modo, o bot precisa receber
+mensagens comuns: administradores as recebem; para um bot não administrador,
+use `/setprivacy` no `@BotFather` para desativar a privacidade com a concordância
+do grupo. Pode ser necessário remover e adicionar o bot novamente. O alerta
+automático continua curto e leva ao relatório privado; o comando `/analisar`
+continua disponível para pedir o relatório no grupo. Consulte a
+[documentação do Privacy Mode](https://core.telegram.org/bots/features#privacy-mode).
 
 Áudios, imagens, vídeos, documentos e figurinhas de grupos não entram na análise.
 O processamento não grava mensagens em arquivos ou banco. Resultados de casos
@@ -357,6 +381,46 @@ existente. Consulte os
 
 ### Testar o bot com BERTimbau + regressão ou MLP
 
+No chat privado, envie **`/modelo`** e escolha um dos três botões: TF-IDF +
+regressão logística, BERTimbau + regressão logística ou BERTimbau + MLP.
+O bot confirma a seleção após carregar o modelo. Envie uma notícia para testar
+e confira o nome do modelo na seção de análise textual do relatório.
+
+A escolha vale para o usuário naquele chat e é temporária: reiniciar o bot
+restaura `LANGUAGE_RISK_BACKEND` do ambiente (TF-IDF por padrão). Até 1.000
+preferências recentes ficam em memória. Grupos continuam usando o modelo
+configurado no ambiente. Relatórios antigos e deep links preservam o modelo
+da investigação original. Trocar o classificador não altera as buscas, o Qwen,
+os vereditos factuais nem um diálogo socrático em andamento.
+
+O primeiro carregamento do BERT pode demorar. O encoder é compartilhado pelos
+dois classificadores, com inferências serializadas para controlar memória.
+Modelo indisponível não substitui a seleção anterior; o bot informa o motivo.
+Para usar as três opções neste notebook Windows, encerre a instância antiga
+com **Ctrl+C** e, na raiz do projeto, execute:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt -r requirements-bertimbau.txt
+.\.venv\Scripts\python.exe -u src\contraponto\bot.py
+```
+
+Mantenha o Ollama no desktop e o Tailscale conectados. O BERT roda no computador
+do bot; o endereço `LLM_BASE_URL` continua direcionando as tarefas do Qwen para
+o desktop. Os artefatos locais necessários são:
+
+```text
+models/language_risk/baseline_tfidf_logreg.joblib
+models/language_risk/bertimbau_base/
+models/language_risk/bertimbau_logreg.joblib
+models/language_risk/bertimbau_mlp_seed43.pt
+data/processed/language_risk/bertimbau/metrics.json
+data/processed/language_risk/bertimbau/metrics_mlp.json
+```
+
+O checkpoint MLP utilizado é o apontado pela seleção na validação do relatório;
+nos artefatos atuais, é a semente 43. Não é necessário retreinar ou recalcular
+os vetores para usar `/modelo`.
+
 O classificador e o encoder são locais; o bot confere os hashes registrados
 em `metrics.json` ou `metrics_mlp.json` antes de usá-los. Para iniciar o bot
 **fora do Docker**, com Ollama aberto e `.env` já configurado:
@@ -401,11 +465,12 @@ críticos de sintaxe e nomes indefinidos; não impõe toda a formatação do pro
 |---|---|
 | `test_config.py` | Token obrigatório, LLM opcional e extração por regras. |
 | `test_local_llm.py` | Contratos estruturados, validação da origem, fallback e sessões socráticas sem executar modelo no CI. |
-| `test_group_authorization.py` | Grupos explícitos, lista vazia, `/chatid`, logs dos handlers e fluxo alerta → deep link → relatório privado. |
+| `test_group_authorization.py` | Autorização, `/chatid`, `/analisar` em resposta, relatório no grupo, falhas, limites e preservação do alerta → deep link → relatório privado. |
 | `test_bot_report.py` | Relatório, deep link, separação linguagem/fatos e limite de mensagens com emojis. |
 | `test_search.py` | Evidências, tipos de fonte, Tavily, ausência de chave e falhas de conexão. |
 | `test_verifier.py` | Abstenção, conflitos, negação, referências inventadas, respostas inválidas, estabilidade e fontes separadas por alegação. |
 | `test_language_risk.py` | Carregamento/inferência, equivalência com o pipeline, incompatibilidade e continuidade sem score. |
+| `test_model_selection.py` | Seleção privada isolada, cache, encoder compartilhado, falhas, concorrência e preservação do modelo em relatórios anteriores. |
 | `test_bertimbau_baseline.py` | Retomada da extração, alinhamento dos splits e comparação das baselines sem baixar o checkpoint no CI; treino sintético da MLP quando PyTorch está instalado. |
 | `test_motor_resilience.py` | Score preservado, falhas reais simuladas dos adaptadores, continuidade por alegação e marca de revisão sem perder resultados anteriores. |
 | `test_logging_security.py` | Ocultação de credenciais fictícias nos logs e tracebacks. |

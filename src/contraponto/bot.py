@@ -25,18 +25,20 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from config import (
     TELEGRAM_BOT_TOKEN, AUTHORIZED_GROUPS, LLM_API_KEY, OPENAI_API_KEY,
-    GOOGLE_FACT_CHECK_KEY, TAVILY_API_KEY, validate_env,
+    GOOGLE_FACT_CHECK_KEY, TAVILY_API_KEY, GROUP_ANALYSIS_MODE, validate_env,
 )
 from motor_ia import MotorIA, ResultadoAnalise
 from verifier import ROTULOS_CATEGORIAS, VereditoAlegacao
 from socratic import GerenciadorSocratico
 from diagnostics import investigation_context, install_correlation_record_factory
+from model_catalog import MODEL_NAMES
 
 logger = logging.getLogger(__name__)
 
 # Tempo de vida (em horas) das investigações armazenadas em memória.
 _TTL_HORAS: int = 24
 _MAX_INVESTIGACOES: int = 1000
+_MAX_ESCOLHAS_MODELO: int = 1000
 
 # Limite do Telegram por mensagem. Contado em unidades UTF-16 (emojis fora do
 # BMP valem 2), o que nunca subestima o tamanho real.
@@ -92,16 +94,22 @@ class BotTelegram:
         motor: MotorIA | None = None,
         token: str | None = None,
         authorized_groups: list[int] | None = None,
+        group_analysis_mode: str | None = None,
     ) -> None:
         self.motor = motor if motor is not None else MotorIA()
         gerenciador = getattr(self.motor, "socratico", None)
         self.socratico = gerenciador if gerenciador is not None else GerenciadorSocratico()
         self.authorized_groups = list(AUTHORIZED_GROUPS if authorized_groups is None else authorized_groups)
+        self.group_analysis_mode = GROUP_ANALYSIS_MODE if group_analysis_mode is None else group_analysis_mode
+        if self.group_analysis_mode not in {"command", "automatic"}:
+            raise ValueError("GROUP_ANALYSIS_MODE deve ser command ou automatic")
         token = TELEGRAM_BOT_TOKEN if token is None else token
 
         # Armazena UUID → {resultado, expires}
         self._investigacoes: Dict[str, dict] = {}
         self._dialogos_iniciando: set[tuple[int, int, str]] = set()
+        self._modelos_por_usuario: dict[tuple[int, int], str] = {}
+        self._modelos_carregando: set[tuple[int, int]] = set()
 
         if not token:
             raise ValueError("Token do Telegram não fornecido ou inválido.")
@@ -111,7 +119,12 @@ class BotTelegram:
         self.app.add_handler(CommandHandler("start", self._cmd_start))
         self.app.add_handler(CommandHandler("ajuda", self._cmd_ajuda))
         self.app.add_handler(CommandHandler("chatid", self._cmd_chatid))
+        self.app.add_handler(CommandHandler("analisar", self._cmd_analisar))
         self.app.add_handler(CommandHandler("cancelar", self._cmd_cancelar))
+        self.app.add_handler(CommandHandler("modelo", self._cmd_modelo))
+        self.app.add_handler(CallbackQueryHandler(
+            self._selecionar_modelo, pattern=r"^modelo:", block=False,
+        ))
         self.app.add_handler(CallbackQueryHandler(
             self._iniciar_dialogo_socratico, pattern=r"^socratico:", block=False,
         ))
@@ -181,6 +194,8 @@ class BotTelegram:
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
         """Analisa mensagens em grupos autorizados; alerta se requer revisão."""
+        if self.group_analysis_mode != "automatic":
+            return
         if (
             not update.message or not update.message.text or not update.message.text.strip()
             or update.message.chat.type not in {"group", "supergroup"}
@@ -223,6 +238,50 @@ class BotTelegram:
 
         await update.message.reply_text(mensagem_aviso, reply_markup=teclado)
 
+    async def _cmd_analisar(
+        self, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+        """Investiga o texto respondido e publica o relatório no grupo autorizado."""
+        message = update.message
+        if message is None:
+            return
+        if message.chat.type not in {"group", "supergroup"}:
+            await message.reply_text(
+                "No privado, envie o texto diretamente. No grupo, responda à mensagem com /analisar."
+            )
+            return
+        if message.chat_id not in self.authorized_groups:
+            await message.reply_text(
+                "Este grupo não está autorizado. Use /chatid e peça ao responsável pelo bot "
+                "para cadastrar o ID em AUTHORIZED_GROUPS e reiniciar a aplicação."
+            )
+            return
+
+        original = message.reply_to_message
+        texto = getattr(original, "text", None)
+        if not isinstance(texto, str) or not texto.strip():
+            await message.reply_text(
+                "Responda a uma mensagem de texto do grupo com /analisar. "
+                "Preciso receber o texto original; fotos, áudios e legendas não são analisados."
+            )
+            return
+
+        await message.reply_text("📩 Texto recebido. A investigação começou. O relatório será publicado neste grupo.")
+        with investigation_context():
+            try:
+                # Grupos usam o modelo padrão, sem aplicar preferências do privado.
+                resultado = await self.motor.analisar_texto(texto)
+            except Exception as exc:
+                logger.error(
+                    "error_category=INTERNAL_ERROR stage=analysis_pipeline error_type=%s",
+                    type(exc).__name__,
+                )
+                await message.reply_text("Não consegui concluir a investigação. Tente novamente em instantes.")
+                return
+
+        # O diálogo socrático continua restrito ao privado.
+        await self._enviar_relatorio(message, resultado)
+
     async def _cmd_chatid(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Mostra apenas o ID do grupo atual, sem analisar ou registrar mensagens."""
         if not update.message:
@@ -241,7 +300,8 @@ class BotTelegram:
 
         if not context.args:
             await update.message.reply_text(
-                "Olá! Envie uma mensagem de texto diretamente e eu farei uma análise."
+                "Olá! Envie uma mensagem de texto diretamente e eu farei uma análise. "
+                "Use /modelo para escolher o classificador da análise textual."
             )
             return
 
@@ -266,8 +326,95 @@ class BotTelegram:
         await update.message.reply_text(
             "Envie uma notícia ou alegação como texto para iniciar uma investigação. "
             "Áudios, figurinhas e arquivos ainda não são aceitos. "
-            "No grupo, use /chatid para consultar o ID e cadastre-o em AUTHORIZED_GROUPS."
+            "Use /modelo para escolher entre TF-IDF, BERTimbau + regressão e BERTimbau + MLP. "
+            "No grupo autorizado, responda a uma mensagem de texto com /analisar para publicar "
+            "o relatório no próprio grupo. Use /chatid para consultar o ID e cadastre-o em AUTHORIZED_GROUPS."
         )
+
+    def _modelo_atual(self, user_id: int | None, chat_id: int | None) -> str:
+        padrao = getattr(self.motor, "modelo_padrao", "tfidf")
+        if padrao not in MODEL_NAMES:
+            padrao = "tfidf"
+        return getattr(self, "_modelos_por_usuario", {}).get((chat_id, user_id), padrao)
+
+    async def _cmd_modelo(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        del context
+        if not update.message:
+            return
+        if update.message.chat.type != "private":
+            await update.message.reply_text(
+                "Use /modelo no chat privado. A escolha vale apenas para suas análises privadas."
+            )
+            return
+        user_id, chat_id = self._ids_privados(update)
+        atual = self._modelo_atual(user_id, chat_id)
+        teclado = InlineKeyboardMarkup([
+            [InlineKeyboardButton(
+                f"{'✅ ' if model_id == atual else ''}{name}", callback_data=f"modelo:{model_id}",
+            )] for model_id, name in MODEL_NAMES.items()
+        ])
+        await update.message.reply_text(
+            f"Modelo atual: {MODEL_NAMES[atual]}.\n\n"
+            "Escolha o modelo da análise textual para as próximas notícias. "
+            "A busca de evidências, a verificação factual e o diálogo continuam iguais. "
+            "A escolha vale apenas para você neste chat.",
+            reply_markup=teclado,
+        )
+
+    async def _selecionar_modelo(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        del context
+        query = getattr(update, "callback_query", None)
+        if query is None:
+            return
+        message = getattr(query, "message", None)
+        chat = getattr(message, "chat", None)
+        user_id = getattr(getattr(query, "from_user", None), "id", None)
+        chat_id = getattr(chat, "id", None)
+        model_id = (getattr(query, "data", "") or "").removeprefix("modelo:")
+        if (model_id not in MODEL_NAMES or user_id is None or chat_id is None
+                or getattr(chat, "type", None) != "private"):
+            await query.answer("Seleção inválida. Use /modelo no chat privado.")
+            return
+        try:
+            await query.answer("Verificando o modelo…")
+        except BadRequest as exc:
+            logger.warning("stage=language_model_selection error_type=%s", type(exc).__name__)
+            return
+        if not hasattr(self, "_modelos_carregando"):
+            self._modelos_carregando = set()
+        key = (chat_id, user_id)
+        if key in self._modelos_carregando:
+            await message.reply_text("Já estou preparando um modelo para você. Aguarde a confirmação.")
+            return
+        self._modelos_carregando.add(key)
+        try:
+            await message.reply_text(
+                f"Preparando {MODEL_NAMES[model_id]}. O primeiro carregamento pode demorar."
+            )
+            try:
+                motivo = await asyncio.to_thread(self.motor.preparar_modelo, model_id)
+            except Exception as exc:
+                logger.error("stage=language_model_selection error_type=%s", type(exc).__name__)
+                motivo = "falha ao carregar o modelo"
+            if motivo:
+                atual = self._modelo_atual(user_id, chat_id)
+                await message.reply_text(
+                    f"Modelo indisponível: {motivo}.\n"
+                    f"Sua seleção continua em {MODEL_NAMES[atual]}."
+                )
+                return
+            if not hasattr(self, "_modelos_por_usuario"):
+                self._modelos_por_usuario = {}
+            self._modelos_por_usuario.pop(key, None)
+            self._modelos_por_usuario[key] = model_id
+            if len(self._modelos_por_usuario) > _MAX_ESCOLHAS_MODELO:
+                del self._modelos_por_usuario[next(iter(self._modelos_por_usuario))]
+            await message.reply_text(
+                f"Modelo selecionado: {MODEL_NAMES[model_id]}.\n"
+                "Envie uma notícia para testar ou use /modelo para trocar novamente."
+            )
+        finally:
+            self._modelos_carregando.discard(key)
 
     @staticmethod
     def _ids_privados(update: Update) -> tuple[int | None, int | None]:
@@ -386,11 +533,16 @@ class BotTelegram:
             await update.message.reply_text(resposta)
             return
 
+        # Fotografa a escolha antes de qualquer await da investigação.
+        modelo_escolhido = getattr(self, "_modelos_por_usuario", {}).get((chat_id, user_id))
         with investigation_context():
             try:
                 # A confirmação é enviada antes de chamar o motor, que pode demorar.
                 await update.message.reply_text("📩 Texto recebido. A investigação começou.")
-                resultado = await self.motor.analisar_texto(texto)
+                if modelo_escolhido is None:
+                    resultado = await self.motor.analisar_texto(texto)
+                else:
+                    resultado = await self.motor.analisar_texto(texto, modelo_id=modelo_escolhido)
             except NotImplementedError:
                 await update.message.reply_text(
                     "O fluxo de análise ainda não está totalmente implementado."

@@ -1,6 +1,7 @@
 """Embeddings de notícias com BERTimbau congelado, sem classificação factual."""
 
 from pathlib import Path
+from threading import Lock
 
 import numpy as np
 
@@ -19,6 +20,7 @@ class BertimbauEncoder:
         from transformers import AutoModel, AutoTokenizer
 
         self.torch = torch
+        self._inference_lock = Lock()
         self.model_dir = Path(model_dir)
         if not self.model_dir.is_dir():
             raise FileNotFoundError(f"Checkpoint não encontrado: {self.model_dir}")
@@ -59,6 +61,11 @@ class BertimbauEncoder:
 
     def encode(self, texts: list[str]) -> np.ndarray:
         """Retorna um vetor float32 por notícia na mesma ordem da entrada."""
+        # Os dois classificadores e vários usuários podem usar o mesmo encoder.
+        with self._inference_lock:
+            return self._encode(texts)
+
+    def _encode(self, texts: list[str]) -> np.ndarray:
         if not texts:
             return np.empty((0, self.dimension), dtype=np.float32)
         chunks: list[list[int]] = []

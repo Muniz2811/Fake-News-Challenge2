@@ -121,6 +121,7 @@ class AnalisadorBertimbauMLP:
         metrics_path: str | Path = DEFAULT_MLP_METRICS_PATH,
         encoder_dir: str | Path = DEFAULT_BERTIMBAU_MODEL_DIR,
         device: str = "auto",
+        *, encoder_loader=None,
     ):
         self.metrics_path = _absolute_path(metrics_path)
         self.encoder_dir = _absolute_path(encoder_dir)
@@ -170,7 +171,7 @@ class AnalisadorBertimbauMLP:
             threshold = float(checkpoint["threshold"])
             if not math.isfinite(threshold) or not 0 <= threshold <= 1:
                 raise ValueError("Limiar do checkpoint inválido")
-            encoder = _load_bertimbau_encoder(
+            encoder = (encoder_loader or _load_bertimbau_encoder)(
                 self.encoder_dir, encoder_config, device
             )
             self._encoder = encoder
@@ -220,6 +221,7 @@ class AnalisadorBertimbauLogReg:
         metrics_path: str | Path = DEFAULT_LOGREG_METRICS_PATH,
         encoder_dir: str | Path = DEFAULT_BERTIMBAU_MODEL_DIR,
         device: str = "auto",
+        *, encoder_loader=None,
     ):
         self.metrics_path = _absolute_path(metrics_path)
         self.encoder_dir = _absolute_path(encoder_dir)
@@ -246,7 +248,7 @@ class AnalisadorBertimbauLogReg:
             classes = list(pipeline.classes_)
             if len(classes) != 2 or set(classes) != {0, 1}:
                 raise ValueError("O modelo deve usar 0=true e 1=fake")
-            encoder = _load_bertimbau_encoder(
+            encoder = (encoder_loader or _load_bertimbau_encoder)(
                 self.encoder_dir, report["encoder"], device
             )
             if pipeline.named_steps["classifier"].n_features_in_ != encoder.dimension:
@@ -292,7 +294,10 @@ def formatar_analise_linguistica(
     modelo: str = "TF-IDF + regressão logística",
 ) -> str:
     if score is None:
-        return f"Análise linguística indisponível: {motivo or 'falha na inferência'}."
+        return (
+            f"Modelo local: {modelo}.\n"
+            f"Análise linguística indisponível: {motivo or 'falha na inferência'}."
+        )
     value = f"{score:.3f}".replace(".", ",")
     return (
         f"Score experimental de associação à classe fake: {value} (escala de 0 a 1).\n"

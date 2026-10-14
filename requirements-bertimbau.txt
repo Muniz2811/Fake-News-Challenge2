@@ -1,4 +1,4 @@
-# Somente para extrair embeddings e treinar a baseline BERTimbau.
+# Extração, treinamento e inferência BERTimbau no bot fora do Docker.
 # Não é instalado na imagem do bot nem no CI principal.
 -r requirements-inference.txt
 torch==2.14.1

@@ -48,6 +48,8 @@ def parse_authorized_groups(value: str) -> list[int]:
 
 
 AUTHORIZED_GROUPS: list[int] = parse_authorized_groups(os.getenv("AUTHORIZED_GROUPS", ""))
+# Comando explícito por padrão; o modo automático preserva alerta + deep link.
+GROUP_ANALYSIS_MODE = os.getenv("GROUP_ANALYSIS_MODE", "command").strip().lower()
 
 
 def validate_env() -> None:
@@ -72,3 +74,5 @@ def validate_env() -> None:
         )
     if BERTIMBAU_DEVICE not in {"auto", "cpu", "mps", "cuda"}:
         raise ValueError("BERTIMBAU_DEVICE deve ser auto, cpu, mps ou cuda")
+    if GROUP_ANALYSIS_MODE not in {"command", "automatic"}:
+        raise ValueError("GROUP_ANALYSIS_MODE deve ser command ou automatic")
