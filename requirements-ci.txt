@@ -1,2 +1,0 @@
-# Ferramentas apenas do CI; não entram na imagem do bot.
-ruff==0.14.0

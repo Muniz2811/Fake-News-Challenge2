@@ -1,0 +1,7 @@
+# Opcional: treinos TF-IDF/BERTimbau, gráficos e inferência BERTimbau no bot.
+# Não é instalado na imagem Docker nem no CI principal.
+-r ../requirements.txt
+matplotlib
+torch==2.14.1
+transformers==4.57.6
+huggingface_hub==0.36.2

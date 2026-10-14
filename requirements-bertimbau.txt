@@ -1,6 +1,0 @@
-# Extração, treinamento e inferência BERTimbau no bot fora do Docker.
-# Não é instalado na imagem do bot nem no CI principal.
--r requirements-inference.txt
-torch==2.14.1
-transformers==4.57.6
-huggingface_hub==0.36.2
