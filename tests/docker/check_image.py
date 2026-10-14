@@ -27,7 +27,7 @@ def main():
         "assert not list(Path('/app').rglob('.env*')); "
         "assert not list(Path('/app').rglob('*.joblib')); "
         "assert all(not (Path('/app') / name).exists() "
-        "for name in ['.git','.venv','data','models','reports','scripts','tests']); "
+        "for name in ['.git','.venv','data','models','reports','docs','requirements','scripts','tests']); "
         "print('Conteudo da imagem e imports: OK')"
     ))
     model_probe = ROOT / "tests/docker/model_probe.py"

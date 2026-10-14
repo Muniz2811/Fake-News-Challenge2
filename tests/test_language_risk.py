@@ -40,7 +40,7 @@ class TestMissingModel(unittest.TestCase):
         self.assertIn("não encontrado", analyzer.indisponibilidade)
 
 
-@unittest.skipUnless(HAS_ML, "Instale requirements-inference.txt para testar o pipeline real")
+@unittest.skipUnless(HAS_ML, "Instale requirements.txt para testar o pipeline real")
 class TestLanguageRisk(unittest.TestCase):
     def setUp(self):
         # Artefato sintético exclusivo dos testes, não substitui a baseline real.
@@ -121,7 +121,7 @@ class TestLanguageRisk(unittest.TestCase):
 
 @unittest.skipUnless(
     HAS_ML and importlib.util.find_spec("torch"),
-    "Instale requirements-bertimbau.txt para testar a MLP",
+    "Instale requirements/ml.txt para testar a MLP",
 )
 class TestBertimbauMLPRuntime(unittest.TestCase):
     def setUp(self):

@@ -63,8 +63,8 @@ LLM_BASE_URL=http://localhost:11434/v1 LLM_API_KEY=ollama LLM_MODEL=qwen3:8b \
 python scripts/evaluate_qwen.py
 ```
 
-O checkpoint e o protocolo estão registrados em
-[`docs/avaliacao-qwen.md`](docs/avaliacao-qwen.md).
+O script imprime um JSON com o checkpoint, as saídas e o resultado dos casos
+de extração, NLI e diálogo. Ele consulta o Ollama configurado.
 
 ## Rodar no macOS com Docker Desktop
 
@@ -105,7 +105,7 @@ Não é necessário instalar Python para executar o bot com Docker.
    ```
 
    A pasta é `language_risk`, com underscore. O modelo não vem no clone; cada
-   computador precisa ter sua cópia, compatível com `requirements-inference.txt`.
+   computador precisa ter sua cópia, compatível com `requirements.txt`.
 6. Encerre outras instâncias usando o mesmo token, construa e inicie:
 
    ```bash
@@ -183,7 +183,7 @@ Fake-News-Challenge2/
 ├── src/contraponto/          # Aplicação do bot.
 ├── scripts/                 # Aquisição, EDA e scripts de treino em ml/.
 ├── tests/                   # Testes Python e integração Docker em docker/.
-├── reports/                 # Saída local regenerável de EDA; ignorada pelo Git.
+├── requirements/            # Perfis opcionais dev.txt e ml.txt.
 ├── .github/workflows/ci.yaml # GitHub Actions: lint, testes e build.
 ├── Dockerfile
 ├── compose.yaml
@@ -191,9 +191,9 @@ Fake-News-Challenge2/
 ├── .env.example
 ├── .gitignore
 ├── requirements.txt
-├── requirements-inference.txt
-├── requirements-ci.txt
 ├── README.md
+├── docs/                    # Documentos apenas locais; ignorados pelo Git.
+├── reports/                 # Saídas locais regeneráveis; ignoradas pelo Git.
 ├── data/                    # Dados locais; ignorados pelo Git.
 ├── Fake.br-Corpus/           # Base local; ignorada pelo Git.
 └── models/language_risk/     # Modelo local; ignorado pelo Git.
@@ -201,7 +201,9 @@ Fake-News-Challenge2/
 
 `reports/` contém resultados gerados pelos scripts de EDA, como JSON, gráficos e
 amostras. Essa pasta não é versionada e pode ser recriada localmente. `data/`,
-`Fake.br-Corpus/` e `models/` também são pastas locais e não acompanham o clone.
+`Fake.br-Corpus/`, `models/`, `docs/` e `entrega_regressao_logistica/` também são
+pastas locais e não acompanham o clone. `docs/` guarda os documentos de trabalho
+do autor; as instruções compartilhadas de execução e treino ficam neste README.
 
 | Arquivo em `src/contraponto/` | Responsabilidade |
 |---|---|
@@ -223,9 +225,9 @@ amostras. Essa pasta não é versionada e pode ser recriada localmente. `data/`,
 | `compose.yaml` | Configura build, ambiente, modelo montado, reinício e encerramento. |
 | `.dockerignore` / `.gitignore` | Excluem arquivos do contexto de build e do versionamento, respectivamente. |
 | `.env.example` | Exemplo sem credenciais reais; `.env` guarda a configuração local. |
-| `requirements.txt` | Dependências do bot, APIs e configuração. |
-| `requirements-inference.txt` | Versões de joblib, NumPy, scikit-learn e SciPy para carregar o modelo. |
-| `requirements-ci.txt` | Ruff para lint; não é instalado na imagem do bot. |
+| `requirements.txt` | Bot, APIs e inferência TF-IDF com as versões usadas pelo modelo; é o único arquivo instalado no Docker. |
+| `requirements/dev.txt` | Inclui o bot e acrescenta Ruff para testes/lint e CI. |
+| `requirements/ml.txt` | Inclui o bot e acrescenta gráficos, PyTorch, Transformers e Hugging Face para os três treinos e inferência BERTimbau. |
 | `scripts/deploy_demo.sh` | Atalho para iniciar, parar, reiniciar e acompanhar logs da demonstração com Docker Compose. |
 | `scripts/acquire.py` | Obtém Fake.br, FakeRecogna, AVeriTeC e anotações FEVEROUS, registrando um manifesto. |
 | `scripts/eda.py` / `scripts/eda_visuals.py` | Analisam formatos, distribuição e características textuais; geram artefatos em `reports/`. |
@@ -285,24 +287,35 @@ parte da MVP-14. O teste em grupo real continua necessário para validar a confi
 
 ## Desenvolvimento, dados e treinamento local
 
-Para rodar sem Docker ou executar testes no macOS/Linux, use Python 3.13:
+Para rodar sem Docker no macOS/Linux, use Python 3.13:
 
 ```bash
 python3.13 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements.txt -r requirements-inference.txt -r requirements-ci.txt
+python -m pip install -r requirements.txt
 python src/contraponto/bot.py
 ```
 
 No Windows, crie com `py -3.13 -m venv .venv` e ative com
 `.\.venv\Scripts\Activate.ps1`. Não execute o bot nativo junto com o contêiner.
 
+Escolha o perfil conforme a tarefa; os opcionais já incluem `requirements.txt`:
+
+| Tarefa | Instalação |
+|---|---|
+| Rodar o bot com TF-IDF | `python -m pip install -r requirements.txt` |
+| Executar testes e lint | `python -m pip install -r requirements/dev.txt` |
+| Treinar modelos ou usar BERTimbau no bot | `python -m pip install -r requirements/ml.txt` |
+
+Não é preciso instalar todos para executar o bot. As versões de ML foram
+mantidas para preservar a compatibilidade dos artefatos treinados.
+
 Aquisição e treino são opcionais para quem já possui o modelo. No ambiente
 virtual, para reconstruí-lo:
 
 ```bash
+python -m pip install -r requirements/ml.txt
 python scripts/acquire.py
-python -m pip install matplotlib
 python scripts/ml/prepare_language_data.py
 python scripts/ml/split_language_data.py
 python scripts/ml/train_baseline.py --figure-output "$(pwd)/data/processed/language_risk/baseline/validation.png"
@@ -327,7 +340,7 @@ somente quando `LANGUAGE_RISK_BACKEND=bertimbau_logreg` for selecionado.
 No ambiente virtual, com os splits já preparados:
 
 ```bash
-python -m pip install -r requirements-bertimbau.txt
+python -m pip install -r requirements/ml.txt
 hf download neuralmind/bert-base-portuguese-cased \
   --revision 94d69c95f98f7d5b2a8700c420230ae10def0baa \
   --local-dir models/language_risk/bertimbau_base \
@@ -346,8 +359,7 @@ desde o início.
 O treino produz `models/language_risk/bertimbau_logreg.joblib` e
 `data/processed/language_risk/bertimbau/metrics.json`, que inclui a comparação
 com a TF-IDF após conferir os hashes dos splits.
-Os [resultados desta avaliação](docs/bertimbau_baseline.md) estão documentados
-com métricas gerais e por recorte.
+As métricas gerais e por recorte ficam nesse JSON local.
 
 ### BERTimbau Base + rede neural MLP
 
@@ -376,8 +388,8 @@ python scripts/ml/evaluate_bertimbau_mlp.py
 
 O avaliador confere os hashes dos vetores e do checkpoint, não treina nem
 ajusta parâmetros com o teste e recusa sobrescrever um relatório de teste já
-existente. Consulte os
-[resultados da MLP](docs/bertimbau_mlp.md).
+existente. O resultado fica em
+`data/processed/language_risk/bertimbau/metrics_mlp_test.json`.
 
 ### Testar o bot com BERTimbau + regressão ou MLP
 
@@ -400,7 +412,7 @@ Para usar as três opções neste notebook Windows, encerre a instância antiga
 com **Ctrl+C** e, na raiz do projeto, execute:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt -r requirements-bertimbau.txt
+.\.venv\Scripts\python.exe -m pip install -r requirements/ml.txt
 .\.venv\Scripts\python.exe -u src\contraponto\bot.py
 ```
 
@@ -427,7 +439,7 @@ em `metrics.json` ou `metrics_mlp.json` antes de usá-los. Para iniciar o bot
 
 ```bash
 source .venv/bin/activate
-python -m pip install -r requirements-bertimbau.txt
+python -m pip install -r requirements/ml.txt
 LANGUAGE_RISK_BACKEND=bertimbau_logreg python src/contraponto/bot.py
 ```
 
@@ -454,12 +466,16 @@ eles podem recriar `reports/EDA.md` e os demais artefatos.
 No ambiente virtual, execute:
 
 ```bash
+python -m pip install -r requirements/dev.txt
 python -m unittest discover -s tests -v
 python -m ruff check --select E9,F821,F822,F823 src/contraponto tests
 ```
 
 Os testes simulam APIs e não precisam de chaves reais. O lint detecta erros
 críticos de sintaxe e nomes indefinidos; não impõe toda a formatação do projeto.
+Os testes específicos de PyTorch são ignorados quando ele não está instalado;
+adicione o perfil `requirements/ml.txt` para executá-los também. O CI principal
+usa somente o perfil `dev`, sem baixar modelos nem instalar BERTimbau.
 
 | Arquivo em `tests/` | O que verifica |
 |---|---|

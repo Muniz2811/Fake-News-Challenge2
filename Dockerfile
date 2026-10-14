@@ -6,8 +6,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY requirements.txt requirements-inference.txt ./
-RUN python -m pip install --no-cache-dir -r requirements.txt -r requirements-inference.txt \
+COPY requirements.txt ./
+RUN python -m pip install --no-cache-dir -r requirements.txt \
     && useradd --create-home --uid 10001 bot
 
 COPY --chown=bot:bot src/contraponto/ ./src/contraponto/
