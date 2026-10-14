@@ -42,6 +42,35 @@ class TestTransporteLLM(unittest.TestCase):
 
 
 class TestExtracaoQwen(unittest.TestCase):
+    def test_preserves_thousands_separators_and_decimal_in_valid_llm_origin(self):
+        texto = (
+            "Segundo o IBGE, o Brasil tinha 203.080.756 habitantes em 1º de agosto de 2022. "
+            "A densidade demográfica era de 23,86 habitantes por quilômetro quadrado."
+        )
+        primeira, segunda = texto.split(". A densidade")
+        primeira += "."
+        segunda = "A densidade" + segunda
+        llm = FakeLLM([{"alegacoes": [
+            {"texto": primeira, "trecho_origem": primeira},
+            {"texto": segunda, "trecho_origem": segunda},
+        ]}])
+        resultado = ExtratorAlegações(llm=llm).extrair(texto)
+        self.assertEqual([item.texto for item in resultado.alegacoes], [primeira, segunda])
+        self.assertEqual(resultado.alegacoes[1].posicao, texto.index("A densidade"))
+
+    def test_fallback_keeps_ibge_numbers_in_complete_claims(self):
+        texto = (
+            "O Censo 2022 registrou 203.080.756 habitantes no Brasil. "
+            "Desse total, 177.508.417 viviam em áreas urbanas e 25.572.339 "
+            "em áreas rurais. A densidade foi de 23,86 habitantes por km²."
+        )
+        resultado = ExtratorAlegações(llm=FakeLLM([ValueError("resposta inválida")])).extrair(texto)
+        self.assertEqual(len(resultado.alegacoes), 3)
+        self.assertIn("203.080.756 habitantes", resultado.alegacoes[0].texto)
+        self.assertIn("177.508.417", resultado.alegacoes[1].texto)
+        self.assertIn("25.572.339", resultado.alegacoes[1].texto)
+        self.assertIn("23,86", resultado.alegacoes[2].texto)
+
     def test_validates_origin_and_assigns_id_and_position_in_python(self):
         texto = "Introdução. A prefeitura abrirá 20 escolas em dezembro."
         llm = FakeLLM([{"alegacoes": [{

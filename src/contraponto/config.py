@@ -22,6 +22,19 @@ TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "").strip() or None
 LANGUAGE_RISK_MODEL_PATH = os.getenv(
     "LANGUAGE_RISK_MODEL_PATH", "models/language_risk/baseline_tfidf_logreg.joblib"
 )
+LANGUAGE_RISK_BACKEND = os.getenv("LANGUAGE_RISK_BACKEND", "tfidf").strip().lower()
+BERTIMBAU_MLP_METRICS_PATH = os.getenv(
+    "BERTIMBAU_MLP_METRICS_PATH",
+    "data/processed/language_risk/bertimbau/metrics_mlp.json",
+)
+BERTIMBAU_LOGREG_METRICS_PATH = os.getenv(
+    "BERTIMBAU_LOGREG_METRICS_PATH",
+    "data/processed/language_risk/bertimbau/metrics.json",
+)
+BERTIMBAU_MODEL_DIR = os.getenv(
+    "BERTIMBAU_MODEL_DIR", "models/language_risk/bertimbau_base"
+)
+BERTIMBAU_DEVICE = os.getenv("BERTIMBAU_DEVICE", "auto").strip().lower()
 
 # Limite configurável de alegações por mensagem (Requisito MVP-06)
 MAX_CLAIMS_PER_MESSAGE = int(os.getenv("MAX_CLAIMS_PER_MESSAGE", "5"))
@@ -53,3 +66,9 @@ def validate_env() -> None:
             "Por favor, crie um arquivo '.env' na raiz do projeto (baseado em '.env.example') "
             "e preencha com as suas chaves de API."
         )
+    if LANGUAGE_RISK_BACKEND not in {"tfidf", "bertimbau_logreg", "bertimbau_mlp"}:
+        raise ValueError(
+            "LANGUAGE_RISK_BACKEND deve ser tfidf, bertimbau_logreg ou bertimbau_mlp"
+        )
+    if BERTIMBAU_DEVICE not in {"auto", "cpu", "mps", "cuda"}:
+        raise ValueError("BERTIMBAU_DEVICE deve ser auto, cpu, mps ou cuda")

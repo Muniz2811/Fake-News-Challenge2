@@ -10,8 +10,20 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from claims import ExtratorAlegações, Alegacao
 from search import GoogleFactCheckAdapter, TavilySearchAdapter, WebSearchProvider, Evidencia
-from config import LANGUAGE_RISK_MODEL_PATH
-from language_risk import AnalisadorLinguistico, formatar_analise_linguistica
+from config import (
+    BERTIMBAU_DEVICE,
+    BERTIMBAU_LOGREG_METRICS_PATH,
+    BERTIMBAU_MLP_METRICS_PATH,
+    BERTIMBAU_MODEL_DIR,
+    LANGUAGE_RISK_BACKEND,
+    LANGUAGE_RISK_MODEL_PATH,
+)
+from language_risk import (
+    AnalisadorBertimbauMLP,
+    AnalisadorBertimbauLogReg,
+    AnalisadorLinguistico,
+    formatar_analise_linguistica,
+)
 from verifier import VerificadorAlegacoes, VereditoAlegacao, ROTULOS_CATEGORIAS as ROTULOS_FACTUAIS
 from socratic import GerenciadorSocratico
 from llm import ProvedorLLM, criar_provedor_llm
@@ -72,10 +84,24 @@ class MotorIA:
             verificador if verificador is not None
             else VerificadorAlegacoes(llm=provedor_llm)
         )
-        self.analisador_linguistico = (
-            analisador_linguistico if analisador_linguistico is not None
-            else AnalisadorLinguistico(LANGUAGE_RISK_MODEL_PATH)
-        )
+        if analisador_linguistico is not None:
+            self.analisador_linguistico = analisador_linguistico
+        elif LANGUAGE_RISK_BACKEND == "bertimbau_mlp":
+            self.analisador_linguistico = AnalisadorBertimbauMLP(
+                BERTIMBAU_MLP_METRICS_PATH,
+                BERTIMBAU_MODEL_DIR,
+                BERTIMBAU_DEVICE,
+            )
+        elif LANGUAGE_RISK_BACKEND == "bertimbau_logreg":
+            self.analisador_linguistico = AnalisadorBertimbauLogReg(
+                BERTIMBAU_LOGREG_METRICS_PATH,
+                BERTIMBAU_MODEL_DIR,
+                BERTIMBAU_DEVICE,
+            )
+        else:
+            self.analisador_linguistico = AnalisadorLinguistico(
+                LANGUAGE_RISK_MODEL_PATH
+            )
         self.socratico = (
             gerenciador_socratico if gerenciador_socratico is not None
             else GerenciadorSocratico(llm=provedor_llm)
@@ -186,7 +212,15 @@ class MotorIA:
 
         return ResultadoAnalise(
             texto_original=texto,
-            analise_linguistica=formatar_analise_linguistica(score, motivo_linguistico),
+            analise_linguistica=formatar_analise_linguistica(
+                score,
+                motivo_linguistico,
+                getattr(
+                    self.analisador_linguistico,
+                    "descricao_modelo",
+                    "TF-IDF + regressão logística",
+                ),
+            ),
             alegacoes=alegacoes_extraidas,
             evidencias=todas_evidencias,
             vereditos=lista_vereditos,
