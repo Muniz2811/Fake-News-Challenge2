@@ -81,11 +81,16 @@ def criar_provedor_llm() -> ProvedorLLM | None:
     """Cria o provedor configurado; sem configuração, preserva os fallbacks locais."""
     if LLM_BASE_URL:
         _validar_base_url(LLM_BASE_URL)
+        # Tailscale Serve mantém o Host público; o Ollama em loopback pode recusá-lo.
+        # Só o cabeçalho HTTP muda: URL, conexão e validação TLS continuam no desktop.
+        host = (urlparse(LLM_BASE_URL).hostname or "").casefold()
+        headers = {"Host": "localhost"} if host.endswith(".ts.net") else {}
         cliente = OpenAI(
             base_url=LLM_BASE_URL,
             api_key=LLM_API_KEY or "ollama",
             timeout=LLM_TIMEOUT_SECONDS,
             max_retries=0,
+            default_headers=headers,
         )
         return LLMCompativelOpenAI(cliente, LLM_MODEL or "qwen3:8b")
     if OPENAI_API_KEY:

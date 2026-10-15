@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#CC6A00">
+  <meta name="description" content="Contra. A pergunta é o começo. Uma conversa com investigação, contexto e fontes.">
+  <title>Contra · a pergunta é o começo</title>
+  <link rel="icon" type="image/png" href="/brand/Logotipo.png">
+  <link rel="preload" href="/brand/CrimsonText-Regular.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="/assets/styles.css?v=contra-6">
+  <script src="/assets/app.js?v=contra-5" defer></script>
+</head>
+<body>
+  <svg class="icon-definitions" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M20 11.5a8.4 8.4 0 0 1-8.5 8.3 9 9 0 0 1-4-.9L3 20l1.2-4.3a8 8 0 0 1-1-4.2A8.3 8.3 0 0 1 11.5 3 8.4 8.4 0 0 1 20 11.5Z"/><path d="M8 9h8M8 13h5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="m3 3 19 9L3 21l3-9-3-9ZM6 12h16"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v.3"/></symbol>
+    <symbol id="i-exit" viewBox="0 0 24 24"><path d="M10 4H4v16h6m5-13 5 5-5 5m-6-5h11"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="m14 5-7 7 7 7M7 12h14"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2m1-15a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <nav class="rail" aria-label="Navegação">
+      <img class="brand-symbol rail-logo" src="/brand/Logotipo.png" width="73" height="73" alt="Contra">
+      <button class="rail-button selected" type="button" aria-label="Abrir o grupo"><svg><use href="#i-chat"/></svg></button>
+      <button class="rail-button info-trigger" type="button" aria-label="Sobre esta demonstração"><svg><use href="#i-info"/></svg></button>
+      <span class="rail-spacer"></span>
+      <span id="rail-avatar" class="avatar small personal">?</span>
+    </nav>
+
+    <aside class="sidebar">
+      <div class="sidebar-brand"><img class="brand-wordmark" src="/brand/Logomarca.png" width="336" height="127" alt="Contra — a pergunta é o começo"></div>
+      <div class="sidebar-heading"><h1>Conversas<span class="title-dot">.</span></h1><span class="demo-badge">DEMONSTRAÇÃO</span><button class="icon-button mobile-info info-trigger" type="button" aria-label="Sobre esta demonstração"><svg><use href="#i-info"/></svg></button></div>
+      <label class="search-box"><svg><use href="#i-search"/></svg><input id="search" type="search" placeholder="Buscar nesta conversa" aria-label="Buscar mensagens" maxlength="100"></label>
+      <div class="section-label"><span>SEU ESPAÇO DE DIÁLOGO</span><span>05</span></div>
+      <div id="chat-list" class="chat-list"></div>
+      <div class="sidebar-note"><span class="eyebrow">O CONTEXTO MUDA A CONVERSA</span><p>a pergunta é o começo.</p><span class="auto-label"><span></span> Investigue com o Contra</span></div>
+      <div class="sidebar-bottom"><span id="profile-avatar" class="avatar small personal">?</span><div><strong id="profile-name">Seu perfil</strong><span>Uma perspectiva na conversa</span></div><button id="logout" class="icon-button" type="button" aria-label="Sair do perfil" title="Sair do perfil"><svg><use href="#i-exit"/></svg></button></div>
+    </aside>
+
+    <main class="conversation">
+      <header class="chat-header">
+        <button id="back-to-chats" class="icon-button back-to-chats" type="button" aria-label="Voltar para conversas"><svg><use href="#i-back"/></svg></button>
+        <span id="header-avatar" class="avatar room-avatar"><svg><use href="#i-users"/></svg></span>
+        <div class="header-title"><h2 id="chat-title">Grupo de demonstração</h2><span id="connection"><span class="connection-dot"></span> Conectando à conversa…</span></div>
+        <span id="header-auto" class="header-auto"><svg><use href="#i-check"/></svg> Análise por solicitação</span>
+        <button class="icon-button info-trigger" type="button" aria-label="Informações da conversa"><svg><use href="#i-info"/></svg></button>
+      </header>
+      <div class="context-strip"><img class="brand-symbol mini-mark" src="/brand/Logotipo.png" width="73" height="73" alt=""><span id="context-text">Uma notícia, outras perspectivas. A conclusão vem das evidências.</span><button class="info-trigger" type="button">Entenda ↗</button></div>
+      <section id="timeline" class="timeline" aria-label="Mensagens da conversa" tabindex="0">
+        <div class="day-label">Hoje</div>
+        <div id="empty-state" class="empty-state">
+          <img class="brand-symbol empty-logo" src="/brand/Logotipo.png" width="73" height="73" alt="Contra">
+          <span class="eyebrow">UM CONVITE AO PENSAMENTO CRÍTICO</span>
+          <h2 id="empty-title">A pergunta<br>é o começo.</h2>
+          <p id="empty-description">Compartilhe uma notícia. Investigue as alegações. Encontre espaço para outras perspectivas.</p>
+          <div id="empty-tags" class="empty-tags"><span>Fontes para consultar</span><span>Contexto para pensar</span></div>
+        </div>
+        <div id="messages"></div>
+        <p id="no-results" class="no-results" hidden>Nenhuma mensagem encontrada.</p>
+      </section>
+      <div id="notice" class="notice" role="status" hidden></div>
+      <form id="composer" class="composer"><label class="sr-only" for="message-input">Sua mensagem</label><textarea id="message-input" rows="1" maxlength="4000" placeholder="O que você quer colocar em conversa?" required></textarea><button id="send" class="send-button" type="submit" aria-label="Enviar mensagem"><svg><use href="#i-send"/></svg></button></form>
+      <div class="composer-hint"><span>Enter envia · Shift + Enter quebra a linha</span><span id="visibility-hint">Análise só ao clicar · resultado visível ao grupo.</span></div>
+    </main>
+  </div>
+
+  <dialog id="join-dialog" class="join-dialog" aria-labelledby="join-title">
+    <form id="join-form">
+      <div class="join-brand">
+        <img class="brand-wordmark" src="/brand/Logomarca.png" width="336" height="127" alt="Contra — a pergunta é o começo">
+        <div class="join-manifesto"><span class="eyebrow">CONVERSAS COM OUTRAS PERSPECTIVAS</span><h2>A pergunta<br>é o começo<span>.</span></h2><p>Um espaço para conversar,<br>investigar e pensar junto.</p></div>
+        <div class="join-brand-footer"><span>QUATRO PESSOAS.</span><span>MAIS DE UM PONTO DE VISTA. ↗</span></div>
+      </div>
+      <div class="join-panel">
+        <span class="eyebrow">BEM-VINDO À DEMONSTRAÇÃO</span>
+        <h2 id="join-title">Entre na conversa<span class="title-dot">.</span></h2>
+        <p class="join-description">Escolha uma das quatro perspectivas. Participe do grupo, converse no privado ou investigue uma notícia com o Contra.</p>
+        <span id="profile-label" class="field-label">COMO VOCÊ QUER ENTRAR?</span>
+        <input id="join-profile" type="hidden">
+        <div id="profile-options" class="profile-options" role="group" aria-labelledby="profile-label"></div>
+        <button id="refresh-profiles" class="refresh-profiles" type="button">Atualizar disponibilidade ↻</button>
+        <div id="code-field" hidden><label class="field-label" for="join-code">CÓDIGO DA CONVERSA</label><input id="join-code" name="access_code" type="password" placeholder="Código compartilhado pelo organizador" maxlength="128" autocomplete="off"></div>
+        <label class="consent-field"><input id="group-consent" type="checkbox" required> <span>Estou ciente de que mensagens do grupo podem ser analisadas ao clicar em “Analisar mensagem”. Conversas privadas só são analisadas ao encaminhar uma mensagem ao Contra.</span></label>
+        <p id="join-error" class="form-error" role="alert" hidden></p>
+        <button id="join-submit" class="primary-button" type="submit" disabled>Entrar na conversa <span>↗</span></button>
+        <p class="join-footnote">Perfis de demonstração. Compartilhe apenas textos que você pode usar neste teste.</p>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="info-dialog" class="info-dialog" aria-labelledby="info-title">
+    <button id="close-info" class="icon-button close-dialog" type="button" aria-label="Fechar informações"><svg><use href="#i-close"/></svg></button>
+    <img class="brand-symbol info-logo" src="/brand/Logotipo.png" width="73" height="73" alt="Contra">
+    <span class="eyebrow">A PERGUNTA É O COMEÇO</span><h2 id="info-title">Mais contexto.<br>Outras perspectivas.</h2>
+    <p>Esta é uma demonstração independente de chat, inspirada no WhatsApp Web. Não se conecta ao WhatsApp.</p>
+    <ol><li><strong>Análise por solicitação no grupo.</strong> Nenhuma mensagem é analisada automaticamente. Use “Analisar mensagem” para pedir análise linguística e verificação de evidências. O resultado fica visível aos quatro perfis; o score linguístico não comprova falsidade.</li><li><strong>Conversas entre pessoas.</strong> Apenas os dois perfis participantes acessam a conversa. Não há análise automática. “Encaminhar ao Contra” envia somente a mensagem escolhida ao chat do bot de quem clicou; o relatório fica nesse chat.</li><li><strong>Um diálogo com as evidências.</strong> No chat com o Contra, envie ou encaminhe uma notícia para receber conclusões e fontes por alegação, independentemente do score linguístico.</li></ol>
+    <p class="info-footnote">Cada conversa guarda até 80 mensagens em memória e é apagada ao reiniciar. São perfis de teste: quem retomar um perfil disponível verá o histórico dele. Não há autenticação pessoal nem criptografia de ponta a ponta.</p>
+    <h3>Perfis da demonstração</h3><div id="members" class="members"></div>
+    <button id="logout-mobile" class="primary-button" type="button">Sair deste perfil <span>↗</span></button>
+  </dialog>
+</body>
+</html>

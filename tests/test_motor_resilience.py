@@ -55,6 +55,21 @@ class TestMotorResilience(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(result.requer_revisao)
         self.assertEqual(result.vereditos[0].categoria, "evidencia_insuficiente")
 
+    async def test_language_only_does_not_extract_claims_search_evidence_or_call_verifier(self):
+        provider = MagicMock()
+        verifier = MagicMock()
+        motor = self.make_motor([provider], verifier)
+        result = await motor.analisar_linguagem(CLAIM)
+        self.assertEqual(result.score_linguistico, .42)
+        self.assertEqual(result.texto_original, CLAIM)
+        self.assertEqual(result.alegacoes, [])
+        self.assertEqual(result.evidencias, [])
+        self.assertEqual(result.vereditos, [])
+        self.assertEqual(result.resultado_factual, "")
+        motor.extrator_claims.extrair.assert_not_called()
+        provider.buscar_evidencias_por_alegacao.assert_not_called()
+        verifier.verificar_alegacao.assert_not_called()
+
     async def test_high_language_score_does_not_override_supported_claim(self):
         verifier = MagicMock()
         verifier.verificar_alegacao.return_value = VereditoAlegacao(
