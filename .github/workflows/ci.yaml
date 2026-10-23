@@ -30,6 +30,7 @@ jobs:
           cache-dependency-path: |
             requirements.txt
             requirements/dev.txt
+            requirements/web.txt
       - name: Garantir que .env não está versionado
         run: test -z "$(git ls-files .env)"
       - name: Instalar dependências de teste
@@ -55,7 +56,15 @@ jobs:
         run: |
           printf '%s\n' 'TELEGRAM_BOT_TOKEN=123456:ci-fake-token' 'OPENAI_API_KEY=' 'GOOGLE_FACT_CHECK_KEY=' 'TAVILY_API_KEY=' > .env
           docker compose config --quiet
+          docker compose -f compose.web.yaml config --quiet
       - name: Construir imagem do bot
         run: docker compose build
       - name: Testar imagem, modelo montado, fallback, polling e SIGTERM sem rede
         run: python tests/docker/check_image.py
+      - name: Construir imagem web
+        run: docker compose -f compose.web.yaml build
+      - name: Testar HTTP, sala, fallback e SIGTERM sem rede externa
+        run: >-
+          docker run --rm --network none
+          --mount type=bind,source=${{ github.workspace }}/tests/docker/web_probe.py,target=/web_probe.py,readonly
+          contraponto-web:local python /web_probe.py

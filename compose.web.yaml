@@ -1,0 +1,24 @@
+services:
+  web:
+    image: contraponto-web:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+    env_file:
+      - .env
+    environment:
+      PORT: "8080"
+      LANGUAGE_RISK_BACKEND: tfidf
+      LANGUAGE_RISK_MODEL_PATH: /app/models/language_risk/baseline_tfidf_logreg.joblib
+    ports:
+      - "8080:8080"
+    volumes:
+      - type: bind
+        source: ./models
+        target: /app/models
+        read_only: true
+    init: true
+    stop_signal: SIGTERM
+    stop_grace_period: 30s
+    restart: unless-stopped

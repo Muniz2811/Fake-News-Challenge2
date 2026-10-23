@@ -2,6 +2,14 @@
 **
 !Dockerfile
 !requirements.txt
+!requirements/
+!requirements/web.txt
+!assets/
+!assets/Logomarca.png
+!assets/Logotipo.png
+!assets/Wallpaper.png
+!assets/CrimsonText-Regular.ttf
+!assets/CrimsonText-OFL.txt
 !src/
 !src/contraponto/
 !src/contraponto/**

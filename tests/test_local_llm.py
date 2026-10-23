@@ -2,10 +2,11 @@
 
 from datetime import datetime, timedelta
 import unittest
+from unittest.mock import patch
 
 import test_search  # noqa: F401  # Instala stubs antes dos módulos da aplicação.
 from claims import ExtratorAlegações
-from llm import _validar_base_url
+from llm import _validar_base_url, criar_provedor_llm
 from socratic import GerenciadorSocratico
 from verifier import VereditoAlegacao
 
@@ -39,6 +40,26 @@ class TestTransporteLLM(unittest.TestCase):
             with self.subTest(url=url):
                 with self.assertRaisesRegex(ValueError, "HTTPS"):
                     _validar_base_url(url)
+
+    def test_tailscale_host_header_is_scoped_and_keeps_the_original_https_url(self):
+        for base_url, expected in (
+            ("https://desktop.example.ts.net/v1", {"Host": "localhost"}),
+            ("https://DESKTOP.example.TS.NET/v1", {"Host": "localhost"}),
+            ("http://localhost:11434/v1", {}),
+            ("https://llm.example/v1", {}),
+            ("https://example.ts.net.evil.example/v1", {}),
+        ):
+            with self.subTest(base_url=base_url), patch("llm.OpenAI") as factory, patch.multiple(
+                "llm", LLM_BASE_URL=base_url, LLM_API_KEY="ollama", LLM_MODEL="qwen3:8b",
+                OPENAI_API_KEY=None,
+            ):
+                provider = criar_provedor_llm()
+                options = factory.call_args.kwargs
+                self.assertEqual(options["base_url"], base_url)
+                self.assertEqual(options["default_headers"], expected)
+                self.assertEqual(options["max_retries"], 0)
+                self.assertNotIn("http_client", options)  # Não desabilita a validação TLS.
+                self.assertEqual(provider.model, "qwen3:8b")
 
 
 class TestExtracaoQwen(unittest.TestCase):

@@ -109,8 +109,8 @@ class MotorIA:
         """Carrega um modelo local; devolve o motivo seguro se estiver indisponível."""
         return self.modelos.get(modelo_id).indisponibilidade
 
-    @logged_async_stage("analysis_pipeline")
-    async def analisar_texto(self, texto: str, *, modelo_id: str | None = None) -> ResultadoAnalise:
+    async def analisar_linguagem(self, texto: str, *, modelo_id: str | None = None) -> ResultadoAnalise:
+        """Executa apenas o classificador local, sem extração, busca ou LLM."""
         if not texto or not texto.strip():
             raise ValueError("O texto da notícia não pode estar vazio.")
 
@@ -137,6 +137,21 @@ class MotorIA:
             logger.error("error_category=INTERNAL_ERROR stage=language_analysis error_type=%s", type(err).__name__)
             motivo_linguistico = "falha na inferência"
             indisponiveis.append("Análise linguística indisponível nesta investigação.")
+
+        return ResultadoAnalise(
+            texto_original=texto,
+            analise_linguistica=formatar_analise_linguistica(score, motivo_linguistico, descricao_modelo),
+            score_linguistico=score,
+            etapas_indisponiveis=indisponiveis,
+            modelo_linguistico=modelo_usado,
+            nome_modelo_linguistico=descricao_modelo,
+        )
+
+    @logged_async_stage("analysis_pipeline")
+    async def analisar_texto(self, texto: str, *, modelo_id: str | None = None) -> ResultadoAnalise:
+        """Executa a investigação completa quando solicitada pelo consumidor."""
+        linguagem = await self.analisar_linguagem(texto, modelo_id=modelo_id)
+        indisponiveis = list(linguagem.etapas_indisponiveis)
 
         # 1. Extração de alegações (MVP-06) com resiliência
         try:
@@ -226,18 +241,14 @@ class MotorIA:
 
         return ResultadoAnalise(
             texto_original=texto,
-            analise_linguistica=formatar_analise_linguistica(
-                score,
-                motivo_linguistico,
-                descricao_modelo,
-            ),
+            analise_linguistica=linguagem.analise_linguistica,
             alegacoes=alegacoes_extraidas,
             evidencias=todas_evidencias,
             vereditos=lista_vereditos,
             resultado_factual=factual,
             requer_revisao=tem_inconclusivo,
-            score_linguistico=score,
+            score_linguistico=linguagem.score_linguistico,
             etapas_indisponiveis=indisponiveis,
-            modelo_linguistico=modelo_usado,
-            nome_modelo_linguistico=descricao_modelo,
+            modelo_linguistico=linguagem.modelo_linguistico,
+            nome_modelo_linguistico=linguagem.nome_modelo_linguistico,
         )

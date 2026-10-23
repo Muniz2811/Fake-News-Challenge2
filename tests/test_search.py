@@ -91,6 +91,9 @@ class TestClassificarFonte(unittest.TestCase):
     def test_oficial_edu(self):
         self.assertEqual(classificar_fonte("https://universidade.edu/artigo"), "official")
 
+    def test_oficial_justica_eleitoral(self):
+        self.assertEqual(classificar_fonte("https://www.tse.jus.br/noticia"), "official")
+
     def test_fact_check_lupa(self):
         self.assertEqual(classificar_fonte("https://lupa.uol.com.br/check"), "fact_check")
 
@@ -102,6 +105,9 @@ class TestClassificarFonte(unittest.TestCase):
 
     def test_news_bbc(self):
         self.assertEqual(classificar_fonte("https://bbc.com/news/article"), "news")
+
+    def test_news_dw(self):
+        self.assertEqual(classificar_fonte("https://www.dw.com/pt-br/noticia"), "news")
 
     def test_secondary_generic(self):
         self.assertEqual(classificar_fonte("https://blogdojose.com.br/post"), "secondary")
@@ -156,6 +162,7 @@ class TestTavilySearchAdapter(unittest.TestCase):
         self.assertIsInstance(evidencias[0], Evidencia)
         self.assertEqual(evidencias[0].title, "Vacina X é segura, diz OMS")
         self.assertEqual(evidencias[0].url, "https://who.int/news/vacina-x")
+        self.assertEqual(mock_post.call_args.kwargs["json"]["max_results"], 8)
 
     # ---- Caso 2: Datas ausentes retornam None ----
     @patch("search.requests.post")

@@ -11,6 +11,76 @@ verificação factual é separada e usa: apoiada, refutada, evidência insuficie
 conflitante e não verificada.
 Sem evidências ou comparação segura, o verificador se abstém.
 
+## Demonstração web: grupo, conversas privadas e bot
+
+Interface inspirada no WhatsApp Web, independente do WhatsApp e do Telegram.
+A apresentação usa a identidade **Contra — a pergunta é o começo**, com os PNGs
+originais em `assets/`: logomarca, símbolo e wallpaper dos chats. O motor e o
+bot do Telegram continuam sendo os mesmos componentes do Contraponto.
+A tela de entrada oferece **Pessoa 1 a Pessoa 4**, com um navegador ativo por
+perfil. Cada perfil tem cinco conversas:
+
+- **Grupo:** os quatro participantes conversam sem análise automática. O botão **Analisar mensagem** abaixo de cada texto solicita a análise linguística e a investigação factual; o resultado fica visível no grupo. Não há limite de score para solicitar a análise.
+- **Contra:** chat privado com o bot para verificar notícias e alegações.
+- **Outras três pessoas:** conversas privadas entre dois perfis, sem análise automática. O botão **Encaminhar ao Contra** envia somente o texto da mensagem escolhida ao chat do bot de quem clicou. Somente quem encaminhou vê o relatório; os demais trechos da conversa não são enviados ao motor.
+
+O backend chama o mesmo `MotorIA`, com o modelo definido em
+`LANGUAGE_RISK_BACKEND`, sem duplicar extração, busca ou verificação. A interface
+usa HTML/CSS/JavaScript, sem instalação de Node. Atualiza mensagens a cada
+aproximadamente dois segundos e mostra conclusões e fontes por alegação,
+separadas da análise da linguagem.
+
+O score linguístico não comprova falsidade e não dispara análises no grupo.
+No chat do bot, mensagens enviadas ou encaminhadas são investigadas diretamente. Estas regras são da demonstração web; os comandos
+e fluxos do Telegram descritos abaixo continuam disponíveis.
+
+Com o ambiente virtual ativo, na raiz do projeto:
+
+```bash
+python -m pip install -r requirements/web.txt
+python src/contraponto/web.py
+```
+
+No Windows, sem ativar o ambiente, use `.\.venv\Scripts\python.exe` no lugar de
+`python`. Abra **http://localhost:8080**. Para simular as quatro pessoas no mesmo
+computador, use navegadores ou perfis de navegador diferentes; abas normais do
+mesmo perfil compartilham o login. Um perfil é liberado ao sair ou pode ser
+retomado após 60 segundos sem atividade do navegador anterior.
+
+No `.env`, configure `WEB_ROOM_NAME` e, antes de compartilhar um deploy,
+`WEB_ACCESS_CODE` com um código entregue aos participantes. A web não exige
+`TELEGRAM_BOT_TOKEN`; usa as mesmas configurações de Ollama, Tavily e Google
+descritas abaixo. As chaves ficam no servidor. Para BERTimbau nativo, instale
+também `requirements/ml.txt` e mantenha seus artefatos locais.
+
+Com Docker, o perfil web usa TF-IDF e monta o mesmo diretório de modelos:
+
+```bash
+docker compose -f compose.web.yaml up -d --build
+docker compose -f compose.web.yaml logs -f web
+docker compose -f compose.web.yaml down
+```
+
+A interface inteira usa **Crimson Text Regular (400)**, fornecida pela designer
+em `assets/CrimsonText-Regular.ttf`. A fonte é carregada pelo próprio servidor,
+incluída na imagem web e aplicada aos textos, títulos, botões e campos, sem
+negrito ou itálico sintetizados e sem depender do Adobe Fonts. Sua licença
+acompanha o arquivo em `assets/CrimsonText-OFL.txt`. Os logos permanecem em PNG.
+
+Para deploy, use o target **`web`** do `Dockerfile`, porta **8080** (ou `PORT`
+no ambiente) e health check **`/healthz`**. Rode **uma única instância/processo**,
+com HTTPS fornecido pela hospedagem ou proxy, variáveis configuradas no servidor
+e modelo confiável montado em `/app/models`. O servidor do deploy precisa
+alcançar o endpoint do Ollama; se ele estiver no desktop via Tailscale, essa
+conexão precisa existir também no servidor. O navegador não acessa o Ollama
+diretamente. `docker compose up` continua iniciando apenas o Telegram.
+
+Esta versão é uma demonstração com perfis compartilhados, sem contas pessoais
+ou criptografia de ponta a ponta. Quem retomar um perfil verá seu histórico.
+Cada conversa mantém até 80 mensagens em memória; reiniciar apaga mensagens e
+sessões. As verificações são enfileiradas, uma por vez, e falhas preservam as
+mensagens. Não há banco, anexos ou integração com o WhatsApp real.
+
 ## Usar Qwen local com Ollama
 
 Não é necessária uma chave OpenAI. Com o aplicativo Ollama aberto, execute:
@@ -36,9 +106,10 @@ LLM_BASE_URL=http://localhost:11434/v1
 LLM_API_KEY=ollama
 LLM_MODEL=qwen3:8b
 LLM_TIMEOUT_SECONDS=90
-LLM_MAX_TOKENS=1024
-MAX_EVIDENCES_PER_CLAIM=2
-MAX_EVIDENCE_SNIPPET_CHARS=600
+LLM_MAX_TOKENS=4096
+MAX_EVIDENCES_PER_CLAIM=4
+MAX_EVIDENCE_SNIPPET_CHARS=1200
+MAX_EVIDENCE_REPORT_SNIPPET_CHARS=500
 ```
 
 Para rodar o bot dentro do Docker Desktop, use no lugar:
@@ -65,6 +136,13 @@ python scripts/evaluate_qwen.py
 
 O script imprime um JSON com o checkpoint, as saídas e o resultado dos casos
 de extração, NLI e diálogo. Ele consulta o Ollama configurado.
+
+Para usar o Ollama de outro computador via Tailscale Serve, configure
+`LLM_BASE_URL=https://` seguido do domínio `.ts.net` do desktop e `/v1`.
+O cliente envia `Host: localhost` nesses endpoints para evitar o bloqueio 403
+do Ollama quando ele está escutando em loopback. A conexão continua usando
+HTTPS e validando o certificado do desktop; outros endpoints mantêm seu Host.
+Após atualizar esse código, reinicie tanto a web quanto o bot do Telegram.
 
 ## Rodar no macOS com Docker Desktop
 
@@ -132,8 +210,10 @@ Não é necessário instalar Python para executar o bot com Docker.
 | `LLM_API_KEY` | Para Ollama, use `ollama`; não é uma credencial real. |
 | `LLM_MODEL` | Checkpoint; use `qwen3:8b` com Ollama. |
 | `LLM_TIMEOUT_SECONDS` | Timeout por chamada; padrão `90`. |
-| `LLM_MAX_TOKENS` | Teto de geração por resposta; padrão `1024`. |
-| `MAX_EVIDENCES_PER_CLAIM` | Máximo de evidências enviadas ao NLI; padrão `2`. |
+| `LLM_MAX_TOKENS` | Teto de geração por resposta; padrão `4096`. Para Qwen local, evita que respostas JSON com várias evidências sejam truncadas. |
+| `MAX_EVIDENCES_PER_CLAIM` | Máximo de evidências enviadas ao NLI; padrão `4`. Aumentar amplia as fontes, mas também o tempo e o contexto da comparação. |
+| `MAX_EVIDENCE_SNIPPET_CHARS` | Máximo de caracteres de cada trecho enviado à LLM; padrão `1200`. |
+| `MAX_EVIDENCE_REPORT_SNIPPET_CHARS` | Máximo de caracteres exibidos por evidência no relatório; padrão `500`. O relatório tenta mostrar a frase com maior sobreposição literal à alegação. |
 | `MAX_EVIDENCE_SNIPPET_CHARS` | Máximo de caracteres por trecho no contexto; padrão `600`. |
 | `OPENAI_API_KEY` | Compatibilidade opcional; não é necessária para usar Ollama. |
 | `GOOGLE_FACT_CHECK_KEY` | Opcional; habilita busca de checagens existentes. |
@@ -141,6 +221,8 @@ Não é necessário instalar Python para executar o bot com Docker.
 | `MAX_CLAIMS_PER_MESSAGE` | Máximo de alegações por texto; padrão `5`. |
 | `AUTHORIZED_GROUPS` | IDs separados por vírgula; vazia não autoriza nenhum grupo. |
 | `GROUP_ANALYSIS_MODE` | `command` (padrão): responde a `/analisar`; `automatic`: também analisa textos comuns e envia alerta + deep link. |
+| `WEB_ROOM_NAME` | Nome do grupo na demonstração web. |
+| `WEB_ACCESS_CODE` | Código compartilhado para entrar nos quatro perfis da web. |
 | `LANGUAGE_RISK_BACKEND` | `tfidf` (padrão), `bertimbau_logreg` ou `bertimbau_mlp` para execução Python local. |
 | `BERTIMBAU_LOGREG_METRICS_PATH` | Relatório local com o classificador BERTimbau + regressão e hashes dos artefatos. |
 | `BERTIMBAU_MLP_METRICS_PATH` | Relatório local que identifica o checkpoint MLP escolhido pela validação. |
@@ -183,10 +265,11 @@ Fake-News-Challenge2/
 ├── src/contraponto/          # Aplicação do bot.
 ├── scripts/                 # Aquisição, EDA e scripts de treino em ml/.
 ├── tests/                   # Testes Python e integração Docker em docker/.
-├── requirements/            # Perfis opcionais dev.txt e ml.txt.
+├── requirements/            # Perfis opcionais dev.txt, ml.txt e web.txt.
 ├── .github/workflows/ci.yaml # GitHub Actions: lint, testes e build.
 ├── Dockerfile
 ├── compose.yaml
+├── compose.web.yaml
 ├── .dockerignore
 ├── .env.example
 ├── .gitignore
@@ -208,6 +291,7 @@ do autor; as instruções compartilhadas de execução e treino ficam neste READ
 | Arquivo em `src/contraponto/` | Responsabilidade |
 |---|---|
 | `bot.py` | Comandos e mensagens do Telegram, confirmação inicial, relatório dividido em mensagens e armazenamento temporário de investigações/deep links. |
+| `web.py` / `web_static/` | API da demonstração e interface do chat; quatro perfis, grupo, conversas privadas e fila de verificação usando o mesmo motor. |
 | `config.py` | Carrega variáveis, limites e grupos; valida o token obrigatório. |
 | `llm.py` | Expõe um contrato único de JSON estruturado para Ollama ou outro endpoint compatível. |
 | `motor_ia.py` | Coordena inferência, extração, busca e verificação; devolve `ResultadoAnalise` com score e vereditos individuais. |
@@ -223,11 +307,13 @@ do autor; as instruções compartilhadas de execução e treino ficam neste READ
 |---|---|
 | `Dockerfile` | Constrói a imagem Python 3.13 e inicia o bot com usuário sem privilégios. |
 | `compose.yaml` | Configura build, ambiente, modelo montado, reinício e encerramento. |
+| `compose.web.yaml` | Execução opcional da demonstração web na porta 8080. |
 | `.dockerignore` / `.gitignore` | Excluem arquivos do contexto de build e do versionamento, respectivamente. |
 | `.env.example` | Exemplo sem credenciais reais; `.env` guarda a configuração local. |
-| `requirements.txt` | Bot, APIs e inferência TF-IDF com as versões usadas pelo modelo; é o único arquivo instalado no Docker. |
-| `requirements/dev.txt` | Inclui o bot e acrescenta Ruff para testes/lint e CI. |
+| `requirements.txt` | Bot, APIs e inferência TF-IDF com as versões usadas pelo modelo; base comum das duas imagens Docker. |
+| `requirements/dev.txt` | Inclui bot, web e Ruff para testes/lint e CI. |
 | `requirements/ml.txt` | Inclui o bot e acrescenta gráficos, PyTorch, Transformers e Hugging Face para os três treinos e inferência BERTimbau. |
+| `requirements/web.txt` | Inclui o motor do bot e acrescenta FastAPI e Uvicorn para a interface web; usado somente pelo target web do Docker. |
 | `scripts/deploy_demo.sh` | Atalho para iniciar, parar, reiniciar e acompanhar logs da demonstração com Docker Compose. |
 | `scripts/acquire.py` | Obtém Fake.br, FakeRecogna, AVeriTeC e anotações FEVEROUS, registrando um manifesto. |
 | `scripts/eda.py` / `scripts/eda_visuals.py` | Analisam formatos, distribuição e características textuais; geram artefatos em `reports/`. |
@@ -305,6 +391,7 @@ Escolha o perfil conforme a tarefa; os opcionais já incluem `requirements.txt`:
 |---|---|
 | Rodar o bot com TF-IDF | `python -m pip install -r requirements.txt` |
 | Executar testes e lint | `python -m pip install -r requirements/dev.txt` |
+| Executar a demonstração web | `python -m pip install -r requirements/web.txt` |
 | Treinar modelos ou usar BERTimbau no bot | `python -m pip install -r requirements/ml.txt` |
 
 Não é preciso instalar todos para executar o bot. As versões de ML foram
@@ -487,6 +574,7 @@ usa somente o perfil `dev`, sem baixar modelos nem instalar BERTimbau.
 | `test_verifier.py` | Abstenção, conflitos, negação, referências inventadas, respostas inválidas, estabilidade e fontes separadas por alegação. |
 | `test_language_risk.py` | Carregamento/inferência, equivalência com o pipeline, incompatibilidade e continuidade sem score. |
 | `test_model_selection.py` | Seleção privada isolada, cache, encoder compartilhado, falhas, concorrência e preservação do modelo em relatórios anteriores. |
+| `test_web.py` | Quatro perfis exclusivos, autorização, isolamento de conversas privadas, bot privado, grupo, fila, falhas e preservação das fontes por alegação. |
 | `test_bertimbau_baseline.py` | Retomada da extração, alinhamento dos splits e comparação das baselines sem baixar o checkpoint no CI; treino sintético da MLP quando PyTorch está instalado. |
 | `test_motor_resilience.py` | Score preservado, falhas reais simuladas dos adaptadores, continuidade por alegação e marca de revisão sem perder resultados anteriores. |
 | `test_logging_security.py` | Ocultação de credenciais fictícias nos logs e tracebacks. |
@@ -494,6 +582,7 @@ usa somente o perfil `dev`, sem baixar modelos nem instalar BERTimbau.
 | `docker/check_image.py` | Testa imagem limpa, inferência com montagem somente leitura, polling e encerramento por SIGTERM. |
 | `docker/model_probe.py` | Gera um modelo sintético e confere seu score e proteção contra escrita na montagem. |
 | `docker/polling_probe.py` | Simula o transporte Telegram para exercitar `/start` e uma mensagem pelo fluxo real sem OpenAI. |
+| `docker/web_probe.py` | Testa HTTP real na imagem web, quatro perfis, grupo, privacidade, fallback e encerramento por SIGTERM sem rede externa. |
 
 Para testar a imagem, com Docker disponível e Python no host:
 
