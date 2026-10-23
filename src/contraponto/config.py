@@ -14,9 +14,20 @@ LLM_BASE_URL = os.getenv("LLM_BASE_URL", "").strip() or None
 LLM_API_KEY = os.getenv("LLM_API_KEY", "").strip() or None
 LLM_MODEL = os.getenv("LLM_MODEL", "").strip() or None
 LLM_TIMEOUT_SECONDS = float(os.getenv("LLM_TIMEOUT_SECONDS", "90"))
-LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "1024"))
-MAX_EVIDENCES_PER_CLAIM = int(os.getenv("MAX_EVIDENCES_PER_CLAIM", "2"))
-MAX_EVIDENCE_SNIPPET_CHARS = int(os.getenv("MAX_EVIDENCE_SNIPPET_CHARS", "600"))
+# Qwen 3 pode gastar parte do orçamento interno antes de produzir o JSON.
+# 4.096 preserva espaço para uma resposta estruturada completa com até quatro
+# evidências; o limite continua configurável por ambiente.
+LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "4096"))
+# Quatro fontes preservam diversidade suficiente para a comparação sem inflar
+# demais o contexto da LLM. O valor continua configurável no ambiente.
+MAX_EVIDENCES_PER_CLAIM = int(os.getenv("MAX_EVIDENCES_PER_CLAIM", "4"))
+# A Tavily costuma devolver trechos de cerca de mil caracteres. Preservamos esse
+# contexto para a comparação, sem obrigar o usuário a configurar a variável.
+MAX_EVIDENCE_SNIPPET_CHARS = int(os.getenv("MAX_EVIDENCE_SNIPPET_CHARS", "1200"))
+# O relatório mostra uma frase relevante e pode exibir mais contexto sob demanda.
+MAX_EVIDENCE_REPORT_SNIPPET_CHARS = int(
+    os.getenv("MAX_EVIDENCE_REPORT_SNIPPET_CHARS", "500")
+)
 GOOGLE_FACT_CHECK_KEY = os.getenv("GOOGLE_FACT_CHECK_KEY", "").strip() or None
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "").strip() or None
 LANGUAGE_RISK_MODEL_PATH = os.getenv(

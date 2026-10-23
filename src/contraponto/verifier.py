@@ -5,6 +5,7 @@ from dataclasses import asdict, dataclass, field, replace
 import hashlib
 import json
 import logging
+import re
 import time
 import unicodedata
 from urllib.parse import urlparse
@@ -14,6 +15,7 @@ from config import (
     LLM_MODEL,
     MAX_EVIDENCES_PER_CLAIM,
     MAX_EVIDENCE_SNIPPET_CHARS,
+    MAX_EVIDENCE_REPORT_SNIPPET_CHARS,
     OPENAI_API_KEY,
 )
 from llm import LLMCompativelOpenAI, ProvedorLLM, criar_provedor_llm
@@ -22,7 +24,7 @@ from search import Evidencia
 
 logger = logging.getLogger(__name__)
 
-_MAX_CHARS_TRECHO_RELATORIO = 160
+_MAX_CHARS_TRECHO_RELATORIO = MAX_EVIDENCE_REPORT_SNIPPET_CHARS
 _CACHE_TTL_SEGUNDOS = 24 * 60 * 60
 _CACHE_MAX_ENTRADAS = 1000
 _DOMINIOS_NAO_ACEITOS = {
@@ -35,6 +37,12 @@ _DOMINIOS_NAO_ACEITOS = {
     "youtu.be",
     "youtube.com",
     "wikipedia.org",
+}
+_PARTICULAS_DE_NOME = {"da", "das", "de", "do", "dos", "e"}
+_TITULOS_DE_PESSOA = {
+    "presidente", "ministro", "ministra", "senador", "senadora", "deputado",
+    "deputada", "governador", "governadora", "prefeito", "prefeita", "professor",
+    "professora", "doutor", "doutora",
 }
 
 CATEGORIAS_VALIDAS = {
@@ -95,10 +103,75 @@ def _dominio_nao_aceito(url: str) -> bool:
     )
 
 
+def _tokens(texto: str) -> set[str]:
+    return {
+        token for token in re.findall(r"[^\W\d_]+", _normalizar(texto))
+        if len(token) > 1 and token not in _PARTICULAS_DE_NOME
+    }
+
+
+def _titulo_indica_homonimo(alegacao: Alegacao, evidencia: Evidencia) -> bool:
+    """Descarta resultado cujo título nomeia explicitamente outra pessoa.
+
+    Busca web pode confundir pessoas com parte do mesmo nome. Esta regra só
+    remove um resultado quando o título possui um nome próprio de três ou
+    mais termos, compartilha ao menos dois termos com a alegação e inclui
+    outro sobrenome. Na ambiguidade, a evidência continua para a LLM.
+    """
+    termos_alegacao = _tokens(alegacao.texto)
+    if len(termos_alegacao) < 3:
+        return False
+
+    padrao_nome = re.compile(
+        r"\b[A-ZÀ-ÖØ-Þ][a-zà-öø-ÿ'’-]+"
+        r"(?:\s+(?:(?:da|das|de|do|dos)\s+)?[A-ZÀ-ÖØ-Þ]"
+        r"[a-zà-öø-ÿ'’-]+){2,}\b"
+    )
+    for nome in padrao_nome.findall(evidencia.title or ""):
+        termos_nome = _tokens(nome) - _TITULOS_DE_PESSOA
+        em_comum = termos_nome & termos_alegacao
+        adicionais = termos_nome - termos_alegacao
+        if len(termos_nome) >= 3 and len(em_comum) >= 2 and adicionais:
+            return True
+    return False
+
+
+def _trecho_para_justificativa(evidencia: Evidencia, alegacao: str) -> str:
+    """Mostra o título retornado junto do trecho, sem criar informação nova."""
+    titulo = " ".join(evidencia.title.split())
+    trecho = _resumir_trecho(evidencia.snippet, alegacao=alegacao)
+    if titulo and _normalizar(titulo) not in _normalizar(trecho):
+        return f"{titulo}. {trecho}"
+    return trecho
+
+
 def _resumir_trecho(
-    texto: str, limite: int = _MAX_CHARS_TRECHO_RELATORIO,
+    texto: str,
+    limite: int = _MAX_CHARS_TRECHO_RELATORIO,
+    alegacao: str | None = None,
 ) -> str:
+    """Seleciona uma frase da fonte que tenha maior relação literal com a alegação.
+
+    O adaptador pode receber título, navegação e URLs antes do parágrafo útil.
+    A seleção usa apenas termos já presentes na fonte; ela não interpreta nem
+    reescreve a evidência. Sem sobreposição suficiente, mantém o início do trecho.
+    """
     texto = " ".join(texto.split())
+    if alegacao and texto:
+        termos = set(re.findall(r"[\wÀ-ÿ]+", _normalizar(alegacao)))
+        termos.discard("e")
+        frases = [
+            frase.strip() for frase in re.split(r"(?<=[.!?])\s+", texto)
+            if frase.strip()
+        ]
+        if termos and frases:
+            def pontuacao(frase: str) -> int:
+                termos_frase = set(re.findall(r"[\wÀ-ÿ]+", _normalizar(frase)))
+                return len(termos & termos_frase)
+
+            candidata = max(frases, key=pontuacao)
+            if pontuacao(candidata) >= 2:
+                texto = candidata
     if len(texto) <= limite:
         return texto
     return texto[:limite].rsplit(" ", 1)[0].rstrip(" ,;:") + "…"
@@ -182,6 +255,8 @@ class VerificadorAlegacoes:
                 or _normalizar(ev.checked_claim) != _normalizar(alegacao.texto)
             ):
                 continue
+            if ev.source_type != "fact_check" and _titulo_indica_homonimo(alegacao, ev):
+                continue
             eid = _id_evidencia(ev)
             if eid in vistos:
                 continue
@@ -209,7 +284,7 @@ class VerificadorAlegacoes:
         partes = []
         fontes = []
         for eid, ev in registros.items():
-            trecho = _resumir_trecho(ev.snippet)
+            trecho = _trecho_para_justificativa(ev, alegacao.texto)
             partes.append(f'[{eid}] {ev.publisher} — {relacoes[eid]}: "{trecho}"')
             if ev.url not in fontes:
                 fontes.append(ev.url)

@@ -106,9 +106,10 @@ LLM_BASE_URL=http://localhost:11434/v1
 LLM_API_KEY=ollama
 LLM_MODEL=qwen3:8b
 LLM_TIMEOUT_SECONDS=90
-LLM_MAX_TOKENS=1024
-MAX_EVIDENCES_PER_CLAIM=2
-MAX_EVIDENCE_SNIPPET_CHARS=600
+LLM_MAX_TOKENS=4096
+MAX_EVIDENCES_PER_CLAIM=4
+MAX_EVIDENCE_SNIPPET_CHARS=1200
+MAX_EVIDENCE_REPORT_SNIPPET_CHARS=500
 ```
 
 Para rodar o bot dentro do Docker Desktop, use no lugar:
@@ -209,8 +210,10 @@ Não é necessário instalar Python para executar o bot com Docker.
 | `LLM_API_KEY` | Para Ollama, use `ollama`; não é uma credencial real. |
 | `LLM_MODEL` | Checkpoint; use `qwen3:8b` com Ollama. |
 | `LLM_TIMEOUT_SECONDS` | Timeout por chamada; padrão `90`. |
-| `LLM_MAX_TOKENS` | Teto de geração por resposta; padrão `1024`. |
-| `MAX_EVIDENCES_PER_CLAIM` | Máximo de evidências enviadas ao NLI; padrão `2`. |
+| `LLM_MAX_TOKENS` | Teto de geração por resposta; padrão `4096`. Para Qwen local, evita que respostas JSON com várias evidências sejam truncadas. |
+| `MAX_EVIDENCES_PER_CLAIM` | Máximo de evidências enviadas ao NLI; padrão `4`. Aumentar amplia as fontes, mas também o tempo e o contexto da comparação. |
+| `MAX_EVIDENCE_SNIPPET_CHARS` | Máximo de caracteres de cada trecho enviado à LLM; padrão `1200`. |
+| `MAX_EVIDENCE_REPORT_SNIPPET_CHARS` | Máximo de caracteres exibidos por evidência no relatório; padrão `500`. O relatório tenta mostrar a frase com maior sobreposição literal à alegação. |
 | `MAX_EVIDENCE_SNIPPET_CHARS` | Máximo de caracteres por trecho no contexto; padrão `600`. |
 | `OPENAI_API_KEY` | Compatibilidade opcional; não é necessária para usar Ollama. |
 | `GOOGLE_FACT_CHECK_KEY` | Opcional; habilita busca de checagens existentes. |

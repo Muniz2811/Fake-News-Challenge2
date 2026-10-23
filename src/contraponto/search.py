@@ -36,7 +36,9 @@ class Evidencia:
 #  Listas de domínios para classificação objetiva de fonte            #
 # ------------------------------------------------------------------ #
 
-_DOMINIOS_OFICIAIS = (".gov.br", ".gov", ".edu", ".edu.br", ".org.br")
+_DOMINIOS_OFICIAIS = (
+    ".gov.br", ".gov", ".edu", ".edu.br", ".org.br", ".jus.br",
+)
 
 _AGENCIAS_FACTCHECK = (
     "lupa",
@@ -61,6 +63,7 @@ _DOMINIOS_NEWS = (
     "estadao.com.br",
     "bbc.com",
     "bbc.co.uk",
+    "dw.com",
     "reuters.com",
     "apnews.com",
     "cnn.com",
@@ -212,7 +215,7 @@ class TavilySearchAdapter(WebSearchProvider):
         self.ultimo_erro: str | None = None
 
     def buscar_evidencias_por_alegacao(
-        self, alegacao: str, max_results: int = 5
+        self, alegacao: str, max_results: int = 8
     ) -> list[Evidencia]:
         """Recebe UMA alegação isolada e devolve evidências normalizadas da Tavily.
 

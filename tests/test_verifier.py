@@ -209,8 +209,54 @@ class TestVerifier(unittest.TestCase):
         evs = [evidence()]
         data = payload(evs, ["apoia"])
         result, _ = self.verify_model(evs, data)
+        self.assertIn(evs[0].title, result.justificativa)
         self.assertIn(evs[0].snippet, result.justificativa)
         self.assertEqual(result.fontes_citadas, [evs[0].url])
+
+    def test_report_uses_the_source_sentence_most_related_to_claim(self):
+        claim = Alegacao(3, "As eleições de 2026 ocorreram em 4 de outubro")
+        ev = Evidencia(
+            title="Calendário eleitoral", url="https://tse.jus.br/calendario",
+            publisher="TSE",
+            snippet=(
+                "Navegação e informações gerais da Justiça Eleitoral. "
+                "As Eleições 2026 acontecerão no dia 4 de outubro, primeiro "
+                "domingo do mês. Consulte as demais datas do calendário."
+            ),
+            source_type="official",
+        )
+        client = MagicMock()
+        client.chat.completions.create.return_value = response(payload([ev], ["apoia"]))
+        result = VerificadorAlegacoes(client).verificar_alegacao(claim, [ev])
+        self.assertIn("acontecerão no dia 4 de outubro", result.justificativa)
+        self.assertNotIn("Navegação e informações gerais", result.justificativa)
+
+    def test_homonym_with_an_extra_surname_is_excluded(self):
+        alegacao = Alegacao(
+            2, "Luiz Inacio Lula da Silva morreu hoje em 16 de outubro de 2026",
+        )
+        homonimo = Evidencia(
+            title="Nota de pesar: Luiz Inácio Silva Rocha",
+            url="https://universidade.example/nota", publisher="Universidade",
+            snippet="Comunicado sobre o falecimento de Luiz Inácio Silva Rocha.",
+            source_type="secondary", relevance_score=0.99,
+        )
+        fonte_relevante = Evidencia(
+            title="Teoria falsa de que Lula morreu", url="https://dw.com/checagem",
+            publisher="DW", snippet="A reportagem desmente a teoria de que Lula morreu.",
+            source_type="news", relevance_score=0.70,
+        )
+        client = MagicMock()
+        client.chat.completions.create.return_value = response(
+            payload([fonte_relevante], ["refuta"]),
+        )
+        result = VerificadorAlegacoes(client=client).verificar_alegacao(
+            alegacao, [homonimo, fonte_relevante],
+        )
+        self.assertEqual(result.categoria, "refutada")
+        self.assertEqual(result.fontes_citadas, [fonte_relevante.url])
+        contexto = client.chat.completions.create.call_args.kwargs["messages"][1]["content"]
+        self.assertNotIn("Rocha", contexto)
 
     def test_social_platforms_are_excluded_and_report_excerpt_is_compact(self):
         social = Evidencia(
@@ -233,7 +279,8 @@ class TestVerifier(unittest.TestCase):
         self.assertNotIn("instagram", resultado.justificativa.casefold())
         self.assertNotIn(oficial.url, resultado.justificativa)
         texto_publicado = resultado.justificativa.split("] ", 1)[1]
-        self.assertLessEqual(len(texto_publicado), 280)
+        # O trecho pode conter até 500 caracteres, além do título da fonte.
+        self.assertLessEqual(len(texto_publicado), 550)
         contexto = client.chat.completions.create.call_args.kwargs["messages"][1]["content"]
         self.assertNotIn("instagram.com", contexto)
 
@@ -321,11 +368,18 @@ class TestMotor(unittest.IsolatedAsyncioTestCase):
         # Importa o consumidor real com apenas a dependência Telegram simulada.
         telegram = types.ModuleType("telegram")
         ext = types.ModuleType("telegram.ext")
+        error = types.ModuleType("telegram.error")
         for name in ["InlineKeyboardButton", "InlineKeyboardMarkup", "Update"]:
             setattr(telegram, name, MagicMock())
-        for name in ["ApplicationBuilder", "CommandHandler", "ContextTypes", "MessageHandler", "filters"]:
+        error.BadRequest = MagicMock()
+        for name in [
+            "ApplicationBuilder", "CallbackQueryHandler", "CommandHandler",
+            "ContextTypes", "MessageHandler", "filters",
+        ]:
             setattr(ext, name, MagicMock())
-        with patch.dict(sys.modules, {"telegram": telegram, "telegram.ext": ext}):
+        with patch.dict(sys.modules, {
+            "telegram": telegram, "telegram.error": error, "telegram.ext": ext,
+        }):
             from bot import BotTelegram
             report = BotTelegram._formatar_relatorio(result)
         for verdict in result.vereditos:
